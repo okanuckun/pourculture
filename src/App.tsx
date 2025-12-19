@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import ExploreCategory from "./pages/ExploreCategory";
 import News from "./pages/News";
+import AboutNaturalWine from "./pages/AboutNaturalWine";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import MyEvents from "./pages/MyEvents";
@@ -23,6 +24,7 @@ const App = () => (
       <Route path="/discover" element={<Discover />} />
       <Route path="/explore/:category" element={<ExploreCategory />} />
       <Route path="/news" element={<News />} />
+      <Route path="/about/natural-wine" element={<AboutNaturalWine />} />
       <Route path="/event/:id" element={<Index />} />
       <Route path="/event/:id/edit" element={<EditEvent />} />
       <Route path="/my-events" element={<MyEvents />} />
