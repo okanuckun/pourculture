@@ -202,7 +202,7 @@ const RaisinHome = () => {
                 city={fair.city}
                 country={fair.country}
                 isProOnly={fair.is_pro_only}
-                onClick={() => navigate(`/event/${fair.slug}`)}
+                onClick={() => navigate(`/wine-fair/${fair.slug}`)}
               />
             )) : (
               <p className="col-span-full text-center text-muted-foreground py-12">
