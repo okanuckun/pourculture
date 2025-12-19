@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      countries: {
+        Row: {
+          flag_emoji: string | null
+          id: string
+          name: string
+          slug: string
+          venue_count: number | null
+        }
+        Insert: {
+          flag_emoji?: string | null
+          id?: string
+          name: string
+          slug: string
+          venue_count?: number | null
+        }
+        Update: {
+          flag_emoji?: string | null
+          id?: string
+          name?: string
+          slug?: string
+          venue_count?: number | null
+        }
+        Relationships: []
+      }
       event_registrations: {
         Row: {
           event_id: string
@@ -82,6 +106,51 @@ export type Database = {
         }
         Relationships: []
       }
+      news: {
+        Row: {
+          author: string | null
+          content: string | null
+          created_at: string
+          created_by: string | null
+          excerpt: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean | null
+          published_at: string | null
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          published_at?: string | null
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string | null
+          content?: string | null
+          created_at?: string
+          created_by?: string | null
+          excerpt?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean | null
+          published_at?: string | null
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -127,6 +196,189 @@ export type Database = {
         }
         Relationships: []
       }
+      venues: {
+        Row: {
+          address: string
+          category: Database["public"]["Enums"]["venue_category"]
+          city: string
+          country: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          email: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_open: boolean | null
+          latitude: number | null
+          longitude: number | null
+          name: string
+          opening_hours: Json | null
+          phone: string | null
+          slug: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          address: string
+          category: Database["public"]["Enums"]["venue_category"]
+          city: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_open?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name: string
+          opening_hours?: Json | null
+          phone?: string | null
+          slug: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          address?: string
+          category?: Database["public"]["Enums"]["venue_category"]
+          city?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          email?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_open?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          name?: string
+          opening_hours?: Json | null
+          phone?: string | null
+          slug?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
+      wine_fairs: {
+        Row: {
+          city: string
+          country: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          is_pro_only: boolean | null
+          latitude: number | null
+          longitude: number | null
+          poster_url: string | null
+          price: string | null
+          slug: string
+          start_date: string
+          ticket_url: string | null
+          title: string
+          updated_at: string
+          venue_name: string | null
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_pro_only?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          poster_url?: string | null
+          price?: string | null
+          slug: string
+          start_date: string
+          ticket_url?: string | null
+          title: string
+          updated_at?: string
+          venue_name?: string | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          is_pro_only?: boolean | null
+          latitude?: number | null
+          longitude?: number | null
+          poster_url?: string | null
+          price?: string | null
+          slug?: string
+          start_date?: string
+          ticket_url?: string | null
+          title?: string
+          updated_at?: string
+          venue_name?: string | null
+        }
+        Relationships: []
+      }
+      winemakers: {
+        Row: {
+          bio: string | null
+          country: string
+          created_at: string
+          created_by: string | null
+          domain_name: string | null
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          is_new: boolean | null
+          name: string
+          region: string | null
+          slug: string
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          bio?: string | null
+          country: string
+          created_at?: string
+          created_by?: string | null
+          domain_name?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_new?: boolean | null
+          name: string
+          region?: string | null
+          slug: string
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          bio?: string | null
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          domain_name?: string | null
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          is_new?: boolean | null
+          name?: string
+          region?: string | null
+          slug?: string
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -142,6 +394,12 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "user"
+      venue_category:
+        | "restaurant"
+        | "bar"
+        | "wine_shop"
+        | "accommodation"
+        | "winemaker"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -270,6 +528,13 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "user"],
+      venue_category: [
+        "restaurant",
+        "bar",
+        "wine_shop",
+        "accommodation",
+        "winemaker",
+      ],
     },
   },
 } as const
