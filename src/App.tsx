@@ -14,6 +14,7 @@ import SubmitWineFair from "./pages/SubmitWineFair";
 import VenueDetail from "./pages/VenueDetail";
 import WinemakerDetail from "./pages/WinemakerDetail";
 import WineFairDetail from "./pages/WineFairDetail";
+import NewsDetail from "./pages/NewsDetail";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import MyEvents from "./pages/MyEvents";
@@ -37,6 +38,7 @@ const App = () => (
       <Route path="/venue/:slug" element={<VenueDetail />} />
       <Route path="/winemaker/:slug" element={<WinemakerDetail />} />
       <Route path="/wine-fair/:slug" element={<WineFairDetail />} />
+      <Route path="/news/:slug" element={<NewsDetail />} />
       <Route path="/event/:id" element={<Index />} />
       <Route path="/event/:id/edit" element={<EditEvent />} />
       <Route path="/my-events" element={<MyEvents />} />
