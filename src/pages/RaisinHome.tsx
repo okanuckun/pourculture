@@ -65,9 +65,9 @@ const RaisinHome = () => {
   return (
     <div className="min-h-screen bg-background">
       <SEOHead 
-        title="Raisin - Natural Wine & Food Lovers"
-        description="Discover natural wine bars, restaurants, wine shops and winemakers near you."
-        keywords="natural wine, organic wine, wine bars, restaurants, winemakers"
+        title="RAW CELLAR - Natural Wine & Food Lovers"
+        description="Discover natural wine bars, restaurants, wine shops and winemakers near you. RAW CELLAR is your guide to the best natural wine spots."
+        keywords="natural wine, organic wine, wine bars, restaurants, winemakers, raw cellar"
       />
       <RaisinNavbar />
 
@@ -105,7 +105,7 @@ const RaisinHome = () => {
               <p className="section-header">LOCAL & UNIQUE BARS, RESTAURANT & WINE SHOPS</p>
               <h2 className="section-title">FEATURED VENUES NEARBY IN {userCity.toUpperCase()}</h2>
               <p className="text-muted-foreground max-w-2xl">
-                When looking for local, seasonal and organic restaurants, bars and wine shops, Raisin is your best option.
+                When looking for local, seasonal and organic restaurants, bars and wine shops, RAW CELLAR is your best option.
               </p>
             </div>
             <button 
@@ -266,7 +266,7 @@ const RaisinHome = () => {
       {/* Footer */}
       <footer className="py-12 px-4 md:px-8 border-t border-border">
         <div className="max-w-7xl mx-auto text-center text-muted-foreground text-sm">
-          <p>© 2025 Raisin. Natural Wine & Food Lovers.</p>
+          <p>© 2025 RAW CELLAR. Natural Wine & Food Lovers.</p>
         </div>
       </footer>
     </div>
