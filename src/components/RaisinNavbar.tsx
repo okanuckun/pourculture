@@ -76,10 +76,10 @@ export const RaisinNavbar: React.FC = () => {
                   <DropdownMenuItem onClick={() => navigate('/explore/accommodations')}>
                     Accommodations
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/winemakers')}>
+                  <DropdownMenuItem onClick={() => navigate('/explore/winemakers')}>
                     Winemakers
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/events')}>
+                  <DropdownMenuItem onClick={() => navigate('/explore/events')}>
                     Events
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -92,10 +92,10 @@ export const RaisinNavbar: React.FC = () => {
                   <ChevronDown className="w-4 h-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/natural-wine/what-is-it')}>
+                  <DropdownMenuItem onClick={() => navigate('/about/natural-wine')}>
                     What is Natural Wine?
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/winemakers')}>
+                  <DropdownMenuItem onClick={() => navigate('/explore/winemakers')}>
                     Winemakers
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/news')}>
@@ -187,14 +187,14 @@ export const RaisinNavbar: React.FC = () => {
                 Explore
               </Link>
               <Link 
-                to="/winemakers" 
+                to="/explore/winemakers" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-2 text-sm font-medium text-foreground"
               >
                 Winemakers
               </Link>
               <Link 
-                to="/events" 
+                to="/explore/events" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-2 text-sm font-medium text-foreground"
               >

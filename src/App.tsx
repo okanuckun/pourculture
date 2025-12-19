@@ -5,6 +5,7 @@ import { Routes, Route } from "react-router-dom";
 import RaisinHome from "./pages/RaisinHome";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
+import ExploreCategory from "./pages/ExploreCategory";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import MyEvents from "./pages/MyEvents";
@@ -19,6 +20,7 @@ const App = () => (
     <Routes>
       <Route path="/" element={<RaisinHome />} />
       <Route path="/discover" element={<Discover />} />
+      <Route path="/explore/:category" element={<ExploreCategory />} />
       <Route path="/event/:id" element={<Index />} />
       <Route path="/event/:id/edit" element={<EditEvent />} />
       <Route path="/my-events" element={<MyEvents />} />
