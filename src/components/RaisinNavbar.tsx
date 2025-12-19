@@ -46,13 +46,12 @@ export const RaisinNavbar: React.FC = () => {
           <div className="flex items-center justify-between h-14 md:h-16">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center">
-                <Wine className="w-4 h-4 text-accent-foreground" />
+              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                <Wine className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-display text-lg font-semibold tracking-tight">
-                <span className="text-foreground">RAISIN</span>
-                <span className="text-primary ml-1 hidden sm:inline">NATURAL WINE</span>
-                <span className="text-muted-foreground ml-1 hidden sm:inline">& FOOD LOVERS!</span>
+              <span className="font-display text-xl font-bold tracking-tight">
+                <span className="text-foreground">RAW</span>
+                <span className="text-primary ml-1">CELLAR</span>
               </span>
             </Link>
 
