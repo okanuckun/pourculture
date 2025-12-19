@@ -12,6 +12,7 @@ import SubmitVenue from "./pages/SubmitVenue";
 import SubmitWinemaker from "./pages/SubmitWinemaker";
 import SubmitWineFair from "./pages/SubmitWineFair";
 import VenueDetail from "./pages/VenueDetail";
+import WinemakerDetail from "./pages/WinemakerDetail";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
 import MyEvents from "./pages/MyEvents";
@@ -33,6 +34,7 @@ const App = () => (
       <Route path="/submit/winemaker" element={<SubmitWinemaker />} />
       <Route path="/submit/event" element={<SubmitWineFair />} />
       <Route path="/venue/:slug" element={<VenueDetail />} />
+      <Route path="/winemaker/:slug" element={<WinemakerDetail />} />
       <Route path="/event/:id" element={<Index />} />
       <Route path="/event/:id/edit" element={<EditEvent />} />
       <Route path="/my-events" element={<MyEvents />} />
