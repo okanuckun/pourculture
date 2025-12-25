@@ -61,11 +61,12 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom Raisin colors
+        // Custom pourculture colors
         wine: {
           red: "hsl(var(--wine-red))",
           rose: "hsl(var(--wine-rose))",
           white: "hsl(var(--wine-white))",
+          orange: "hsl(var(--wine-orange))",
         },
         status: {
           open: "hsl(var(--status-open))",
