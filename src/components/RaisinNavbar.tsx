@@ -49,9 +49,8 @@ export const RaisinNavbar: React.FC = () => {
               <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
                 <Wine className="w-4 h-4 text-primary-foreground" />
               </div>
-              <span className="font-display text-xl font-bold tracking-tight">
-                <span className="text-foreground">RAW</span>
-                <span className="text-primary ml-1">CELLAR</span>
+              <span className="font-display text-xl font-bold tracking-tight text-foreground">
+                pourculture
               </span>
             </Link>
 
