@@ -2,110 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Raisin-style Design System
-   Primary: Green (natural wine theme)
-   Accent: Orange/coral (warmth)
-   Background: Warm cream/beige
+/* pourculture Design System
+   A playful, modern, hand-drawn aesthetic for natural wine lovers
+   Primary: Deep wine burgundy (organic, warm)
+   Accent: Vibrant coral/terracotta (energy, fun)
+   Background: Soft cream with warmth
    All colors MUST be HSL.
 */
 
 @layer base {
   :root {
-    /* Raisin color palette - warm, organic, wine-inspired */
-    --background: 40 33% 98%;
-    --foreground: 0 0% 13%;
+    /* pourculture color palette - playful, organic, wine-inspired */
+    --background: 45 30% 97%;
+    --foreground: 20 15% 15%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 0 0% 13%;
+    --card: 45 40% 99%;
+    --card-foreground: 20 15% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 13%;
+    --popover: 45 40% 99%;
+    --popover-foreground: 20 15% 15%;
 
-    /* Primary - Forest Green */
-    --primary: 145 63% 32%;
-    --primary-foreground: 0 0% 100%;
+    /* Primary - Deep Burgundy Wine */
+    --primary: 340 55% 40%;
+    --primary-foreground: 45 30% 97%;
 
-    /* Secondary - Warm cream */
-    --secondary: 40 33% 96%;
-    --secondary-foreground: 0 0% 13%;
+    /* Secondary - Soft warm beige */
+    --secondary: 40 35% 94%;
+    --secondary-foreground: 20 15% 15%;
 
-    /* Muted - Light beige */
-    --muted: 40 20% 94%;
-    --muted-foreground: 0 0% 45%;
+    /* Muted - Gentle cream */
+    --muted: 40 25% 92%;
+    --muted-foreground: 20 10% 45%;
 
-    /* Accent - Coral/Orange */
-    --accent: 24 95% 53%;
-    --accent-foreground: 0 0% 100%;
+    /* Accent - Vibrant Terracotta/Coral */
+    --accent: 18 85% 55%;
+    --accent-foreground: 45 30% 97%;
 
-    /* Wine colors */
-    --wine-red: 350 70% 45%;
-    --wine-rose: 340 60% 70%;
-    --wine-white: 45 80% 90%;
+    /* Wine colors - for decorative elements */
+    --wine-red: 350 65% 42%;
+    --wine-rose: 345 55% 68%;
+    --wine-white: 48 75% 88%;
+    --wine-orange: 25 90% 58%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 100%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 45 30% 97%;
 
-    --border: 40 20% 88%;
-    --input: 40 20% 88%;
-    --ring: 145 63% 32%;
+    --border: 40 25% 88%;
+    --input: 40 25% 90%;
+    --ring: 340 55% 40%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
 
     /* Map colors */
-    --map-bg: 40 33% 96%;
+    --map-bg: 45 30% 95%;
     
     /* Status colors */
-    --status-open: 145 63% 42%;
-    --status-closed: 0 65% 51%;
+    --status-open: 155 60% 40%;
+    --status-closed: 0 60% 50%;
 
     /* Sidebar */
-    --sidebar-background: 40 33% 97%;
-    --sidebar-foreground: 0 0% 13%;
-    --sidebar-primary: 145 63% 32%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 40 33% 94%;
-    --sidebar-accent-foreground: 0 0% 13%;
-    --sidebar-border: 40 20% 88%;
-    --sidebar-ring: 145 63% 32%;
+    --sidebar-background: 45 30% 96%;
+    --sidebar-foreground: 20 15% 15%;
+    --sidebar-primary: 340 55% 40%;
+    --sidebar-primary-foreground: 45 30% 97%;
+    --sidebar-accent: 40 35% 92%;
+    --sidebar-accent-foreground: 20 15% 15%;
+    --sidebar-border: 40 25% 88%;
+    --sidebar-ring: 340 55% 40%;
   }
 
   .dark {
-    --background: 0 0% 8%;
-    --foreground: 40 33% 96%;
+    --background: 20 15% 8%;
+    --foreground: 45 30% 94%;
 
-    --card: 0 0% 12%;
-    --card-foreground: 40 33% 96%;
+    --card: 20 12% 12%;
+    --card-foreground: 45 30% 94%;
 
-    --popover: 0 0% 12%;
-    --popover-foreground: 40 33% 96%;
+    --popover: 20 12% 12%;
+    --popover-foreground: 45 30% 94%;
 
-    --primary: 145 63% 45%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 340 50% 50%;
+    --primary-foreground: 45 30% 97%;
 
-    --secondary: 0 0% 15%;
-    --secondary-foreground: 40 33% 96%;
+    --secondary: 20 10% 16%;
+    --secondary-foreground: 45 30% 94%;
 
-    --muted: 0 0% 18%;
-    --muted-foreground: 40 20% 65%;
+    --muted: 20 8% 20%;
+    --muted-foreground: 40 15% 60%;
 
-    --accent: 24 95% 58%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 18 80% 58%;
+    --accent-foreground: 45 30% 97%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 40 33% 96%;
+    --destructive: 0 65% 45%;
+    --destructive-foreground: 45 30% 97%;
 
-    --border: 0 0% 20%;
-    --input: 0 0% 20%;
-    --ring: 145 63% 45%;
+    --border: 20 10% 22%;
+    --input: 20 10% 22%;
+    --ring: 340 50% 50%;
 
-    --sidebar-background: 0 0% 10%;
-    --sidebar-foreground: 40 33% 96%;
-    --sidebar-primary: 145 63% 45%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 15%;
-    --sidebar-accent-foreground: 40 33% 96%;
-    --sidebar-border: 0 0% 20%;
-    --sidebar-ring: 145 63% 45%;
+    --sidebar-background: 20 12% 10%;
+    --sidebar-foreground: 45 30% 94%;
+    --sidebar-primary: 340 50% 50%;
+    --sidebar-primary-foreground: 45 30% 97%;
+    --sidebar-accent: 20 10% 16%;
+    --sidebar-accent-foreground: 45 30% 94%;
+    --sidebar-border: 20 10% 22%;
+    --sidebar-ring: 340 50% 50%;
   }
 }
 
