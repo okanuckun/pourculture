@@ -11,6 +11,7 @@ interface CountryData {
   specialties: string[];
   description: string;
   emoji: string;
+  color: string;
 }
 
 const countryData: Record<string, CountryData> = {
@@ -22,7 +23,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 156,
     specialties: ['Burgundy', 'Bordeaux', 'Champagne'],
     description: 'The heart of natural wine movement with centuries of winemaking tradition.',
-    emoji: '🇫🇷'
+    emoji: '🇫🇷',
+    color: '#7CB342'
   },
   italy: {
     id: 'italy',
@@ -32,7 +34,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 124,
     specialties: ['Chianti', 'Barolo', 'Prosecco'],
     description: 'Ancient wine culture with innovative natural producers.',
-    emoji: '🇮🇹'
+    emoji: '🇮🇹',
+    color: '#7CB342'
   },
   spain: {
     id: 'spain',
@@ -42,7 +45,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 89,
     specialties: ['Rioja', 'Priorat', 'Cava'],
     description: 'Bold flavors and passionate winemakers pushing boundaries.',
-    emoji: '🇪🇸'
+    emoji: '🇪🇸',
+    color: '#7CB342'
   },
   germany: {
     id: 'germany',
@@ -52,7 +56,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 67,
     specialties: ['Riesling', 'Spätburgunder', 'Silvaner'],
     description: 'Precise craftsmanship meets natural philosophy.',
-    emoji: '🇩🇪'
+    emoji: '🇩🇪',
+    color: '#7CB342'
   },
   portugal: {
     id: 'portugal',
@@ -62,7 +67,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 45,
     specialties: ['Douro', 'Vinho Verde', 'Alentejo'],
     description: 'Hidden gem with indigenous grapes and authentic traditions.',
-    emoji: '🇵🇹'
+    emoji: '🇵🇹',
+    color: '#7CB342'
   },
   usa: {
     id: 'usa',
@@ -70,9 +76,10 @@ const countryData: Record<string, CountryData> = {
     slug: 'usa',
     vineyards: 35,
     wineBars: 112,
-    specialties: ['Napa Valley', 'Oregon Pinot', 'Finger Lakes'],
+    specialties: ['Napa Valley', 'Oregon Pinot', 'Sonoma'],
     description: 'New world pioneers embracing natural winemaking.',
-    emoji: '🇺🇸'
+    emoji: '🇺🇸',
+    color: '#66BB6A'
   },
   argentina: {
     id: 'argentina',
@@ -82,7 +89,8 @@ const countryData: Record<string, CountryData> = {
     wineBars: 38,
     specialties: ['Malbec', 'Mendoza', 'Patagonia'],
     description: 'High altitude vineyards producing exceptional natural wines.',
-    emoji: '🇦🇷'
+    emoji: '🇦🇷',
+    color: '#FF9800'
   },
   chile: {
     id: 'chile',
@@ -92,7 +100,19 @@ const countryData: Record<string, CountryData> = {
     wineBars: 28,
     specialties: ['Carménère', 'Valle Central', 'Casablanca'],
     description: 'Unique terroir between Andes and Pacific.',
-    emoji: '🇨🇱'
+    emoji: '🇨🇱',
+    color: '#FF9800'
+  },
+  brazil: {
+    id: 'brazil',
+    name: 'Brazil',
+    slug: 'brazil',
+    vineyards: 8,
+    wineBars: 22,
+    specialties: ['Serra Gaúcha', 'Vale dos Vinhedos'],
+    description: 'Emerging natural wine scene in South America.',
+    emoji: '🇧🇷',
+    color: '#FF9800'
   },
   australia: {
     id: 'australia',
@@ -100,39 +120,10 @@ const countryData: Record<string, CountryData> = {
     slug: 'australia',
     vineyards: 20,
     wineBars: 52,
-    specialties: ['Barossa Valley', 'McLaren Vale', 'Yarra Valley'],
+    specialties: ['Barossa', 'McLaren Vale', 'Yarra'],
     description: 'Bold innovation in the natural wine scene.',
-    emoji: '🇦🇺'
-  },
-  japan: {
-    id: 'japan',
-    name: 'Japan',
-    slug: 'japan',
-    vineyards: 12,
-    wineBars: 78,
-    specialties: ['Koshu', 'Yamanashi', 'Hokkaido'],
-    description: 'Delicate and precise natural wines with unique character.',
-    emoji: '🇯🇵'
-  },
-  turkey: {
-    id: 'turkey',
-    name: 'Turkey',
-    slug: 'turkey',
-    vineyards: 8,
-    wineBars: 24,
-    specialties: ['Öküzgözü', 'Boğazkere', 'Kalecik Karası'],
-    description: 'Ancient winemaking heritage reborn with natural methods.',
-    emoji: '🇹🇷'
-  },
-  southafrica: {
-    id: 'southafrica',
-    name: 'South Africa',
-    slug: 'south-africa',
-    vineyards: 14,
-    wineBars: 32,
-    specialties: ['Stellenbosch', 'Chenin Blanc', 'Pinotage'],
-    description: 'Exciting natural wine revolution in the Cape.',
-    emoji: '🇿🇦'
+    emoji: '🇦🇺',
+    color: '#9C27B0'
   },
   newzealand: {
     id: 'newzealand',
@@ -140,9 +131,32 @@ const countryData: Record<string, CountryData> = {
     slug: 'new-zealand',
     vineyards: 10,
     wineBars: 25,
-    specialties: ['Marlborough', 'Central Otago', 'Hawke\'s Bay'],
+    specialties: ['Marlborough', 'Central Otago'],
     description: 'Pure expressions from pristine landscapes.',
-    emoji: '🇳🇿'
+    emoji: '🇳🇿',
+    color: '#9C27B0'
+  },
+  japan: {
+    id: 'japan',
+    name: 'Japan',
+    slug: 'japan',
+    vineyards: 12,
+    wineBars: 78,
+    specialties: ['Koshu', 'Yamanashi'],
+    description: 'Delicate and precise natural wines.',
+    emoji: '🇯🇵',
+    color: '#E91E63'
+  },
+  southafrica: {
+    id: 'southafrica',
+    name: 'South Africa',
+    slug: 'south-africa',
+    vineyards: 14,
+    wineBars: 32,
+    specialties: ['Stellenbosch', 'Swartland'],
+    description: 'Exciting natural wine revolution in the Cape.',
+    emoji: '🇿🇦',
+    color: '#FDD835'
   },
   austria: {
     id: 'austria',
@@ -150,9 +164,10 @@ const countryData: Record<string, CountryData> = {
     slug: 'austria',
     vineyards: 16,
     wineBars: 42,
-    specialties: ['Grüner Veltliner', 'Wachau', 'Burgenland'],
-    description: 'Pioneers of the natural wine movement in Europe.',
-    emoji: '🇦🇹'
+    specialties: ['Grüner Veltliner', 'Wachau'],
+    description: 'Pioneers of the natural wine movement.',
+    emoji: '🇦🇹',
+    color: '#7CB342'
   },
   greece: {
     id: 'greece',
@@ -160,111 +175,22 @@ const countryData: Record<string, CountryData> = {
     slug: 'greece',
     vineyards: 11,
     wineBars: 29,
-    specialties: ['Assyrtiko', 'Santorini', 'Nemea'],
-    description: 'Ancient varieties revived with modern natural techniques.',
-    emoji: '🇬🇷'
+    specialties: ['Assyrtiko', 'Santorini'],
+    description: 'Ancient varieties revived with natural techniques.',
+    emoji: '🇬🇷',
+    color: '#7CB342'
+  },
+  georgia: {
+    id: 'georgia',
+    name: 'Georgia',
+    slug: 'georgia',
+    vineyards: 18,
+    wineBars: 35,
+    specialties: ['Qvevri', 'Saperavi', 'Rkatsiteli'],
+    description: '8000 years of winemaking tradition.',
+    emoji: '🇬🇪',
+    color: '#E91E63'
   }
-};
-
-// Realistic country paths based on simplified world map projections
-const countryPaths: Record<string, string> = {
-  // North America
-  usa: "M55,115 L60,105 L80,100 L120,95 L160,100 L190,105 L210,115 L215,125 L210,140 L195,155 L175,165 L150,170 L120,168 L90,160 L65,150 L50,140 L45,130 L50,120 Z",
-  
-  // South America
-  argentina: "M150,340 L155,320 L165,305 L175,295 L180,310 L178,340 L175,370 L170,395 L160,410 L150,405 L145,385 L148,360 Z",
-  chile: "M140,295 L145,280 L150,290 L155,310 L155,340 L152,370 L148,395 L142,410 L135,400 L138,370 L140,340 L138,310 Z",
-  
-  // Europe - more detailed
-  portugal: "M392,170 L395,162 L400,158 L405,162 L407,172 L405,185 L400,192 L394,188 L391,180 Z",
-  spain: "M400,155 L420,150 L445,155 L455,165 L450,180 L435,190 L415,192 L400,188 L395,175 L398,162 Z",
-  france: "M420,130 L445,125 L465,130 L475,145 L470,160 L455,165 L435,160 L420,150 L415,140 Z",
-  germany: "M455,115 L475,110 L490,115 L495,130 L490,145 L475,150 L460,145 L455,130 Z",
-  italy: "M470,150 L480,145 L490,150 L495,165 L490,180 L480,195 L475,210 L468,205 L465,190 L468,175 L465,160 Z",
-  austria: "M475,135 L495,132 L510,138 L508,148 L495,152 L480,150 L475,142 Z",
-  greece: "M505,175 L520,170 L530,178 L528,190 L520,198 L508,195 L502,185 Z",
-  
-  // Turkey and Middle East
-  turkey: "M525,160 L560,155 L590,162 L600,172 L595,182 L575,188 L550,185 L530,180 L522,172 Z",
-  
-  // Africa
-  southafrica: "M500,360 L530,350 L550,360 L555,385 L545,405 L520,415 L495,405 L490,385 L495,365 Z",
-  
-  // Asia
-  japan: "M820,145 L830,135 L840,140 L845,155 L842,175 L835,190 L825,188 L820,175 L818,160 Z",
-  
-  // Oceania
-  australia: "M750,320 L790,310 L830,315 L860,330 L870,360 L855,390 L820,405 L780,400 L750,380 L740,350 L745,330 Z",
-  newzealand: "M890,390 L900,385 L910,392 L912,405 L905,420 L895,425 L888,415 L885,400 Z"
-};
-
-// Non-wine countries (background continents)
-const continentPaths = {
-  northAmerica: "M40,80 L50,60 L90,45 L140,40 L180,50 L220,70 L230,100 L225,130 L215,160 L190,180 L160,190 L130,188 L100,180 L70,165 L45,145 L35,120 L38,95 Z",
-  centralAmerica: "M130,195 L150,190 L170,200 L175,220 L165,240 L145,250 L130,245 L125,225 L128,205 Z",
-  southAmericaOther: "M150,255 L180,250 L200,270 L210,300 L205,340 L190,370 L175,390 L160,395 L145,380 L140,340 L145,300 L148,270 Z",
-  uk: "M410,105 L425,100 L435,108 L432,120 L420,125 L410,118 Z",
-  scandinavia: "M470,60 L490,50 L520,55 L540,80 L535,105 L515,115 L495,110 L480,95 L475,75 Z",
-  russia: "M540,50 L620,40 L720,50 L800,70 L850,100 L860,130 L840,160 L780,170 L700,165 L620,155 L560,140 L530,120 L525,90 L530,60 Z",
-  africa: "M440,210 L480,195 L520,200 L560,210 L590,240 L600,290 L590,340 L560,380 L520,400 L480,395 L450,370 L430,330 L425,280 L430,240 Z",
-  middleEast: "M560,180 L610,175 L650,190 L660,220 L640,250 L600,255 L565,240 L555,210 Z",
-  india: "M640,200 L680,195 L710,220 L720,260 L700,300 L660,310 L630,290 L625,250 L630,220 Z",
-  china: "M700,120 L780,110 L830,130 L850,170 L830,210 L780,230 L720,225 L680,200 L675,160 L685,135 Z",
-  southeastAsia: "M730,240 L780,235 L820,250 L830,290 L800,320 L760,315 L735,290 L730,260 Z",
-  indonesia: "M760,320 L820,315 L870,330 L880,350 L850,365 L800,360 L760,345 Z"
-};
-
-interface CountryShapeProps {
-  d: string;
-  countryId: string;
-  isSelected: boolean;
-  isHovered: boolean;
-  onSelect: (id: string) => void;
-  onHover: (id: string | null) => void;
-  hasWineData: boolean;
-}
-
-const CountryShape: React.FC<CountryShapeProps> = ({ 
-  d, 
-  countryId, 
-  isSelected, 
-  isHovered,
-  onSelect, 
-  onHover,
-  hasWineData 
-}) => {
-  const baseColor = hasWineData 
-    ? isSelected 
-      ? 'hsl(18, 85%, 55%)' // accent
-      : isHovered 
-        ? 'hsl(340, 55%, 45%)' // primary hover
-        : 'hsl(340, 55%, 40%)' // primary
-    : 'hsl(40, 25%, 85%)'; // muted for non-wine countries
-
-  return (
-    <motion.path
-      d={d}
-      className={hasWineData ? "cursor-pointer" : "cursor-default"}
-      fill={baseColor}
-      stroke={hasWineData ? "hsl(20, 15%, 25%)" : "hsl(40, 20%, 75%)"}
-      strokeWidth={hasWineData ? (isHovered || isSelected ? 2.5 : 1.5) : 0.8}
-      strokeLinejoin="round"
-      strokeLinecap="round"
-      onMouseEnter={() => hasWineData && onHover(countryId)}
-      onMouseLeave={() => onHover(null)}
-      onClick={() => hasWineData && onSelect(countryId)}
-      initial={false}
-      animate={{
-        scale: isHovered || isSelected ? 1.02 : 1,
-        filter: isHovered || isSelected ? 'drop-shadow(0 4px 8px rgba(0,0,0,0.2))' : 'none',
-      }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      style={{
-        transformOrigin: 'center',
-        transformBox: 'fill-box'
-      }}
-    />
-  );
 };
 
 interface HandDrawnWorldMapProps {
@@ -278,7 +204,7 @@ export const HandDrawnWorldMap: React.FC<HandDrawnWorldMapProps> = ({
 }) => {
   const [hoveredCountry, setHoveredCountry] = useState<string | null>(null);
 
-  const handleCountrySelect = (countryId: string) => {
+  const handleCountryClick = (countryId: string) => {
     if (selectedCountry === countryId) {
       onCountrySelect(null);
     } else {
@@ -286,113 +212,468 @@ export const HandDrawnWorldMap: React.FC<HandDrawnWorldMapProps> = ({
     }
   };
 
+  const isCountryActive = (id: string) => selectedCountry === id || hoveredCountry === id;
+
   return (
     <div className="relative w-full h-full">
       <svg
-        viewBox="0 0 950 450"
+        viewBox="0 0 1000 550"
         className="w-full h-full"
         preserveAspectRatio="xMidYMid meet"
       >
-        <defs>
-          {/* Subtle paper texture */}
-          <filter id="paper" x="0%" y="0%" width="100%" height="100%">
-            <feTurbulence type="fractalNoise" baseFrequency="0.04" numOctaves="3" result="noise"/>
-            <feDiffuseLighting in="noise" lightingColor="white" surfaceScale="1" result="light">
-              <feDistantLight azimuth="45" elevation="60"/>
-            </feDiffuseLighting>
-            <feBlend in="SourceGraphic" in2="light" mode="multiply"/>
-          </filter>
-          
-          {/* Glow effect for selected countries */}
-          <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
-
-        {/* Ocean background */}
-        <rect width="100%" height="100%" fill="hsl(200, 30%, 92%)" rx="16"/>
+        {/* Ocean Background */}
+        <rect width="100%" height="100%" fill="#4DD0E1" rx="20"/>
         
-        {/* Grid lines for map feel */}
-        <g stroke="hsl(200, 20%, 85%)" strokeWidth="0.5" opacity="0.5">
-          {[...Array(9)].map((_, i) => (
-            <line key={`h${i}`} x1="0" y1={i * 50 + 25} x2="950" y2={i * 50 + 25} />
-          ))}
-          {[...Array(19)].map((_, i) => (
-            <line key={`v${i}`} x1={i * 50 + 25} y1="0" x2={i * 50 + 25} y2="450" />
-          ))}
-        </g>
-
-        {/* Background continents (non-wine countries) */}
-        <g className="continents">
-          {Object.entries(continentPaths).map(([key, path]) => (
+        {/* Ocean wave patterns */}
+        <g opacity="0.3">
+          {[...Array(8)].map((_, i) => (
             <path
-              key={key}
-              d={path}
-              fill="hsl(45, 25%, 88%)"
-              stroke="hsl(40, 20%, 78%)"
-              strokeWidth="0.8"
-              strokeLinejoin="round"
+              key={i}
+              d={`M${i * 130},${300 + (i % 3) * 40} Q${i * 130 + 30},${295 + (i % 3) * 40} ${i * 130 + 60},${300 + (i % 3) * 40} T${i * 130 + 120},${300 + (i % 3) * 40}`}
+              fill="none"
+              stroke="#26C6DA"
+              strokeWidth="2"
             />
           ))}
         </g>
 
-        {/* Wine-producing countries */}
-        <g className="wine-countries">
-          {Object.entries(countryPaths).map(([countryId, path]) => (
-            <CountryShape
-              key={countryId}
-              d={path}
-              countryId={countryId}
-              isSelected={selectedCountry === countryId}
-              isHovered={hoveredCountry === countryId}
-              onSelect={handleCountrySelect}
-              onHover={setHoveredCountry}
-              hasWineData={!!countryData[countryId]}
+        {/* Ocean Labels */}
+        <text x="500" y="35" textAnchor="middle" fontSize="14" fill="#00838F" fontFamily="cursive" fontStyle="italic">Arctic Ocean</text>
+        <text x="180" y="280" textAnchor="middle" fontSize="12" fill="#00838F" fontFamily="cursive" fontStyle="italic" transform="rotate(-70, 180, 280)">Pacific Ocean</text>
+        <text x="320" y="300" textAnchor="middle" fontSize="12" fill="#00838F" fontFamily="cursive" fontStyle="italic" transform="rotate(-70, 320, 300)">Atlantic Ocean</text>
+        <text x="700" y="380" textAnchor="middle" fontSize="12" fill="#00838F" fontFamily="cursive" fontStyle="italic">Indian Ocean</text>
+        <text x="850" y="200" textAnchor="middle" fontSize="11" fill="#00838F" fontFamily="cursive" fontStyle="italic" transform="rotate(-70, 850, 200)">Pacific Ocean</text>
+
+        {/* ===== NORTH AMERICA ===== */}
+        <g 
+          className="cursor-pointer transition-all duration-200"
+          onClick={() => handleCountryClick('usa')}
+          onMouseEnter={() => setHoveredCountry('usa')}
+          onMouseLeave={() => setHoveredCountry(null)}
+        >
+          <path
+            d="M50,60 Q80,45 130,40 L200,38 Q260,42 300,55 L320,75 L310,95 L280,115 L250,130 L200,145 L150,150 L100,145 L60,130 L40,110 L35,85 Z"
+            fill={isCountryActive('usa') ? '#81C784' : '#66BB6A'}
+            stroke="white"
+            strokeWidth="3"
+            className="transition-all duration-200"
+          />
+          {/* Canada attached */}
+          <path
+            d="M50,60 Q90,35 150,25 L220,22 Q280,28 340,40 L360,55 L340,70 L300,55 L200,38 L130,40 Q80,45 50,60 Z"
+            fill="#81C784"
+            stroke="white"
+            strokeWidth="3"
+          />
+          {/* USA wine symbols */}
+          <text x="150" y="85" fontSize="11" fontWeight="600" fill="#2E7D32">Napa</text>
+          <text x="120" y="105" fontSize="10" fill="#2E7D32">🍇</text>
+          <text x="200" y="95" fontSize="9" fill="#2E7D32">Oregon</text>
+          <text x="250" y="110" fontSize="12">🍷</text>
+          <text x="180" y="125" fontSize="10" fill="#1B5E20">Sonoma</text>
+          <text x="100" y="75" fontSize="10">🌿</text>
+        </g>
+
+        {/* Central America & Mexico */}
+        <path
+          d="M200,150 L230,165 L240,200 L220,230 L190,240 L170,220 L180,185 L190,160 Z"
+          fill="#8BC34A"
+          stroke="white"
+          strokeWidth="2"
+        />
+
+        {/* ===== SOUTH AMERICA ===== */}
+        <g>
+          {/* Brazil */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('brazil')}
+            onMouseEnter={() => setHoveredCountry('brazil')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M230,245 L290,235 L320,260 L310,310 L280,340 L250,350 L230,320 L220,280 Z"
+              fill={isCountryActive('brazil') ? '#FFB74D' : '#FF9800'}
+              stroke="white"
+              strokeWidth="3"
             />
-          ))}
+            <text x="260" y="290" fontSize="10" fill="#E65100">Serra Gaúcha</text>
+            <text x="280" y="275" fontSize="11">🍇</text>
+          </g>
+
+          {/* Argentina */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('argentina')}
+            onMouseEnter={() => setHoveredCountry('argentina')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M220,350 L250,350 L260,380 L255,420 L245,460 L225,480 L215,470 L210,430 L215,390 Z"
+              fill={isCountryActive('argentina') ? '#FFB74D' : '#FF9800'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="225" y="400" fontSize="10" fontWeight="600" fill="#E65100">Mendoza</text>
+            <text x="230" y="420" fontSize="11">🍷</text>
+            <text x="235" y="445" fontSize="9" fill="#E65100">Malbec</text>
+          </g>
+
+          {/* Chile */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('chile')}
+            onMouseEnter={() => setHoveredCountry('chile')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M200,350 L215,355 L215,390 L210,430 L205,460 L195,470 L190,440 L195,400 L198,365 Z"
+              fill={isCountryActive('chile') ? '#FFA726' : '#EF6C00'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="185" y="385" fontSize="8" fill="#E65100" transform="rotate(-80, 185, 385)">Carménère</text>
+          </g>
         </g>
 
-        {/* Country labels for wine countries */}
-        <g className="labels pointer-events-none">
-          {selectedCountry && countryData[selectedCountry] && (
-            <motion.g
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-            >
-              {/* Label will be shown in the panel instead */}
-            </motion.g>
-          )}
+        {/* South America Label */}
+        <text x="250" y="320" textAnchor="middle" fontSize="13" fill="#BF360C" fontWeight="bold">South America</text>
+
+        {/* ===== EUROPE ===== */}
+        <g>
+          {/* UK/Ireland */}
+          <path
+            d="M410,80 L425,72 L435,78 L438,95 L430,105 L418,100 L412,88 Z"
+            fill="#81C784"
+            stroke="white"
+            strokeWidth="2"
+          />
+
+          {/* Scandinavia */}
+          <path
+            d="M450,40 L480,30 L520,35 L540,60 L530,90 L505,85 L485,70 L460,55 Z"
+            fill="#66BB6A"
+            stroke="white"
+            strokeWidth="2"
+          />
+
+          {/* Spain & Portugal */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('spain')}
+            onMouseEnter={() => setHoveredCountry('spain')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M400,140 L445,135 L465,145 L460,170 L440,180 L410,178 L395,168 L398,150 Z"
+              fill={isCountryActive('spain') ? '#A5D6A7' : '#7CB342'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="420" y="158" fontSize="10" fontWeight="600" fill="#33691E">Rioja</text>
+            <text x="440" y="170" fontSize="10">🍷</text>
+            <text x="415" y="175" fontSize="8" fill="#33691E">Priorat</text>
+          </g>
+
+          {/* Portugal */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('portugal')}
+            onMouseEnter={() => setHoveredCountry('portugal')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M385,145 L398,143 L400,155 L398,175 L390,180 L383,170 L382,155 Z"
+              fill={isCountryActive('portugal') ? '#A5D6A7' : '#558B2F'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="380" y="162" fontSize="7" fill="#1B5E20">Douro</text>
+          </g>
+
+          {/* France */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('france')}
+            onMouseEnter={() => setHoveredCountry('france')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M420,100 L455,95 L475,105 L480,130 L470,145 L445,150 L420,145 L410,125 L415,110 Z"
+              fill={isCountryActive('france') ? '#A5D6A7' : '#7CB342'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="435" y="118" fontSize="9" fontWeight="600" fill="#33691E">Burgundy</text>
+            <text x="450" y="135" fontSize="10">🍇</text>
+            <text x="425" y="140" fontSize="8" fill="#33691E">Bordeaux</text>
+            <text x="455" y="110" fontSize="8" fill="#33691E">Champagne</text>
+            <text x="440" y="125" fontSize="9">🥂</text>
+          </g>
+
+          {/* Germany */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('germany')}
+            onMouseEnter={() => setHoveredCountry('germany')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M460,85 L490,80 L505,90 L505,115 L490,125 L470,120 L460,105 Z"
+              fill={isCountryActive('germany') ? '#A5D6A7' : '#7CB342'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="475" y="100" fontSize="8" fontWeight="600" fill="#33691E">Riesling</text>
+            <text x="480" y="115" fontSize="9">🍇</text>
+          </g>
+
+          {/* Austria */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('austria')}
+            onMouseEnter={() => setHoveredCountry('austria')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M490,115 L520,112 L535,120 L530,135 L515,140 L495,135 L490,125 Z"
+              fill={isCountryActive('austria') ? '#A5D6A7' : '#689F38'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="505" y="128" fontSize="7" fill="#33691E">Grüner V.</text>
+          </g>
+
+          {/* Italy */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('italy')}
+            onMouseEnter={() => setHoveredCountry('italy')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M475,135 L495,130 L510,140 L515,160 L505,180 L495,200 L485,210 L478,200 L480,180 L475,155 Z"
+              fill={isCountryActive('italy') ? '#A5D6A7' : '#7CB342'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="485" y="155" fontSize="9" fontWeight="600" fill="#33691E">Chianti</text>
+            <text x="488" y="170" fontSize="9">🍷</text>
+            <text x="482" y="185" fontSize="8" fill="#33691E">Barolo</text>
+            <text x="490" y="198" fontSize="8">🍇</text>
+          </g>
+
+          {/* Greece */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('greece')}
+            onMouseEnter={() => setHoveredCountry('greece')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M520,165 L540,160 L550,170 L548,190 L535,200 L520,195 L515,180 Z"
+              fill={isCountryActive('greece') ? '#A5D6A7' : '#558B2F'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="528" y="180" fontSize="7" fill="#33691E">Assyrtiko</text>
+          </g>
         </g>
 
-        {/* Decorative wine elements */}
-        <g className="decorations pointer-events-none" opacity="0.6">
-          <text x="30" y="420" fontSize="16">🍷</text>
-          <text x="900" y="40" fontSize="14">🍇</text>
-          <text x="460" y="30" fontSize="12">✨</text>
-          <text x="880" y="420" fontSize="14">🌿</text>
+        {/* Europe Label */}
+        <text x="470" y="70" textAnchor="middle" fontSize="14" fill="#1B5E20" fontWeight="bold">Europe</text>
+
+        {/* ===== AFRICA ===== */}
+        <g>
+          {/* North Africa */}
+          <path
+            d="M410,185 L520,180 L560,200 L580,240 L570,300 L530,350 L480,380 L440,375 L420,340 L430,280 L420,230 L405,200 Z"
+            fill="#FDD835"
+            stroke="white"
+            strokeWidth="3"
+          />
+          
+          {/* South Africa */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('southafrica')}
+            onMouseEnter={() => setHoveredCountry('southafrica')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M490,385 L530,375 L550,390 L545,420 L520,440 L490,435 L480,415 L485,395 Z"
+              fill={isCountryActive('southafrica') ? '#FFEE58' : '#FBC02D'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="505" y="405" fontSize="9" fontWeight="600" fill="#F57F17">Stellenbosch</text>
+            <text x="515" y="420" fontSize="10">🍇</text>
+            <text x="500" y="432" fontSize="8" fill="#F57F17">Pinotage</text>
+          </g>
         </g>
 
-        {/* Compass */}
-        <g transform="translate(890, 400)">
-          <circle cx="0" cy="0" r="20" fill="hsl(45, 30%, 95%)" stroke="hsl(40, 20%, 75%)" strokeWidth="1.5"/>
-          <path d="M0,-15 L3,0 L0,5 L-3,0 Z" fill="hsl(340, 55%, 40%)"/>
-          <path d="M0,15 L3,0 L0,-5 L-3,0 Z" fill="hsl(40, 20%, 70%)"/>
-          <text x="0" y="-25" textAnchor="middle" fontSize="8" fill="hsl(20, 15%, 40%)" fontWeight="600">N</text>
+        {/* Africa Label */}
+        <text x="490" y="290" textAnchor="middle" fontSize="14" fill="#F57F17" fontWeight="bold">Africa</text>
+
+        {/* ===== ASIA ===== */}
+        <g>
+          {/* Russia/Northern Asia */}
+          <path
+            d="M540,45 L650,35 L750,45 L820,70 L840,100 L830,130 L780,150 L700,145 L620,135 L560,115 L540,85 Z"
+            fill="#E91E63"
+            stroke="white"
+            strokeWidth="3"
+          />
+
+          {/* Georgia */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('georgia')}
+            onMouseEnter={() => setHoveredCountry('georgia')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M565,140 L590,135 L605,145 L600,160 L580,165 L565,155 Z"
+              fill={isCountryActive('georgia') ? '#F48FB1' : '#C2185B'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="575" y="152" fontSize="7" fill="#880E4F">Qvevri</text>
+            <text x="585" y="162" fontSize="8">🏺</text>
+          </g>
+
+          {/* Middle East/Turkey area */}
+          <path
+            d="M550,160 L610,155 L640,175 L635,200 L600,210 L565,195 L555,175 Z"
+            fill="#F06292"
+            stroke="white"
+            strokeWidth="2"
+          />
+
+          {/* India */}
+          <path
+            d="M650,180 L700,170 L730,200 L735,250 L710,290 L670,295 L650,260 L645,220 Z"
+            fill="#EC407A"
+            stroke="white"
+            strokeWidth="2"
+          />
+
+          {/* China */}
+          <path
+            d="M720,100 L800,90 L850,115 L860,160 L830,200 L770,210 L720,195 L700,160 L710,125 Z"
+            fill="#E91E63"
+            stroke="white"
+            strokeWidth="3"
+          />
+
+          {/* Japan */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('japan')}
+            onMouseEnter={() => setHoveredCountry('japan')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M870,120 L885,110 L895,120 L895,150 L885,175 L870,180 L865,160 L868,135 Z"
+              fill={isCountryActive('japan') ? '#F48FB1' : '#C2185B'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="872" y="145" fontSize="8" fontWeight="600" fill="#880E4F">Koshu</text>
+            <text x="875" y="160" fontSize="9">🍇</text>
+            <text x="870" y="172" fontSize="7" fill="#880E4F">Yamanashi</text>
+          </g>
+
+          {/* Southeast Asia */}
+          <path
+            d="M750,220 L800,215 L830,240 L835,280 L810,310 L770,305 L750,270 Z"
+            fill="#F06292"
+            stroke="white"
+            strokeWidth="2"
+          />
         </g>
 
-        {/* Legend */}
-        <g transform="translate(30, 30)">
-          <rect x="0" y="0" width="140" height="60" rx="8" fill="hsl(45, 30%, 97%)" stroke="hsl(40, 20%, 85%)" strokeWidth="1"/>
-          <circle cx="20" cy="20" r="8" fill="hsl(340, 55%, 40%)"/>
-          <text x="35" y="24" fontSize="10" fill="hsl(20, 15%, 30%)">Wine Countries</text>
-          <circle cx="20" cy="42" r="8" fill="hsl(18, 85%, 55%)"/>
-          <text x="35" y="46" fontSize="10" fill="hsl(20, 15%, 30%)">Selected</text>
+        {/* Asia Label */}
+        <text x="720" y="80" textAnchor="middle" fontSize="14" fill="#880E4F" fontWeight="bold">Asia</text>
+
+        {/* ===== AUSTRALIA & OCEANIA ===== */}
+        <g>
+          {/* Australia */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('australia')}
+            onMouseEnter={() => setHoveredCountry('australia')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M780,340 L850,330 L900,350 L920,390 L900,430 L850,445 L800,435 L770,400 L775,360 Z"
+              fill={isCountryActive('australia') ? '#BA68C8' : '#9C27B0'}
+              stroke="white"
+              strokeWidth="3"
+            />
+            <text x="830" y="375" fontSize="10" fontWeight="600" fill="#4A148C">Barossa</text>
+            <text x="850" y="395" fontSize="11">🍷</text>
+            <text x="815" y="410" fontSize="9" fill="#4A148C">McLaren Vale</text>
+            <text x="870" y="415" fontSize="9">🍇</text>
+            <text x="800" y="390" fontSize="8" fill="#4A148C">Shiraz</text>
+          </g>
+
+          {/* New Zealand */}
+          <g 
+            className="cursor-pointer"
+            onClick={() => handleCountryClick('newzealand')}
+            onMouseEnter={() => setHoveredCountry('newzealand')}
+            onMouseLeave={() => setHoveredCountry(null)}
+          >
+            <path
+              d="M930,420 L945,410 L955,425 L952,450 L940,470 L928,465 L925,445 L928,430 Z"
+              fill={isCountryActive('newzealand') ? '#CE93D8' : '#7B1FA2'}
+              stroke="white"
+              strokeWidth="2"
+            />
+            <text x="930" y="445" fontSize="7" fill="#4A148C">Marlborough</text>
+            <text x="940" y="460" fontSize="8">🍇</text>
+          </g>
         </g>
+
+        {/* Australia Label */}
+        <text x="850" y="360" textAnchor="middle" fontSize="13" fill="#4A148C" fontWeight="bold">Australia</text>
+
+        {/* ===== ANTARCTICA ===== */}
+        <path
+          d="M300,510 Q450,495 600,510 Q680,520 750,510 L760,530 Q600,545 450,545 Q300,545 250,530 Z"
+          fill="white"
+          stroke="#B0BEC5"
+          strokeWidth="2"
+        />
+        <text x="500" y="525" textAnchor="middle" fontSize="11" fill="#546E7A" fontStyle="italic">Antarctica</text>
+
+        {/* Decorative elements - Wine themed */}
+        <g className="pointer-events-none">
+          {/* Ships/boats */}
+          <text x="350" y="250" fontSize="16">⛵</text>
+          <text x="620" y="350" fontSize="14">🚢</text>
+          
+          {/* Fish in oceans */}
+          <text x="150" y="350" fontSize="12">🐟</text>
+          <text x="900" y="280" fontSize="11">🐟</text>
+          <text x="80" y="420" fontSize="13">🐋</text>
+          
+          {/* Wine bottles floating */}
+          <text x="350" y="180" fontSize="12">🍾</text>
+          <text x="680" y="420" fontSize="11">🍾</text>
+          
+          {/* Planes */}
+          <text x="920" y="80" fontSize="14">✈️</text>
+          <text x="50" y="200" fontSize="12" transform="rotate(-30, 50, 200)">✈️</text>
+        </g>
+
+        {/* Title Banner */}
+        <g transform="translate(500, 12)">
+          <rect x="-120" y="0" width="240" height="30" rx="15" fill="#FF8F00" stroke="#E65100" strokeWidth="2"/>
+          <text x="0" y="22" textAnchor="middle" fontSize="14" fill="white" fontWeight="bold">🍷 WORLD OF WINE 🍇</text>
+        </g>
+
       </svg>
 
       {/* Hover tooltip */}
@@ -402,11 +683,14 @@ export const HandDrawnWorldMap: React.FC<HandDrawnWorldMapProps> = ({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 10 }}
-            className="absolute top-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-card/95 backdrop-blur-sm rounded-full shadow-lg border border-border flex items-center gap-2"
+            className="absolute top-16 left-1/2 -translate-x-1/2 px-5 py-3 bg-card/95 backdrop-blur-sm rounded-2xl shadow-xl border-2 border-accent flex items-center gap-3"
           >
-            <span className="text-lg">{countryData[hoveredCountry].emoji}</span>
-            <span className="font-medium text-foreground">{countryData[hoveredCountry].name}</span>
-            <span className="text-xs text-muted-foreground">Click to explore</span>
+            <span className="text-2xl">{countryData[hoveredCountry].emoji}</span>
+            <div>
+              <p className="font-bold text-foreground">{countryData[hoveredCountry].name}</p>
+              <p className="text-xs text-muted-foreground">{countryData[hoveredCountry].specialties.slice(0, 2).join(' • ')}</p>
+            </div>
+            <span className="text-xs text-accent font-medium">Click to explore →</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -431,15 +715,17 @@ export const CountryInfoPanel: React.FC<CountryInfoPanelProps> = ({
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: 20, scale: 0.95 }}
       transition={{ type: "spring", damping: 25, stiffness: 300 }}
-      className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md bg-card/98 backdrop-blur-xl rounded-2xl shadow-2xl border border-border overflow-hidden"
+      className="absolute bottom-4 left-1/2 -translate-x-1/2 w-[95%] max-w-md bg-card/98 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-accent overflow-hidden"
     >
       {/* Decorative top bar */}
-      <div className="h-1.5 bg-gradient-to-r from-primary via-accent to-wine-red" />
+      <div className="h-2 bg-gradient-to-r from-primary via-accent to-wine-red" />
       
       <div className="p-5">
         <div className="flex items-start justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{country.emoji}</span>
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-accent/20 flex items-center justify-center text-3xl">
+              {country.emoji}
+            </div>
             <div>
               <h3 className="text-xl font-display font-bold text-foreground">{country.name}</h3>
               <p className="text-sm text-muted-foreground line-clamp-2">{country.description}</p>
@@ -447,40 +733,40 @@ export const CountryInfoPanel: React.FC<CountryInfoPanelProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full hover:bg-muted transition-colors"
+            className="p-2 rounded-full hover:bg-muted transition-colors"
           >
-            <X className="w-4 h-4 text-muted-foreground" />
+            <X className="w-5 h-5 text-muted-foreground" />
           </button>
         </div>
 
         <div className="grid grid-cols-2 gap-3 mb-4">
-          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-primary/10">
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
-              <Grape className="w-4 h-4 text-primary" />
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
+            <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+              <Grape className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-lg font-bold text-foreground">{country.vineyards}</p>
+              <p className="text-2xl font-bold text-foreground">{country.vineyards}</p>
               <p className="text-xs text-muted-foreground">Winemakers</p>
             </div>
           </div>
-          <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-accent/10">
-            <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
-              <Wine className="w-4 h-4 text-accent" />
+          <div className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-to-br from-accent/10 to-accent/5 border border-accent/20">
+            <div className="w-10 h-10 rounded-xl bg-accent/20 flex items-center justify-center">
+              <Wine className="w-5 h-5 text-accent" />
             </div>
             <div>
-              <p className="text-lg font-bold text-foreground">{country.wineBars}</p>
+              <p className="text-2xl font-bold text-foreground">{country.wineBars}</p>
               <p className="text-xs text-muted-foreground">Venues</p>
             </div>
           </div>
         </div>
 
-        <div className="mb-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground mb-2">Regions & Specialties</p>
-          <div className="flex flex-wrap gap-1.5">
+        <div className="mb-5">
+          <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">🍇 Wine Regions & Specialties</p>
+          <div className="flex flex-wrap gap-2">
             {country.specialties.map((specialty, index) => (
               <span
                 key={index}
-                className="px-2.5 py-1 text-xs font-medium rounded-full bg-secondary text-secondary-foreground"
+                className="px-3 py-1.5 text-sm font-medium rounded-full bg-secondary text-secondary-foreground border border-border"
               >
                 {specialty}
               </span>
@@ -492,9 +778,9 @@ export const CountryInfoPanel: React.FC<CountryInfoPanelProps> = ({
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => onExplore(country.slug)}
-          className="w-full py-3 px-4 bg-gradient-to-r from-primary to-accent text-primary-foreground font-semibold rounded-xl flex items-center justify-center gap-2 shadow-lg"
+          className="w-full py-4 px-6 bg-gradient-to-r from-primary via-accent to-wine-red text-white font-bold rounded-2xl flex items-center justify-center gap-3 shadow-lg text-lg"
         >
-          <MapPin className="w-4 h-4" />
+          <MapPin className="w-5 h-5" />
           Explore {country.name}
         </motion.button>
       </div>
