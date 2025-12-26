@@ -37,6 +37,7 @@ interface Topic {
   author_name: string;
   like_count: number;
   is_liked: boolean;
+  image_url: string | null;
 }
 
 interface Comment {
@@ -121,6 +122,7 @@ const ForumTopic = () => {
       author_name: profile?.display_name || 'Anonymous',
       like_count: likeCount || 0,
       is_liked: isLiked,
+      image_url: data.image_url,
     });
     setLoading(false);
   };
@@ -387,6 +389,16 @@ const ForumTopic = () => {
                 {topic.like_count} beğeni
               </button>
             </div>
+
+            {topic.image_url && (
+              <div className="mb-4">
+                <img
+                  src={topic.image_url}
+                  alt={topic.title}
+                  className="w-full max-h-96 object-cover rounded-lg"
+                />
+              </div>
+            )}
 
             <div className="prose prose-sm max-w-none text-foreground">
               <p className="whitespace-pre-wrap">{topic.content}</p>
