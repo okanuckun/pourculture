@@ -328,6 +328,36 @@ export type Database = {
         }
         Relationships: []
       }
+      wine_quiz_results: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          recommendation_grape: string | null
+          recommendation_name: string
+          recommendation_region: string | null
+          user_id: string
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          recommendation_grape?: string | null
+          recommendation_name: string
+          recommendation_region?: string | null
+          user_id: string
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          recommendation_grape?: string | null
+          recommendation_name?: string
+          recommendation_region?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       winemakers: {
         Row: {
           bio: string | null

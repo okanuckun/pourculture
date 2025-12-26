@@ -1,6 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wine, Sparkles, ArrowRight, ArrowLeft, RotateCcw } from 'lucide-react';
+import { Wine, Sparkles, ArrowRight, ArrowLeft, RotateCcw, History, User, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface Question {
   id: string;
@@ -59,8 +62,17 @@ interface WineRecommendation {
   color: string;
 }
 
+interface QuizResult {
+  id: string;
+  answers: Record<string, string>;
+  recommendation_name: string;
+  recommendation_grape: string | null;
+  recommendation_region: string | null;
+  created_at: string;
+}
+
 const getRecommendation = (answers: Record<string, string>): WineRecommendation => {
-  const { color, style, acidity, occasion } = answers;
+  const { color, style, acidity } = answers;
 
   // Red wines
   if (color === 'red') {
@@ -141,8 +153,8 @@ const getRecommendation = (answers: Record<string, string>): WineRecommendation 
       grape: 'Chenin Blanc',
       region: 'Loire, Fransa',
       description: 'Bal ve elma notaları, yumuşak ve dengeli.',
-        emoji: '🍎',
-        color: 'from-yellow-400 to-amber-300',
+      emoji: '🍎',
+      color: 'from-yellow-400 to-amber-300',
     };
   }
 
@@ -153,7 +165,7 @@ const getRecommendation = (answers: Record<string, string>): WineRecommendation 
         name: 'Rkatsiteli Amber',
         grape: 'Rkatsiteli',
         region: 'Kakheti, Gürcistan',
-        description: 'Qvevri\'de yapılmış, 8000 yıllık gelenek. Cesur ve kompleks.',
+        description: "Qvevri'de yapılmış, 8000 yıllık gelenek. Cesur ve kompleks.",
         emoji: '🏺',
         color: 'from-orange-500 to-amber-600',
       };
@@ -201,11 +213,60 @@ const getRecommendation = (answers: Record<string, string>): WineRecommendation 
   };
 };
 
+const answerLabels: Record<string, Record<string, string>> = {
+  color: { red: 'Kırmızı', white: 'Beyaz', orange: 'Orange', rose: 'Rosé' },
+  style: { funky: 'Funky', clean: 'Temiz' },
+  acidity: { acidic: 'Asidik', soft: 'Yumuşak' },
+  occasion: { food: 'Yemek', conversation: 'Sohbet' },
+};
+
 export const WineQuiz = () => {
+  const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showResult, setShowResult] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [pastResults, setPastResults] = useState<QuizResult[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const fetchPastResults = async () => {
+    if (!user) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      const { data, error } = await supabase
+        .from('wine_quiz_results')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (error) throw error;
+      setPastResults((data || []).map(item => ({
+        ...item,
+        answers: item.answers as Record<string, string>
+      })));
+    } catch (error) {
+      console.error('Error fetching past results:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
 
   const handleAnswer = (questionId: string, value: string) => {
     const newAnswers = { ...answers, [questionId]: value };
@@ -218,10 +279,42 @@ export const WineQuiz = () => {
     }
   };
 
+  const saveResult = async (recommendation: WineRecommendation) => {
+    if (!user) {
+      toast.info('Sonuçları kaydetmek için giriş yapmalısın', {
+        action: {
+          label: 'Giriş Yap',
+          onClick: () => navigate('/auth'),
+        },
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { error } = await supabase.from('wine_quiz_results').insert({
+        user_id: user.id,
+        answers,
+        recommendation_name: recommendation.name,
+        recommendation_grape: recommendation.grape,
+        recommendation_region: recommendation.region,
+      });
+
+      if (error) throw error;
+      toast.success('Sonuç kaydedildi!');
+    } catch (error) {
+      console.error('Error saving result:', error);
+      toast.error('Kaydetme başarısız oldu');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const reset = () => {
     setCurrentStep(0);
     setAnswers({});
     setShowResult(false);
+    setShowHistory(false);
   };
 
   const goBack = () => {
@@ -230,7 +323,20 @@ export const WineQuiz = () => {
     }
   };
 
+  const openHistory = () => {
+    setShowHistory(true);
+    fetchPastResults();
+  };
+
   const recommendation = showResult ? getRecommendation(answers) : null;
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('tr-TR', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    });
+  };
 
   return (
     <>
@@ -267,27 +373,40 @@ export const WineQuiz = () => {
               initial={{ opacity: 0, scale: 0.9, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.9, y: 20 }}
-              className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-card border border-border shadow-2xl"
+              className="relative w-full max-w-lg overflow-hidden rounded-3xl bg-card border border-border shadow-2xl max-h-[90vh] overflow-y-auto"
               onClick={(e) => e.stopPropagation()}
             >
               {/* Header */}
               <div className="relative overflow-hidden bg-gradient-to-br from-primary/10 via-accent/10 to-wine-red/10 p-6">
                 <div className="absolute -right-4 -top-4 text-8xl opacity-20">🍷</div>
                 <div className="relative">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
-                    <Sparkles className="h-3 w-3" />
-                    Kişisel Rehber
-                  </span>
+                  <div className="flex items-center justify-between">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
+                      <Sparkles className="h-3 w-3" />
+                      Kişisel Rehber
+                    </span>
+                    {user && (
+                      <button
+                        onClick={openHistory}
+                        className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <History className="h-3 w-3" />
+                        Geçmiş
+                      </button>
+                    )}
+                  </div>
                   <h2 className="mt-3 font-display text-2xl font-bold text-foreground">
-                    Find Your Wine
+                    {showHistory ? 'Geçmiş Sonuçların' : 'Find Your Wine'}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Birkaç soru ile sana en uygun şarabı bulalım
+                    {showHistory 
+                      ? 'Daha önce aldığın şarap önerileri' 
+                      : 'Birkaç soru ile sana en uygun şarabı bulalım'}
                   </p>
                 </div>
 
                 {/* Progress */}
-                {!showResult && (
+                {!showResult && !showHistory && (
                   <div className="mt-4 flex gap-2">
                     {questions.map((_, index) => (
                       <div
@@ -304,7 +423,75 @@ export const WineQuiz = () => {
               {/* Content */}
               <div className="p-6">
                 <AnimatePresence mode="wait">
-                  {!showResult ? (
+                  {showHistory ? (
+                    <motion.div
+                      key="history"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -20 }}
+                    >
+                      {isLoadingHistory ? (
+                        <div className="flex items-center justify-center py-12">
+                          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        </div>
+                      ) : pastResults.length === 0 ? (
+                        <div className="text-center py-12">
+                          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
+                            <Wine className="h-8 w-8 text-muted-foreground" />
+                          </div>
+                          <p className="text-muted-foreground">Henüz kayıtlı sonuç yok</p>
+                          <button
+                            onClick={reset}
+                            className="mt-4 text-sm font-medium text-primary hover:underline"
+                          >
+                            İlk testini yap!
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-3">
+                          {pastResults.map((result) => (
+                            <div
+                              key={result.id}
+                              className="rounded-2xl border border-border bg-secondary/50 p-4"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div>
+                                  <h4 className="font-semibold text-foreground">
+                                    {result.recommendation_name}
+                                  </h4>
+                                  <p className="text-sm text-muted-foreground">
+                                    {result.recommendation_grape} • {result.recommendation_region}
+                                  </p>
+                                </div>
+                                <span className="text-xs text-muted-foreground">
+                                  {formatDate(result.created_at)}
+                                </span>
+                              </div>
+                              <div className="mt-3 flex flex-wrap gap-2">
+                                {Object.entries(result.answers as Record<string, string>).map(([key, value]) => (
+                                  <span
+                                    key={key}
+                                    className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground"
+                                  >
+                                    {answerLabels[key]?.[value] || value}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      <div className="mt-6 flex gap-3">
+                        <button
+                          onClick={reset}
+                          className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                        >
+                          Yeni Test Yap
+                        </button>
+                      </div>
+                    </motion.div>
+                  ) : !showResult ? (
                     <motion.div
                       key={currentStep}
                       initial={{ opacity: 0, x: 20 }}
@@ -377,6 +564,14 @@ export const WineQuiz = () => {
                         {recommendation?.description}
                       </p>
 
+                      {/* User status */}
+                      {!user && (
+                        <div className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground">
+                          <User className="inline-block h-4 w-4 mr-1" />
+                          <span>Giriş yaparak sonuçlarını kaydedebilirsin</span>
+                        </div>
+                      )}
+
                       <div className="mt-6 flex gap-3">
                         <button
                           onClick={reset}
@@ -385,12 +580,26 @@ export const WineQuiz = () => {
                           <RotateCcw className="h-4 w-4" />
                           Tekrar Dene
                         </button>
-                        <button
-                          onClick={() => setIsOpen(false)}
-                          className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                        >
-                          Harika! 🍷
-                        </button>
+                        {user ? (
+                          <button
+                            onClick={() => recommendation && saveResult(recommendation)}
+                            disabled={isSaving}
+                            className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+                          >
+                            {isSaving ? (
+                              <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                            ) : (
+                              'Kaydet 🍷'
+                            )}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => setIsOpen(false)}
+                            className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                          >
+                            Harika! 🍷
+                          </button>
+                        )}
                       </div>
                     </motion.div>
                   )}
