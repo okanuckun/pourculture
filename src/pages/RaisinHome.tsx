@@ -8,6 +8,7 @@ import { WineFairCard } from '@/components/WineFairCard';
 import { NewsCard } from '@/components/NewsCard';
 import { SEOHead } from '@/components/SEOHead';
 import { HandDrawnWorldMap, CountryInfoPanel } from '@/components/HandDrawnWorldMap';
+import { WineQuiz } from '@/components/WineQuiz';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowRight, Wine, Sparkles, Globe, Heart } from 'lucide-react';
 
@@ -173,8 +174,40 @@ const RaisinHome = () => {
         </div>
       </section>
 
+      {/* Wine Quiz Section */}
+      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-background to-secondary">
+        <div className="max-w-3xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="text-center mb-8"
+          >
+            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium mb-3">
+              <Sparkles className="w-3 h-3" /> Kişisel Rehber
+            </span>
+            <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+              Hangi şarap <span className="text-primary">sana göre?</span>
+            </h2>
+            <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
+              Birkaç basit soruyla damak tadına en uygun şarabı keşfet.
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.2 }}
+            className="flex justify-center"
+          >
+            <WineQuiz />
+          </motion.div>
+        </div>
+      </section>
+
       {/* Quick Stats Section */}
-      <section className="py-16 px-4 md:px-8 bg-gradient-to-b from-secondary to-background">
+      <section className="py-16 px-4 md:px-8 bg-secondary">
         <div className="max-w-5xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {[
