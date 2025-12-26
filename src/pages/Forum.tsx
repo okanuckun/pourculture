@@ -5,7 +5,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, HelpCircle, Lightbulb, MessagesSquare, Heart } from 'lucide-react';
+import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, HelpCircle, Lightbulb, MessagesSquare, Heart, ImagePlus, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -36,6 +36,7 @@ interface Topic {
   author_name: string;
   like_count: number;
   is_liked: boolean;
+  image_url: string | null;
 }
 
 const categories = [
@@ -59,6 +60,8 @@ const Forum = () => {
   const [userId, setUserId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newTopic, setNewTopic] = useState({ title: '', content: '', category: 'general' });
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -133,12 +136,34 @@ const Forum = () => {
           like_count: likeCount || 0,
           is_liked: isLiked,
           author_name: profile?.display_name || 'Anonymous',
+          image_url: topic.image_url,
         };
       })
     );
 
     setTopics(topicsWithCounts);
     setLoading(false);
+  };
+
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: 'Hata',
+          description: 'Görsel boyutu 5MB\'dan küçük olmalıdır',
+          variant: 'destructive',
+        });
+        return;
+      }
+      setSelectedImage(file);
+      setImagePreview(URL.createObjectURL(file));
+    }
+  };
+
+  const removeImage = () => {
+    setSelectedImage(null);
+    setImagePreview(null);
   };
 
   const handleCreateTopic = async () => {
@@ -163,6 +188,34 @@ const Forum = () => {
 
     setSubmitting(true);
 
+    let imageUrl: string | null = null;
+
+    // Upload image if selected
+    if (selectedImage) {
+      const fileExt = selectedImage.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}.${fileExt}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('forum-images')
+        .upload(fileName, selectedImage);
+
+      if (uploadError) {
+        toast({
+          title: 'Hata',
+          description: 'Görsel yüklenemedi',
+          variant: 'destructive',
+        });
+        setSubmitting(false);
+        return;
+      }
+
+      const { data: urlData } = supabase.storage
+        .from('forum-images')
+        .getPublicUrl(fileName);
+      
+      imageUrl = urlData.publicUrl;
+    }
+
     const { data, error } = await supabase
       .from('forum_topics')
       .insert({
@@ -170,6 +223,7 @@ const Forum = () => {
         content: newTopic.content.trim(),
         category: newTopic.category,
         user_id: userId,
+        image_url: imageUrl,
       })
       .select()
       .single();
@@ -190,6 +244,8 @@ const Forum = () => {
     });
 
     setNewTopic({ title: '', content: '', category: 'general' });
+    setSelectedImage(null);
+    setImagePreview(null);
     setIsDialogOpen(false);
     setSubmitting(false);
     fetchTopics();
@@ -345,6 +401,38 @@ const Forum = () => {
                           rows={5}
                         />
                       </div>
+                      
+                      {/* Image Upload */}
+                      <div>
+                        {imagePreview ? (
+                          <div className="relative">
+                            <img
+                              src={imagePreview}
+                              alt="Preview"
+                              className="w-full h-40 object-cover rounded-lg"
+                            />
+                            <button
+                              type="button"
+                              onClick={removeImage}
+                              className="absolute top-2 right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </div>
+                        ) : (
+                          <label className="flex items-center justify-center gap-2 border-2 border-dashed border-border rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-muted/50 transition-colors">
+                            <ImagePlus className="w-5 h-5 text-muted-foreground" />
+                            <span className="text-sm text-muted-foreground">Görsel ekle (isteğe bağlı)</span>
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleImageSelect}
+                              className="hidden"
+                            />
+                          </label>
+                        )}
+                      </div>
+                      
                       <div className="flex justify-end gap-2">
                         <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
                           İptal
@@ -407,6 +495,15 @@ const Forum = () => {
                   >
                     <Link to={`/forum/${topic.id}`}>
                       <article className="bg-card border border-border rounded-xl p-5 hover:shadow-lg hover:border-primary/30 transition-all group">
+                        {topic.image_url && (
+                          <div className="mb-4 -mx-5 -mt-5">
+                            <img
+                              src={topic.image_url}
+                              alt={topic.title}
+                              className="w-full h-40 object-cover rounded-t-xl"
+                            />
+                          </div>
+                        )}
                         <div className="flex items-start gap-4">
                           <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
                             <User className="w-5 h-5 text-primary" />
