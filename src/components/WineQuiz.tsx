@@ -528,9 +528,17 @@ export const WineQuiz = () => {
                                 <div className={`h-2 bg-gradient-to-r ${colorGradients[wine.color] || 'from-primary to-accent'}`} />
                                 <div className="p-4">
                                   <div className="flex items-start gap-3">
-                                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${colorGradients[wine.color] || 'from-primary to-accent'}`}>
-                                      <span className="text-2xl">{colorEmojis[wine.color] || '🍷'}</span>
-                                    </div>
+                                    {wine.image_url ? (
+                                      <img
+                                        src={wine.image_url}
+                                        alt={wine.name}
+                                        className="h-16 w-16 shrink-0 rounded-xl object-cover"
+                                      />
+                                    ) : (
+                                      <div className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${colorGradients[wine.color] || 'from-primary to-accent'}`}>
+                                        <span className="text-2xl">{colorEmojis[wine.color] || '🍷'}</span>
+                                      </div>
+                                    )}
                                     <div className="flex-1 min-w-0">
                                       <h4 className="font-semibold text-foreground truncate">
                                         {wine.name}
