@@ -199,6 +199,30 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_favorites: {
+        Row: {
+          created_at: string
+          id: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          resource_id: string
+          resource_type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          resource_id?: string
+          resource_type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           author: string | null
