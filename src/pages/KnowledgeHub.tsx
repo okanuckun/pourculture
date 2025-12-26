@@ -66,9 +66,13 @@ const fallbackReports: HarvestReport[] = [
   { id: '1', year: 2024, region: 'Loire Valley, France', summary: 'A challenging vintage with late spring frosts and summer heat waves, resulting in concentrated, powerful wines.', highlights: ['Early harvest', 'Low yields', 'Exceptional Chenin Blanc'] },
 ];
 
+const categories = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+
 const KnowledgeHub = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [glossarySearch, setGlossarySearch] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
   
   const [glossaryTerms, setGlossaryTerms] = useState<GlossaryTerm[]>([]);
@@ -98,10 +102,36 @@ const KnowledgeHub = () => {
     setLoading(false);
   };
 
+  // Combined search term (global or local glossary search)
+  const effectiveGlossarySearch = globalSearch || glossarySearch;
+  
   const filteredTerms = glossaryTerms.filter(
-    item => item.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            item.definition.toLowerCase().includes(searchTerm.toLowerCase())
+    item => item.term.toLowerCase().includes(effectiveGlossarySearch.toLowerCase()) ||
+            item.definition.toLowerCase().includes(effectiveGlossarySearch.toLowerCase())
   );
+
+  const filteredGuides = guides.filter(guide => {
+    const matchesSearch = !globalSearch || 
+      guide.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
+      guide.description.toLowerCase().includes(globalSearch.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || guide.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
+
+  const filteredPdfs = pdfResources.filter(pdf => 
+    !globalSearch ||
+    pdf.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
+    pdf.description.toLowerCase().includes(globalSearch.toLowerCase())
+  );
+
+  const filteredReports = harvestReports.filter(report =>
+    !globalSearch ||
+    report.region.toLowerCase().includes(globalSearch.toLowerCase()) ||
+    report.summary.toLowerCase().includes(globalSearch.toLowerCase()) ||
+    report.year.toString().includes(globalSearch)
+  );
+
+  const totalResults = filteredTerms.length + filteredGuides.length + filteredPdfs.length + filteredReports.length;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -164,6 +194,22 @@ const KnowledgeHub = () => {
                 everything you need to deepen your understanding.
               </p>
 
+              {/* Global Search */}
+              <div className="relative max-w-xl mx-auto mb-4">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+                <Input
+                  placeholder="Search across all resources..."
+                  value={globalSearch}
+                  onChange={(e) => setGlobalSearch(e.target.value)}
+                  className="pl-12 h-12 text-base rounded-full border-2 focus:border-primary"
+                />
+                {globalSearch && (
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
+                    {totalResults} results
+                  </span>
+                )}
+              </div>
+
               <p className="text-sm italic text-muted-foreground/80">
                 "If natural wine is a culture, this is its library."
               </p>
@@ -171,32 +217,60 @@ const KnowledgeHub = () => {
           </div>
         </section>
 
-        {/* Quick Navigation */}
+        {/* Quick Navigation + Category Filter */}
         <section className="py-8 border-y border-border bg-muted/30">
           <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <div className="flex flex-wrap justify-center gap-4">
-              {[
-                { id: 'glossary', icon: Book, label: 'Glossary' },
-                { id: 'guides', icon: FileText, label: 'Guides' },
-                { id: 'pdfs', icon: Download, label: 'PDF Booklets' },
-                { id: 'harvest', icon: Grape, label: 'Harvest Reports' },
-              ].map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => {
-                    setActiveSection(item.id);
-                    document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                  }}
-                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all ${
-                    activeSection === item.id
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-card hover:bg-primary/10 text-foreground'
-                  }`}
-                >
-                  <item.icon className="w-4 h-4" />
-                  <span className="font-medium">{item.label}</span>
-                </button>
-              ))}
+            <div className="flex flex-col gap-4">
+              {/* Section Navigation */}
+              <div className="flex flex-wrap justify-center gap-4">
+                {[
+                  { id: 'glossary', icon: Book, label: 'Glossary', count: filteredTerms.length },
+                  { id: 'guides', icon: FileText, label: 'Guides', count: filteredGuides.length },
+                  { id: 'pdfs', icon: Download, label: 'PDF Booklets', count: filteredPdfs.length },
+                  { id: 'harvest', icon: Grape, label: 'Harvest Reports', count: filteredReports.length },
+                ].map((item) => (
+                  <button
+                    key={item.id}
+                    onClick={() => {
+                      setActiveSection(item.id);
+                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all ${
+                      activeSection === item.id
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card hover:bg-primary/10 text-foreground'
+                    }`}
+                  >
+                    <item.icon className="w-4 h-4" />
+                    <span className="font-medium">{item.label}</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      activeSection === item.id
+                        ? 'bg-primary-foreground/20 text-primary-foreground'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {item.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+
+              {/* Category Filter for Guides */}
+              <div className="flex flex-wrap justify-center gap-2">
+                <span className="text-sm text-muted-foreground mr-2 self-center">Filter guides:</span>
+                {categories.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setSelectedCategory(category)}
+                    className={`px-3 py-1.5 text-sm rounded-full transition-all ${
+                      selectedCategory === category
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-card hover:bg-muted text-foreground border border-border'
+                    }`}
+                  >
+                    {category}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
         </section>
@@ -225,11 +299,17 @@ const KnowledgeHub = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
                     placeholder="Search terms..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={glossarySearch}
+                    onChange={(e) => setGlossarySearch(e.target.value)}
                     className="pl-10"
+                    disabled={!!globalSearch}
                   />
                 </div>
+                {globalSearch && (
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Filtering by global search: "{globalSearch}"
+                  </p>
+                )}
               </motion.div>
 
               <motion.div variants={itemVariants}>
@@ -275,45 +355,51 @@ const KnowledgeHub = () => {
                 </div>
               </motion.div>
 
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {guides.map((guide) => (
-                  <Link
-                    key={guide.id}
-                    to={`/guide/${guide.id}`}
-                  >
-                    <motion.article
-                      variants={itemVariants}
-                      className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer h-full"
+              {filteredGuides.length === 0 ? (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-muted-foreground">No guides found matching your criteria.</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredGuides.map((guide) => (
+                    <Link
+                      key={guide.id}
+                      to={`/guide/${guide.id}`}
                     >
-                      <div className="flex items-center gap-2 mb-3">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          guide.category === 'Beginner' 
-                            ? 'bg-green-500/10 text-green-600' 
-                            : guide.category === 'Advanced'
-                            ? 'bg-red-500/10 text-red-600'
-                            : 'bg-orange-500/10 text-orange-600'
-                        }`}>
-                          {guide.category}
-                        </span>
-                        <span className="text-xs text-muted-foreground">{guide.read_time}</span>
-                      </div>
-                      
-                      <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                        {guide.title}
-                      </h3>
-                      
-                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                        {guide.description}
-                      </p>
-                      
-                      <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                        Read guide
-                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                      </div>
-                    </motion.article>
-                  </Link>
-                ))}
-              </div>
+                      <motion.article
+                        variants={itemVariants}
+                        className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer h-full"
+                      >
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            guide.category === 'Beginner' 
+                              ? 'bg-green-500/10 text-green-600' 
+                              : guide.category === 'Advanced'
+                              ? 'bg-red-500/10 text-red-600'
+                              : 'bg-orange-500/10 text-orange-600'
+                          }`}>
+                            {guide.category}
+                          </span>
+                          <span className="text-xs text-muted-foreground">{guide.read_time}</span>
+                        </div>
+                        
+                        <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                          {guide.title}
+                        </h3>
+                        
+                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                          {guide.description}
+                        </p>
+                        
+                        <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                          Read guide
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </motion.article>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         </section>
@@ -337,43 +423,49 @@ const KnowledgeHub = () => {
                 </div>
               </motion.div>
 
-              <div className="grid md:grid-cols-2 gap-6">
-                {pdfResources.map((pdf) => (
-                  <motion.div
-                    key={pdf.id}
-                    variants={itemVariants}
-                    className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all"
-                  >
-                    <div className="w-16 h-20 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-8 h-8 text-primary" />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <h3 className="font-display text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                        {pdf.title}
-                      </h3>
-                      <p className="text-muted-foreground text-sm mb-3">
-                        {pdf.description}
-                      </p>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        {pdf.pages && <span>{pdf.pages} pages</span>}
-                        {pdf.file_size && <span>{pdf.file_size}</span>}
+              {filteredPdfs.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No PDF resources found matching your search.</p>
+                </div>
+              ) : (
+                <div className="grid md:grid-cols-2 gap-6">
+                  {filteredPdfs.map((pdf) => (
+                    <motion.div
+                      key={pdf.id}
+                      variants={itemVariants}
+                      className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all"
+                    >
+                      <div className="w-16 h-20 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                        <FileText className="w-8 h-8 text-primary" />
                       </div>
-                    </div>
-                    
-                    {pdf.file_url && (
-                      <a 
-                        href={pdf.file_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                      >
-                        <Download className="w-5 h-5" />
-                      </a>
-                    )}
-                  </motion.div>
-                ))}
-              </div>
+                      
+                      <div className="flex-1">
+                        <h3 className="font-display text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
+                          {pdf.title}
+                        </h3>
+                        <p className="text-muted-foreground text-sm mb-3">
+                          {pdf.description}
+                        </p>
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          {pdf.pages && <span>{pdf.pages} pages</span>}
+                          {pdf.file_size && <span>{pdf.file_size}</span>}
+                        </div>
+                      </div>
+                      
+                      {pdf.file_url && (
+                        <a 
+                          href={pdf.file_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                        >
+                          <Download className="w-5 h-5" />
+                        </a>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
               <motion.p 
                 variants={itemVariants}
@@ -404,48 +496,54 @@ const KnowledgeHub = () => {
                 </div>
               </motion.div>
 
-              <div className="space-y-6">
-                {harvestReports.map((report) => (
-                  <Link key={report.id} to={`/harvest/${report.id}`}>
-                    <motion.article
-                      variants={itemVariants}
-                      className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
-                    >
-                      <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
-                        <div className="flex-shrink-0">
-                          <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                            <span className="font-display text-2xl font-bold text-primary">{report.year}</span>
+              {filteredReports.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-muted-foreground">No harvest reports found matching your search.</p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {filteredReports.map((report) => (
+                    <Link key={report.id} to={`/harvest/${report.id}`}>
+                      <motion.article
+                        variants={itemVariants}
+                        className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
+                      >
+                        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
+                          <div className="flex-shrink-0">
+                            <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                              <span className="font-display text-2xl font-bold text-primary">{report.year}</span>
+                            </div>
+                          </div>
+                          
+                          <div className="flex-1">
+                            <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                              {report.region}
+                            </h3>
+                            <p className="text-muted-foreground leading-relaxed mb-4">
+                              {report.summary}
+                            </p>
+                            <div className="flex flex-wrap gap-2">
+                              {report.highlights.map((highlight) => (
+                                <span
+                                  key={highlight}
+                                  className="px-3 py-1 text-xs font-medium bg-muted rounded-full text-muted-foreground"
+                                >
+                                  {highlight}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                            Full report
+                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                        
-                        <div className="flex-1">
-                          <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                            {report.region}
-                          </h3>
-                          <p className="text-muted-foreground leading-relaxed mb-4">
-                            {report.summary}
-                          </p>
-                          <div className="flex flex-wrap gap-2">
-                            {report.highlights.map((highlight) => (
-                              <span
-                                key={highlight}
-                                className="px-3 py-1 text-xs font-medium bg-muted rounded-full text-muted-foreground"
-                              >
-                                {highlight}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                          Full report
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </div>
-                    </motion.article>
-                  </Link>
-                ))}
-              </div>
+                      </motion.article>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </motion.div>
           </div>
         </section>
