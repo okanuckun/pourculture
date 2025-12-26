@@ -94,6 +94,9 @@ export const RaisinNavbar: React.FC = () => {
                   <DropdownMenuItem onClick={() => navigate('/about/natural-wine')}>
                     What is Natural Wine?
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/knowledge')}>
+                    Knowledge Hub
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/explore/winemakers')}>
                     Winemakers
                   </DropdownMenuItem>
