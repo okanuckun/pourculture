@@ -2,10 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
-import { Book, FileText, Download, Grape, ChevronRight, Search, ExternalLink, Loader2 } from 'lucide-react';
+import { Book, FileText, Download, Grape, ChevronRight, Search, ExternalLink, Loader2, Heart } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
+import { useFavorites } from '@/hooks/useFavorites';
+import { FavoriteButton } from '@/components/FavoriteButton';
 import {
   Accordion,
   AccordionContent,
@@ -75,12 +77,15 @@ const KnowledgeHub = () => {
   const [selectedLetter, setSelectedLetter] = useState('All');
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   
   const [glossaryTerms, setGlossaryTerms] = useState<GlossaryTerm[]>([]);
   const [guides, setGuides] = useState<Guide[]>([]);
   const [pdfResources, setPdfResources] = useState<PdfResource[]>([]);
   const [harvestReports, setHarvestReports] = useState<HarvestReport[]>([]);
+  
+  const { favorites, userId, isFavorite, toggleFavorite } = useFavorites();
 
   useEffect(() => {
     fetchData();
@@ -118,7 +123,8 @@ const KnowledgeHub = () => {
       item.definition.toLowerCase().includes(effectiveGlossarySearch.toLowerCase());
     const matchesLetter = selectedLetter === 'All' || 
       item.term.charAt(0).toUpperCase() === selectedLetter;
-    return matchesSearch && matchesLetter;
+    const matchesFavorite = !showFavoritesOnly || isFavorite('glossary', item.id);
+    return matchesSearch && matchesLetter && matchesFavorite;
   });
 
   const filteredGuides = guides.filter(guide => {
@@ -126,23 +132,29 @@ const KnowledgeHub = () => {
       guide.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
       guide.description.toLowerCase().includes(globalSearch.toLowerCase());
     const matchesCategory = selectedCategory === 'All' || guide.category === selectedCategory;
-    return matchesSearch && matchesCategory;
+    const matchesFavorite = !showFavoritesOnly || isFavorite('guide', guide.id);
+    return matchesSearch && matchesCategory && matchesFavorite;
   });
 
-  const filteredPdfs = pdfResources.filter(pdf => 
-    !globalSearch ||
-    pdf.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
-    pdf.description.toLowerCase().includes(globalSearch.toLowerCase())
-  );
+  const filteredPdfs = pdfResources.filter(pdf => {
+    const matchesSearch = !globalSearch ||
+      pdf.title.toLowerCase().includes(globalSearch.toLowerCase()) ||
+      pdf.description.toLowerCase().includes(globalSearch.toLowerCase());
+    const matchesFavorite = !showFavoritesOnly || isFavorite('pdf', pdf.id);
+    return matchesSearch && matchesFavorite;
+  });
 
-  const filteredReports = harvestReports.filter(report =>
-    !globalSearch ||
-    report.region.toLowerCase().includes(globalSearch.toLowerCase()) ||
-    report.summary.toLowerCase().includes(globalSearch.toLowerCase()) ||
-    report.year.toString().includes(globalSearch)
-  );
+  const filteredReports = harvestReports.filter(report => {
+    const matchesSearch = !globalSearch ||
+      report.region.toLowerCase().includes(globalSearch.toLowerCase()) ||
+      report.summary.toLowerCase().includes(globalSearch.toLowerCase()) ||
+      report.year.toString().includes(globalSearch);
+    const matchesFavorite = !showFavoritesOnly || isFavorite('harvest_report', report.id);
+    return matchesSearch && matchesFavorite;
+  });
 
   const totalResults = filteredTerms.length + filteredGuides.length + filteredPdfs.length + filteredReports.length;
+  const totalFavorites = favorites.length;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -265,22 +277,47 @@ const KnowledgeHub = () => {
                 ))}
               </div>
 
-              {/* Category Filter for Guides */}
-              <div className="flex flex-wrap justify-center gap-2">
-                <span className="text-sm text-muted-foreground mr-2 self-center">Filter guides:</span>
-                {categories.map((category) => (
+              {/* Favorites Toggle + Category Filter */}
+              <div className="flex flex-wrap justify-center items-center gap-4">
+                {/* Favorites Toggle */}
+                {userId && (
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-1.5 text-sm rounded-full transition-all ${
-                      selectedCategory === category
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card hover:bg-muted text-foreground border border-border'
+                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
+                      showFavoritesOnly
+                        ? 'bg-red-500 text-white'
+                        : 'bg-card hover:bg-red-500/10 text-foreground border border-border'
                     }`}
                   >
-                    {category}
+                    <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                    <span className="font-medium">My Favorites</span>
+                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
+                      showFavoritesOnly
+                        ? 'bg-white/20 text-white'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {totalFavorites}
+                    </span>
                   </button>
-                ))}
+                )}
+
+                {/* Category Filter for Guides */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-sm text-muted-foreground">Filter guides:</span>
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => setSelectedCategory(category)}
+                      className={`px-3 py-1.5 text-sm rounded-full transition-all ${
+                        selectedCategory === category
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-card hover:bg-muted text-foreground border border-border'
+                      }`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -355,16 +392,23 @@ const KnowledgeHub = () => {
 
               <motion.div variants={itemVariants}>
                 <Accordion type="single" collapsible className="space-y-2">
-                  {filteredTerms.map((item, index) => (
+                  {filteredTerms.map((item) => (
                     <AccordionItem
                       key={item.term}
                       value={item.term}
                       className="bg-card border border-border rounded-lg px-4 data-[state=open]:bg-muted/30"
                     >
                       <AccordionTrigger className="hover:no-underline py-4">
-                        <span className="font-display text-lg font-semibold text-foreground">
-                          {item.term}
-                        </span>
+                        <div className="flex items-center gap-3 w-full">
+                          <span className="font-display text-lg font-semibold text-foreground">
+                            {item.term}
+                          </span>
+                          <FavoriteButton
+                            isFavorite={isFavorite('glossary', item.id)}
+                            onClick={() => toggleFavorite('glossary', item.id)}
+                            size="sm"
+                          />
+                        </div>
                       </AccordionTrigger>
                       <AccordionContent className="pb-4 text-muted-foreground leading-relaxed">
                         {item.definition}
@@ -403,14 +447,18 @@ const KnowledgeHub = () => {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {filteredGuides.map((guide) => (
-                    <Link
+                    <motion.article
                       key={guide.id}
-                      to={`/guide/${guide.id}`}
+                      variants={itemVariants}
+                      className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all h-full relative"
                     >
-                      <motion.article
-                        variants={itemVariants}
-                        className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer h-full"
-                      >
+                      <FavoriteButton
+                        isFavorite={isFavorite('guide', guide.id)}
+                        onClick={() => toggleFavorite('guide', guide.id)}
+                        size="sm"
+                        className="absolute top-4 right-4"
+                      />
+                      <Link to={`/guide/${guide.id}`} className="block">
                         <div className="flex items-center gap-2 mb-3">
                           <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                             guide.category === 'Beginner' 
@@ -424,7 +472,7 @@ const KnowledgeHub = () => {
                           <span className="text-xs text-muted-foreground">{guide.read_time}</span>
                         </div>
                         
-                        <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors pr-8">
                           {guide.title}
                         </h3>
                         
@@ -436,8 +484,8 @@ const KnowledgeHub = () => {
                           Read guide
                           <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </div>
-                      </motion.article>
-                    </Link>
+                      </Link>
+                    </motion.article>
                   ))}
                 </div>
               )}
@@ -474,13 +522,19 @@ const KnowledgeHub = () => {
                     <motion.div
                       key={pdf.id}
                       variants={itemVariants}
-                      className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all"
+                      className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all relative"
                     >
+                      <FavoriteButton
+                        isFavorite={isFavorite('pdf', pdf.id)}
+                        onClick={() => toggleFavorite('pdf', pdf.id)}
+                        size="sm"
+                        className="absolute top-4 right-4"
+                      />
                       <div className="w-16 h-20 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
                         <FileText className="w-8 h-8 text-primary" />
                       </div>
                       
-                      <div className="flex-1">
+                      <div className="flex-1 pr-12">
                         <h3 className="font-display text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
                           {pdf.title}
                         </h3>
@@ -490,19 +544,19 @@ const KnowledgeHub = () => {
                         <div className="flex items-center gap-4 text-xs text-muted-foreground">
                           {pdf.pages && <span>{pdf.pages} pages</span>}
                           {pdf.file_size && <span>{pdf.file_size}</span>}
+                          {pdf.file_url && (
+                            <a 
+                              href={pdf.file_url} 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-1 text-primary hover:underline"
+                            >
+                              <Download className="w-3 h-3" />
+                              Download
+                            </a>
+                          )}
                         </div>
                       </div>
-                      
-                      {pdf.file_url && (
-                        <a 
-                          href={pdf.file_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
-                        >
-                          <Download className="w-5 h-5" />
-                        </a>
-                      )}
                     </motion.div>
                   ))}
                 </div>
@@ -544,11 +598,18 @@ const KnowledgeHub = () => {
               ) : (
                 <div className="space-y-6">
                   {filteredReports.map((report) => (
-                    <Link key={report.id} to={`/harvest/${report.id}`}>
-                      <motion.article
-                        variants={itemVariants}
-                        className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
-                      >
+                    <motion.article
+                      key={report.id}
+                      variants={itemVariants}
+                      className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all group relative"
+                    >
+                      <FavoriteButton
+                        isFavorite={isFavorite('harvest_report', report.id)}
+                        onClick={() => toggleFavorite('harvest_report', report.id)}
+                        size="sm"
+                        className="absolute top-4 right-4"
+                      />
+                      <Link to={`/harvest/${report.id}`} className="block">
                         <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
                           <div className="flex-shrink-0">
                             <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -556,7 +617,7 @@ const KnowledgeHub = () => {
                             </div>
                           </div>
                           
-                          <div className="flex-1">
+                          <div className="flex-1 pr-8">
                             <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
                               {report.region}
                             </h3>
@@ -580,8 +641,8 @@ const KnowledgeHub = () => {
                             <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                      </motion.article>
-                    </Link>
+                      </Link>
+                    </motion.article>
                   ))}
                 </div>
               )}
