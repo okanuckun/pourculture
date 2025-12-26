@@ -106,6 +106,99 @@ export type Database = {
         }
         Relationships: []
       }
+      glossary_terms: {
+        Row: {
+          created_at: string
+          definition: string
+          id: string
+          term: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          definition: string
+          id?: string
+          term: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          definition?: string
+          id?: string
+          term?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      guides: {
+        Row: {
+          category: string
+          content: string | null
+          created_at: string
+          description: string
+          id: string
+          is_published: boolean
+          read_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          is_published?: boolean
+          read_time?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          content?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          is_published?: boolean
+          read_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      harvest_reports: {
+        Row: {
+          created_at: string
+          highlights: string[] | null
+          id: string
+          is_published: boolean
+          region: string
+          summary: string
+          updated_at: string
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          highlights?: string[] | null
+          id?: string
+          is_published?: boolean
+          region: string
+          summary: string
+          updated_at?: string
+          year: number
+        }
+        Update: {
+          created_at?: string
+          highlights?: string[] | null
+          id?: string
+          is_published?: boolean
+          region?: string
+          summary?: string
+          updated_at?: string
+          year?: number
+        }
+        Relationships: []
+      }
       news: {
         Row: {
           author: string | null
@@ -146,6 +239,42 @@ export type Database = {
           is_published?: boolean | null
           published_at?: string | null
           slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      pdf_resources: {
+        Row: {
+          created_at: string
+          description: string
+          file_size: string | null
+          file_url: string | null
+          id: string
+          is_published: boolean
+          pages: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          file_size?: string | null
+          file_url?: string | null
+          id?: string
+          is_published?: boolean
+          pages?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          file_size?: string | null
+          file_url?: string | null
+          id?: string
+          is_published?: boolean
+          pages?: number | null
           title?: string
           updated_at?: string
         }

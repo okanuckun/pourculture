@@ -9,7 +9,8 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book } from 'lucide-react';
+import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 
 // Input validation schema for events
 const eventSchema = z.object({
@@ -654,10 +655,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="wines" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-3 mb-6">
             <TabsTrigger value="wines" className="flex items-center gap-2">
               <Wine className="h-4 w-4" />
               Şaraplar
+            </TabsTrigger>
+            <TabsTrigger value="knowledge" className="flex items-center gap-2">
+              <Book className="h-4 w-4" />
+              Bilgi Merkezi
             </TabsTrigger>
             <TabsTrigger value="events" className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
@@ -753,6 +758,11 @@ const Admin = () => {
                 )}
               </div>
             )}
+          </TabsContent>
+
+          {/* Knowledge Hub Tab */}
+          <TabsContent value="knowledge">
+            <KnowledgeHubAdmin />
           </TabsContent>
 
           {/* Events Tab */}
