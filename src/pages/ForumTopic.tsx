@@ -4,7 +4,7 @@ import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, User, Clock, MessageCircle, Loader2, Trash2, Edit2 } from 'lucide-react';
+import { ArrowLeft, User, Clock, MessageCircle, Loader2, Trash2, MessageSquare, Lightbulb, HelpCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -21,10 +21,17 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 
+const categoryLabels: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  general: { label: 'Genel', color: 'bg-blue-500/10 text-blue-600', icon: MessageSquare },
+  suggestion: { label: 'Öneri', color: 'bg-amber-500/10 text-amber-600', icon: Lightbulb },
+  question: { label: 'Soru', color: 'bg-green-500/10 text-green-600', icon: HelpCircle },
+};
+
 interface Topic {
   id: string;
   title: string;
   content: string;
+  category: string;
   user_id: string;
   created_at: string;
   author_name: string;
@@ -259,9 +266,17 @@ const ForumTopic = () => {
             className="bg-card border border-border rounded-xl p-6 mb-8"
           >
             <div className="flex items-start justify-between gap-4 mb-4">
-              <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
-                {topic.title}
-              </h1>
+              <div>
+                {topic.category && categoryLabels[topic.category] && (
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-full mb-3 ${categoryLabels[topic.category].color}`}>
+                    {React.createElement(categoryLabels[topic.category].icon, { className: 'w-3.5 h-3.5' })}
+                    {categoryLabels[topic.category].label}
+                  </span>
+                )}
+                <h1 className="font-display text-2xl md:text-3xl font-bold text-foreground">
+                  {topic.title}
+                </h1>
+              </div>
               
               {userId === topic.user_id && (
                 <AlertDialog>
