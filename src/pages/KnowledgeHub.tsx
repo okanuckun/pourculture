@@ -67,10 +67,12 @@ const fallbackReports: HarvestReport[] = [
 ];
 
 const categories = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+const alphabet = ['All', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
 
 const KnowledgeHub = () => {
   const [globalSearch, setGlobalSearch] = useState('');
   const [glossarySearch, setGlossarySearch] = useState('');
+  const [selectedLetter, setSelectedLetter] = useState('All');
   const [activeSection, setActiveSection] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [loading, setLoading] = useState(true);
@@ -105,10 +107,19 @@ const KnowledgeHub = () => {
   // Combined search term (global or local glossary search)
   const effectiveGlossarySearch = globalSearch || glossarySearch;
   
-  const filteredTerms = glossaryTerms.filter(
-    item => item.term.toLowerCase().includes(effectiveGlossarySearch.toLowerCase()) ||
-            item.definition.toLowerCase().includes(effectiveGlossarySearch.toLowerCase())
+  // Get available letters from glossary terms
+  const availableLetters = new Set(
+    glossaryTerms.map(item => item.term.charAt(0).toUpperCase())
   );
+  
+  const filteredTerms = glossaryTerms.filter(item => {
+    const matchesSearch = !effectiveGlossarySearch || 
+      item.term.toLowerCase().includes(effectiveGlossarySearch.toLowerCase()) ||
+      item.definition.toLowerCase().includes(effectiveGlossarySearch.toLowerCase());
+    const matchesLetter = selectedLetter === 'All' || 
+      item.term.charAt(0).toUpperCase() === selectedLetter;
+    return matchesSearch && matchesLetter;
+  });
 
   const filteredGuides = guides.filter(guide => {
     const matchesSearch = !globalSearch || 
@@ -294,7 +305,8 @@ const KnowledgeHub = () => {
                 </div>
               </motion.div>
 
-              <motion.div variants={itemVariants} className="mb-8">
+              <motion.div variants={itemVariants} className="mb-6 space-y-4">
+                {/* Search Input */}
                 <div className="relative max-w-md">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
                   <Input
@@ -306,8 +318,37 @@ const KnowledgeHub = () => {
                   />
                 </div>
                 {globalSearch && (
-                  <p className="text-sm text-muted-foreground mt-2">
+                  <p className="text-sm text-muted-foreground">
                     Filtering by global search: "{globalSearch}"
+                  </p>
+                )}
+                
+                {/* Alphabetic Filter */}
+                <div className="flex flex-wrap gap-1">
+                  {alphabet.map((letter) => {
+                    const isAvailable = letter === 'All' || availableLetters.has(letter);
+                    return (
+                      <button
+                        key={letter}
+                        onClick={() => isAvailable && setSelectedLetter(letter)}
+                        disabled={!isAvailable}
+                        className={`w-8 h-8 text-sm font-medium rounded-md transition-all ${
+                          selectedLetter === letter
+                            ? 'bg-primary text-primary-foreground'
+                            : isAvailable
+                            ? 'bg-card hover:bg-muted text-foreground border border-border'
+                            : 'bg-muted/30 text-muted-foreground/40 cursor-not-allowed'
+                        }`}
+                      >
+                        {letter === 'All' ? '∀' : letter}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {selectedLetter !== 'All' && (
+                  <p className="text-sm text-muted-foreground">
+                    Showing terms starting with "{selectedLetter}" ({filteredTerms.length} results)
                   </p>
                 )}
               </motion.div>
