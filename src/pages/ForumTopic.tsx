@@ -4,7 +4,7 @@ import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, User, Clock, MessageCircle, Loader2, Trash2, MessageSquare, Lightbulb, HelpCircle } from 'lucide-react';
+import { ArrowLeft, User, Clock, MessageCircle, Loader2, Trash2, MessageSquare, Lightbulb, HelpCircle, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -35,6 +35,8 @@ interface Topic {
   user_id: string;
   created_at: string;
   author_name: string;
+  like_count: number;
+  is_liked: boolean;
 }
 
 interface Comment {
@@ -67,13 +69,15 @@ const ForumTopic = () => {
       setUserId(session?.user?.id ?? null);
     });
 
+    return () => subscription.unsubscribe();
+  }, []);
+
+  useEffect(() => {
     if (id) {
       fetchTopic();
       fetchComments();
     }
-
-    return () => subscription.unsubscribe();
-  }, [id]);
+  }, [id, userId]);
 
   const fetchTopic = async () => {
     const { data, error } = await supabase
@@ -87,6 +91,24 @@ const ForumTopic = () => {
       return;
     }
 
+    // Get like count
+    const { count: likeCount } = await supabase
+      .from('forum_likes')
+      .select('*', { count: 'exact', head: true })
+      .eq('topic_id', id);
+
+    // Check if current user liked this topic
+    let isLiked = false;
+    if (userId) {
+      const { data: likeData } = await supabase
+        .from('forum_likes')
+        .select('id')
+        .eq('topic_id', id)
+        .eq('user_id', userId)
+        .maybeSingle();
+      isLiked = !!likeData;
+    }
+
     // Get author name
     const { data: profile } = await supabase
       .from('profiles')
@@ -97,6 +119,8 @@ const ForumTopic = () => {
     setTopic({
       ...data,
       author_name: profile?.display_name || 'Anonymous',
+      like_count: likeCount || 0,
+      is_liked: isLiked,
     });
     setLoading(false);
   };
@@ -228,6 +252,43 @@ const ForumTopic = () => {
     navigate('/forum');
   };
 
+  const handleToggleLike = async () => {
+    if (!userId) {
+      toast({
+        title: 'Giriş gerekli',
+        description: 'Beğenmek için lütfen giriş yapın',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (!topic) return;
+
+    if (topic.is_liked) {
+      // Remove like
+      await supabase
+        .from('forum_likes')
+        .delete()
+        .eq('topic_id', id)
+        .eq('user_id', userId);
+    } else {
+      // Add like
+      await supabase
+        .from('forum_likes')
+        .insert({
+          topic_id: id,
+          user_id: userId,
+        });
+    }
+
+    // Update local state
+    setTopic({
+      ...topic,
+      is_liked: !topic.is_liked,
+      like_count: topic.is_liked ? topic.like_count - 1 : topic.like_count + 1,
+    });
+  };
+
   if (loading) {
     return (
       <>
@@ -316,6 +377,15 @@ const ForumTopic = () => {
                 <MessageCircle className="w-4 h-4" />
                 {comments.length} yorum
               </span>
+              <button
+                onClick={handleToggleLike}
+                className={`flex items-center gap-1 transition-colors ${
+                  topic.is_liked ? 'text-red-500' : 'hover:text-red-500'
+                }`}
+              >
+                <Heart className={`w-4 h-4 ${topic.is_liked ? 'fill-current' : ''}`} />
+                {topic.like_count} beğeni
+              </button>
             </div>
 
             <div className="prose prose-sm max-w-none text-foreground">
