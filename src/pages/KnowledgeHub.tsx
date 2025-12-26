@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
 import { Book, FileText, Download, Grape, ChevronRight, Search, ExternalLink, Loader2 } from 'lucide-react';
@@ -276,37 +277,41 @@ const KnowledgeHub = () => {
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {guides.map((guide) => (
-                  <motion.article
+                  <Link
                     key={guide.id}
-                    variants={itemVariants}
-                    className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer"
+                    to={`/guide/${guide.id}`}
                   >
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                        guide.category === 'Beginner' 
-                          ? 'bg-green-500/10 text-green-600' 
-                          : guide.category === 'Advanced'
-                          ? 'bg-red-500/10 text-red-600'
-                          : 'bg-orange-500/10 text-orange-600'
-                      }`}>
-                        {guide.category}
-                      </span>
-                      <span className="text-xs text-muted-foreground">{guide.read_time}</span>
-                    </div>
-                    
-                    <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                      {guide.title}
-                    </h3>
-                    
-                    <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                      {guide.description}
-                    </p>
-                    
-                    <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                      Read guide
-                      <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                    </div>
-                  </motion.article>
+                    <motion.article
+                      variants={itemVariants}
+                      className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer h-full"
+                    >
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          guide.category === 'Beginner' 
+                            ? 'bg-green-500/10 text-green-600' 
+                            : guide.category === 'Advanced'
+                            ? 'bg-red-500/10 text-red-600'
+                            : 'bg-orange-500/10 text-orange-600'
+                        }`}>
+                          {guide.category}
+                        </span>
+                        <span className="text-xs text-muted-foreground">{guide.read_time}</span>
+                      </div>
+                      
+                      <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                        {guide.title}
+                      </h3>
+                      
+                      <p className="text-muted-foreground text-sm leading-relaxed mb-4">
+                        {guide.description}
+                      </p>
+                      
+                      <div className="flex items-center gap-1 text-primary text-sm font-medium">
+                        Read guide
+                        <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                      </div>
+                    </motion.article>
+                  </Link>
                 ))}
               </div>
             </motion.div>
