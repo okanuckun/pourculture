@@ -409,6 +409,69 @@ export type Database = {
         }
         Relationships: []
       }
+      wines: {
+        Row: {
+          acidity: string
+          alcohol_percentage: number | null
+          color: string
+          country: string
+          created_at: string
+          description: string | null
+          grape: string
+          id: string
+          image_url: string | null
+          is_featured: boolean | null
+          name: string
+          occasion: string[] | null
+          price_range: string | null
+          region: string
+          style: string
+          updated_at: string
+          winemaker: string | null
+          year: number | null
+        }
+        Insert: {
+          acidity: string
+          alcohol_percentage?: number | null
+          color: string
+          country: string
+          created_at?: string
+          description?: string | null
+          grape: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          name: string
+          occasion?: string[] | null
+          price_range?: string | null
+          region: string
+          style: string
+          updated_at?: string
+          winemaker?: string | null
+          year?: number | null
+        }
+        Update: {
+          acidity?: string
+          alcohol_percentage?: number | null
+          color?: string
+          country?: string
+          created_at?: string
+          description?: string | null
+          grape?: string
+          id?: string
+          image_url?: string | null
+          is_featured?: boolean | null
+          name?: string
+          occasion?: string[] | null
+          price_range?: string | null
+          region?: string
+          style?: string
+          updated_at?: string
+          winemaker?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
