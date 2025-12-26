@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Wine, Sparkles, ArrowRight, ArrowLeft, RotateCcw, History, User, Loader2 } from 'lucide-react';
+import { Wine, Sparkles, ArrowRight, ArrowLeft, RotateCcw, History, User, Loader2, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -53,13 +53,23 @@ const questions: Question[] = [
   },
 ];
 
-interface WineRecommendation {
+interface WineFromDB {
+  id: string;
   name: string;
   grape: string;
   region: string;
-  description: string;
-  emoji: string;
+  country: string;
+  winemaker: string | null;
+  description: string | null;
+  image_url: string | null;
+  price_range: string | null;
   color: string;
+  style: string;
+  acidity: string;
+  occasion: string[];
+  alcohol_percentage: number | null;
+  year: number | null;
+  is_featured: boolean;
 }
 
 interface QuizResult {
@@ -71,146 +81,18 @@ interface QuizResult {
   created_at: string;
 }
 
-const getRecommendation = (answers: Record<string, string>): WineRecommendation => {
-  const { color, style, acidity } = answers;
+const colorGradients: Record<string, string> = {
+  red: 'from-wine-red to-red-400',
+  white: 'from-yellow-300 to-amber-200',
+  orange: 'from-orange-400 to-amber-500',
+  rose: 'from-pink-400 to-rose-300',
+};
 
-  // Red wines
-  if (color === 'red') {
-    if (style === 'funky' && acidity === 'acidic') {
-      return {
-        name: 'Poulsard',
-        grape: 'Poulsard',
-        region: 'Jura, Fransa',
-        description: 'Hafif gövdeli, funky aromalarla dolu, canlı asitli bir kırmızı. Sohbet için mükemmel!',
-        emoji: '🍷',
-        color: 'from-wine-red to-red-400',
-      };
-    }
-    if (style === 'funky' && acidity === 'soft') {
-      return {
-        name: 'Gamay Naturel',
-        grape: 'Gamay',
-        region: 'Beaujolais, Fransa',
-        description: 'Meyvemsi, yumuşak ve doğal. Carbonic maceration ile yapılmış, keyifli bir şarap.',
-        emoji: '🍇',
-        color: 'from-purple-600 to-wine-red',
-      };
-    }
-    if (style === 'clean' && acidity === 'acidic') {
-      return {
-        name: 'Nerello Mascalese',
-        grape: 'Nerello Mascalese',
-        region: 'Etna, Sicilya',
-        description: 'Volkanik topraktan gelen mineralli, zarif ve asidik bir kırmızı.',
-        emoji: '🌋',
-        color: 'from-red-600 to-orange-500',
-      };
-    }
-    return {
-      name: 'Pinot Noir',
-      grape: 'Pinot Noir',
-      region: 'Burgundy, Fransa',
-      description: 'Klasik, zarif ve yuvarlak. Her duruma uygun, zamansız bir seçim.',
-      emoji: '🎩',
-      color: 'from-wine-red to-purple-600',
-    };
-  }
-
-  // White wines
-  if (color === 'white') {
-    if (style === 'funky' && acidity === 'acidic') {
-      return {
-        name: 'Pét-Nat Blanc',
-        grape: 'Çeşitli',
-        region: 'Loire, Fransa',
-        description: 'Doğal köpüren, canlı ve spontan. Parti şarabı!',
-        emoji: '🎉',
-        color: 'from-yellow-300 to-green-300',
-      };
-    }
-    if (style === 'funky' && acidity === 'soft') {
-      return {
-        name: 'Skin Contact Muscat',
-        grape: 'Muscat',
-        region: 'Gürcistan',
-        description: 'Aromatik, yumuşak ve egzotik. Farklı bir deneyim.',
-        emoji: '🍯',
-        color: 'from-amber-300 to-yellow-400',
-      };
-    }
-    if (style === 'clean' && acidity === 'acidic') {
-      return {
-        name: 'Grüner Veltliner',
-        grape: 'Grüner Veltliner',
-        region: 'Avusturya',
-        description: 'Temiz, mineral ve biber notalarıyla canlı. Yemekle harika!',
-        emoji: '🌿',
-        color: 'from-green-400 to-lime-300',
-      };
-    }
-    return {
-      name: 'Chenin Blanc',
-      grape: 'Chenin Blanc',
-      region: 'Loire, Fransa',
-      description: 'Bal ve elma notaları, yumuşak ve dengeli.',
-      emoji: '🍎',
-      color: 'from-yellow-400 to-amber-300',
-    };
-  }
-
-  // Orange wines
-  if (color === 'orange') {
-    if (style === 'funky') {
-      return {
-        name: 'Rkatsiteli Amber',
-        grape: 'Rkatsiteli',
-        region: 'Kakheti, Gürcistan',
-        description: "Qvevri'de yapılmış, 8000 yıllık gelenek. Cesur ve kompleks.",
-        emoji: '🏺',
-        color: 'from-orange-500 to-amber-600',
-      };
-    }
-    return {
-      name: 'Ribolla Gialla',
-      grape: 'Ribolla Gialla',
-      region: 'Friuli, İtalya',
-      description: 'Uzun maserasyon, zarif tanin ve turuncu meyveler.',
-      emoji: '🍊',
-      color: 'from-orange-400 to-yellow-500',
-    };
-  }
-
-  // Rosé
-  if (color === 'rose') {
-    if (acidity === 'acidic') {
-      return {
-        name: 'Bandol Rosé',
-        grape: 'Mourvèdre',
-        region: 'Provence, Fransa',
-        description: 'Ciddi bir rosé, mineralli ve kompleks.',
-        emoji: '🌹',
-        color: 'from-pink-400 to-rose-500',
-      };
-    }
-    return {
-      name: 'Cerasuolo d\'Abruzzo',
-      grape: 'Montepulciano',
-      region: 'Abruzzo, İtalya',
-      description: 'Kiraz pembesi, meyve dolu ve keyifli.',
-      emoji: '🍒',
-      color: 'from-rose-400 to-pink-300',
-    };
-  }
-
-  // Default
-  return {
-    name: 'Doğal Şarap Keşfi',
-    grape: 'Yerel üzümler',
-    region: 'Dünya',
-    description: 'Her şişe bir macera. Keşfetmeye devam et!',
-    emoji: '🌍',
-    color: 'from-primary to-accent',
-  };
+const colorEmojis: Record<string, string> = {
+  red: '🍷',
+  white: '🥂',
+  orange: '🍊',
+  rose: '🌸',
 };
 
 const answerLabels: Record<string, Record<string, string>> = {
@@ -231,6 +113,8 @@ export const WineQuiz = () => {
   const [pastResults, setPastResults] = useState<QuizResult[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isLoadingWines, setIsLoadingWines] = useState(false);
+  const [recommendedWines, setRecommendedWines] = useState<WineFromDB[]>([]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -268,6 +152,56 @@ export const WineQuiz = () => {
     }
   };
 
+  const fetchMatchingWines = async (quizAnswers: Record<string, string>) => {
+    setIsLoadingWines(true);
+    try {
+      // First try exact match
+      let query = supabase
+        .from('wines')
+        .select('*')
+        .eq('color', quizAnswers.color)
+        .eq('style', quizAnswers.style)
+        .eq('acidity', quizAnswers.acidity)
+        .limit(3);
+
+      let { data, error } = await query;
+
+      if (error) throw error;
+
+      // If no exact matches, try with just color and style
+      if (!data || data.length === 0) {
+        const { data: fallbackData, error: fallbackError } = await supabase
+          .from('wines')
+          .select('*')
+          .eq('color', quizAnswers.color)
+          .eq('style', quizAnswers.style)
+          .limit(3);
+
+        if (fallbackError) throw fallbackError;
+        data = fallbackData;
+      }
+
+      // If still no matches, try with just color
+      if (!data || data.length === 0) {
+        const { data: colorData, error: colorError } = await supabase
+          .from('wines')
+          .select('*')
+          .eq('color', quizAnswers.color)
+          .limit(3);
+
+        if (colorError) throw colorError;
+        data = colorData;
+      }
+
+      setRecommendedWines(data || []);
+    } catch (error) {
+      console.error('Error fetching wines:', error);
+      setRecommendedWines([]);
+    } finally {
+      setIsLoadingWines(false);
+    }
+  };
+
   const handleAnswer = (questionId: string, value: string) => {
     const newAnswers = { ...answers, [questionId]: value };
     setAnswers(newAnswers);
@@ -275,11 +209,14 @@ export const WineQuiz = () => {
     if (currentStep < questions.length - 1) {
       setTimeout(() => setCurrentStep(currentStep + 1), 300);
     } else {
-      setTimeout(() => setShowResult(true), 300);
+      setTimeout(() => {
+        setShowResult(true);
+        fetchMatchingWines(newAnswers);
+      }, 300);
     }
   };
 
-  const saveResult = async (recommendation: WineRecommendation) => {
+  const saveResult = async (wine: WineFromDB) => {
     if (!user) {
       toast.info('Sonuçları kaydetmek için giriş yapmalısın', {
         action: {
@@ -295,9 +232,9 @@ export const WineQuiz = () => {
       const { error } = await supabase.from('wine_quiz_results').insert({
         user_id: user.id,
         answers,
-        recommendation_name: recommendation.name,
-        recommendation_grape: recommendation.grape,
-        recommendation_region: recommendation.region,
+        recommendation_name: wine.name,
+        recommendation_grape: wine.grape,
+        recommendation_region: `${wine.region}, ${wine.country}`,
       });
 
       if (error) throw error;
@@ -315,6 +252,7 @@ export const WineQuiz = () => {
     setAnswers({});
     setShowResult(false);
     setShowHistory(false);
+    setRecommendedWines([]);
   };
 
   const goBack = () => {
@@ -327,8 +265,6 @@ export const WineQuiz = () => {
     setShowHistory(true);
     fetchPastResults();
   };
-
-  const recommendation = showResult ? getRecommendation(answers) : null;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('tr-TR', {
@@ -544,63 +480,136 @@ export const WineQuiz = () => {
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
                       transition={{ duration: 0.4 }}
-                      className="text-center"
                     >
-                      <div
-                        className={`mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-3xl bg-gradient-to-br ${recommendation?.color}`}
-                      >
-                        <span className="text-5xl">{recommendation?.emoji}</span>
-                      </div>
-                      <p className="mb-2 text-sm font-medium text-primary">
-                        Sana özel önerimiz
-                      </p>
-                      <h3 className="font-display text-2xl font-bold text-foreground">
-                        {recommendation?.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        {recommendation?.grape} • {recommendation?.region}
-                      </p>
-                      <p className="mt-4 text-foreground">
-                        {recommendation?.description}
-                      </p>
-
-                      {/* User status */}
-                      {!user && (
-                        <div className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground">
-                          <User className="inline-block h-4 w-4 mr-1" />
-                          <span>Giriş yaparak sonuçlarını kaydedebilirsin</span>
+                      {isLoadingWines ? (
+                        <div className="flex flex-col items-center justify-center py-12">
+                          <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
+                          <p className="text-muted-foreground">Sana uygun şarapları arıyoruz...</p>
                         </div>
-                      )}
+                      ) : recommendedWines.length === 0 ? (
+                        <div className="text-center py-8">
+                          <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-3xl bg-secondary">
+                            <Wine className="h-10 w-10 text-muted-foreground" />
+                          </div>
+                          <h3 className="font-display text-xl font-bold text-foreground mb-2">
+                            Şarap bulunamadı
+                          </h3>
+                          <p className="text-muted-foreground text-sm mb-6">
+                            Bu kriterlere uygun şarap henüz eklenmemiş. Farklı seçenekler dene!
+                          </p>
+                          <button
+                            onClick={reset}
+                            className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
+                          >
+                            <RotateCcw className="h-4 w-4" />
+                            Tekrar Dene
+                          </button>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="text-center mb-6">
+                            <p className="text-sm font-medium text-primary mb-1">
+                              Sana özel önerilerimiz
+                            </p>
+                            <h3 className="font-display text-xl font-bold text-foreground">
+                              {recommendedWines.length} şarap bulduk! 🎉
+                            </h3>
+                          </div>
 
-                      <div className="mt-6 flex gap-3">
-                        <button
-                          onClick={reset}
-                          className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Tekrar Dene
-                        </button>
-                        {user ? (
-                          <button
-                            onClick={() => recommendation && saveResult(recommendation)}
-                            disabled={isSaving}
-                            className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-                          >
-                            {isSaving ? (
-                              <Loader2 className="h-4 w-4 animate-spin mx-auto" />
-                            ) : (
-                              'Kaydet 🍷'
-                            )}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setIsOpen(false)}
-                            className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-                          >
-                            Harika! 🍷
-                          </button>
-                        )}
-                      </div>
+                          <div className="space-y-4">
+                            {recommendedWines.map((wine, index) => (
+                              <motion.div
+                                key={wine.id}
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="rounded-2xl border border-border bg-secondary/30 overflow-hidden"
+                              >
+                                <div className={`h-2 bg-gradient-to-r ${colorGradients[wine.color] || 'from-primary to-accent'}`} />
+                                <div className="p-4">
+                                  <div className="flex items-start gap-3">
+                                    <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${colorGradients[wine.color] || 'from-primary to-accent'}`}>
+                                      <span className="text-2xl">{colorEmojis[wine.color] || '🍷'}</span>
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-semibold text-foreground truncate">
+                                        {wine.name}
+                                      </h4>
+                                      <p className="text-sm text-muted-foreground">
+                                        {wine.grape} • {wine.region}, {wine.country}
+                                      </p>
+                                      {wine.winemaker && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          🍇 {wine.winemaker}
+                                        </p>
+                                      )}
+                                    </div>
+                                    {wine.price_range && (
+                                      <span className="shrink-0 rounded-full bg-primary/10 px-2 py-1 text-xs font-medium text-primary">
+                                        {wine.price_range}
+                                      </span>
+                                    )}
+                                  </div>
+                                  
+                                  {wine.description && (
+                                    <p className="mt-3 text-sm text-foreground/80">
+                                      {wine.description}
+                                    </p>
+                                  )}
+
+                                  <div className="mt-3 flex items-center justify-between">
+                                    <div className="flex gap-2">
+                                      {wine.year && (
+                                        <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                                          {wine.year}
+                                        </span>
+                                      )}
+                                      {wine.alcohol_percentage && (
+                                        <span className="rounded-full bg-background px-2 py-0.5 text-xs text-muted-foreground">
+                                          {wine.alcohol_percentage}%
+                                        </span>
+                                      )}
+                                    </div>
+                                    {user && (
+                                      <button
+                                        onClick={() => saveResult(wine)}
+                                        disabled={isSaving}
+                                        className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
+                                      >
+                                        {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+
+                          {/* User status */}
+                          {!user && (
+                            <div className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground text-center">
+                              <User className="inline-block h-4 w-4 mr-1" />
+                              <span>Giriş yaparak sonuçlarını kaydedebilirsin</span>
+                            </div>
+                          )}
+
+                          <div className="mt-6 flex gap-3">
+                            <button
+                              onClick={reset}
+                              className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+                            >
+                              <RotateCcw className="h-4 w-4" />
+                              Tekrar Dene
+                            </button>
+                            <button
+                              onClick={() => setIsOpen(false)}
+                              className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+                            >
+                              Harika! 🍷
+                            </button>
+                          </div>
+                        </>
+                      )}
                     </motion.div>
                   )}
                 </AnimatePresence>
