@@ -5,7 +5,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, X } from 'lucide-react';
+import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, HelpCircle, Lightbulb, MessagesSquare } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,24 +17,46 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Topic {
   id: string;
   title: string;
   content: string;
+  category: string;
   user_id: string;
   created_at: string;
   comment_count: number;
   author_name: string;
 }
 
+const categories = [
+  { value: 'all', label: 'Tümü', icon: MessagesSquare },
+  { value: 'general', label: 'Genel', icon: MessageSquare },
+  { value: 'suggestion', label: 'Öneri', icon: Lightbulb },
+  { value: 'question', label: 'Soru', icon: HelpCircle },
+];
+
+const categoryLabels: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  general: { label: 'Genel', color: 'bg-blue-500/10 text-blue-600', icon: MessageSquare },
+  suggestion: { label: 'Öneri', color: 'bg-amber-500/10 text-amber-600', icon: Lightbulb },
+  question: { label: 'Soru', color: 'bg-green-500/10 text-green-600', icon: HelpCircle },
+};
+
 const Forum = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [userId, setUserId] = useState<string | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [newTopic, setNewTopic] = useState({ title: '', content: '' });
+  const [newTopic, setNewTopic] = useState({ title: '', content: '', category: 'general' });
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -123,6 +145,7 @@ const Forum = () => {
       .insert({
         title: newTopic.title.trim(),
         content: newTopic.content.trim(),
+        category: newTopic.category,
         user_id: userId,
       })
       .select()
@@ -143,16 +166,18 @@ const Forum = () => {
       description: 'Konu başarıyla oluşturuldu',
     });
 
-    setNewTopic({ title: '', content: '' });
+    setNewTopic({ title: '', content: '', category: 'general' });
     setIsDialogOpen(false);
     setSubmitting(false);
     fetchTopics();
   };
 
-  const filteredTopics = topics.filter(topic =>
-    topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    topic.content.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredTopics = topics.filter(topic => {
+    const matchesSearch = topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      topic.content.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCategory = selectedCategory === 'all' || topic.category === selectedCategory;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <>
@@ -211,6 +236,36 @@ const Forum = () => {
                     </DialogHeader>
                     <div className="space-y-4 pt-4">
                       <div>
+                        <Select
+                          value={newTopic.category}
+                          onValueChange={(value) => setNewTopic({ ...newTopic, category: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Kategori seçin" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="general">
+                              <span className="flex items-center gap-2">
+                                <MessageSquare className="w-4 h-4" />
+                                Genel
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="suggestion">
+                              <span className="flex items-center gap-2">
+                                <Lightbulb className="w-4 h-4" />
+                                Öneri
+                              </span>
+                            </SelectItem>
+                            <SelectItem value="question">
+                              <span className="flex items-center gap-2">
+                                <HelpCircle className="w-4 h-4" />
+                                Soru
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
                         <Input
                           placeholder="Konu başlığı"
                           value={newTopic.title}
@@ -236,6 +291,27 @@ const Forum = () => {
                     </div>
                   </DialogContent>
                 </Dialog>
+              </div>
+
+              {/* Category Filter */}
+              <div className="flex flex-wrap justify-center gap-2 mt-6">
+                {categories.map((cat) => {
+                  const Icon = cat.icon;
+                  return (
+                    <button
+                      key={cat.value}
+                      onClick={() => setSelectedCategory(cat.value)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                        selectedCategory === cat.value
+                          ? 'bg-primary text-primary-foreground'
+                          : 'bg-card border border-border hover:bg-muted text-foreground'
+                      }`}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {cat.label}
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           </div>
@@ -272,6 +348,14 @@ const Forum = () => {
                           </div>
                           
                           <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              {topic.category && categoryLabels[topic.category] && (
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded-full ${categoryLabels[topic.category].color}`}>
+                                  {React.createElement(categoryLabels[topic.category].icon, { className: 'w-3 h-3' })}
+                                  {categoryLabels[topic.category].label}
+                                </span>
+                              )}
+                            </div>
                             <h3 className="font-display text-lg font-semibold text-foreground group-hover:text-primary transition-colors line-clamp-1">
                               {topic.title}
                             </h3>
