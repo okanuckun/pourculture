@@ -406,43 +406,44 @@ const KnowledgeHub = () => {
 
               <div className="space-y-6">
                 {harvestReports.map((report) => (
-                  <motion.article
-                    key={report.id}
-                    variants={itemVariants}
-                    className="bg-card border border-border rounded-xl p-6 md:p-8"
-                  >
-                    <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
-                      <div className="flex-shrink-0">
-                        <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center">
-                          <span className="font-display text-2xl font-bold text-primary">{report.year}</span>
+                  <Link key={report.id} to={`/harvest/${report.id}`}>
+                    <motion.article
+                      variants={itemVariants}
+                      className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer group"
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
+                        <div className="flex-shrink-0">
+                          <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                            <span className="font-display text-2xl font-bold text-primary">{report.year}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex-1">
+                          <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                            {report.region}
+                          </h3>
+                          <p className="text-muted-foreground leading-relaxed mb-4">
+                            {report.summary}
+                          </p>
+                          <div className="flex flex-wrap gap-2">
+                            {report.highlights.map((highlight) => (
+                              <span
+                                key={highlight}
+                                className="px-3 py-1 text-xs font-medium bg-muted rounded-full text-muted-foreground"
+                              >
+                                {highlight}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                          Full report
+                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                         </div>
                       </div>
-                      
-                      <div className="flex-1">
-                        <h3 className="font-display text-xl font-semibold text-foreground mb-2">
-                          {report.region}
-                        </h3>
-                        <p className="text-muted-foreground leading-relaxed mb-4">
-                          {report.summary}
-                        </p>
-                        <div className="flex flex-wrap gap-2">
-                          {report.highlights.map((highlight) => (
-                            <span
-                              key={highlight}
-                              className="px-3 py-1 text-xs font-medium bg-muted rounded-full text-muted-foreground"
-                            >
-                              {highlight}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      
-                      <button className="flex items-center gap-2 text-primary text-sm font-medium hover:underline">
-                        Full report
-                        <ExternalLink className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </motion.article>
+                    </motion.article>
+                  </Link>
                 ))}
               </div>
             </motion.div>

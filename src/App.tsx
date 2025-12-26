@@ -22,6 +22,7 @@ import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
 import KnowledgeHub from "./pages/KnowledgeHub";
 import GuideDetail from "./pages/GuideDetail";
+import HarvestReportDetail from "./pages/HarvestReportDetail";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -36,6 +37,7 @@ const App = () => (
       <Route path="/about/natural-wine" element={<AboutNaturalWine />} />
       <Route path="/knowledge" element={<KnowledgeHub />} />
       <Route path="/guide/:id" element={<GuideDetail />} />
+      <Route path="/harvest/:id" element={<HarvestReportDetail />} />
       <Route path="/submit/venue" element={<SubmitVenue />} />
       <Route path="/submit/winemaker" element={<SubmitWinemaker />} />
       <Route path="/submit/event" element={<SubmitWineFair />} />
