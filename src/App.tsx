@@ -23,6 +23,8 @@ import EditEvent from "./pages/EditEvent";
 import KnowledgeHub from "./pages/KnowledgeHub";
 import GuideDetail from "./pages/GuideDetail";
 import HarvestReportDetail from "./pages/HarvestReportDetail";
+import Forum from "./pages/Forum";
+import ForumTopic from "./pages/ForumTopic";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -36,6 +38,8 @@ const App = () => (
       <Route path="/news" element={<News />} />
       <Route path="/about/natural-wine" element={<AboutNaturalWine />} />
       <Route path="/knowledge" element={<KnowledgeHub />} />
+      <Route path="/forum" element={<Forum />} />
+      <Route path="/forum/:id" element={<ForumTopic />} />
       <Route path="/guide/:id" element={<GuideDetail />} />
       <Route path="/harvest/:id" element={<HarvestReportDetail />} />
       <Route path="/submit/venue" element={<SubmitVenue />} />
