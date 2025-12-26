@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2 } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X } from 'lucide-react';
 
 // Input validation schema for events
 const eventSchema = z.object({
@@ -100,7 +100,7 @@ const Admin = () => {
   const [isCreatingWine, setIsCreatingWine] = useState(false);
   const [newWine, setNewWine] = useState<Omit<WineItem, 'id'>>(emptyWine);
   const [savingWine, setSavingWine] = useState(false);
-  
+  const [uploadingWineImage, setUploadingWineImage] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -365,6 +365,48 @@ const Admin = () => {
     }
   };
 
+  const handleWineImageUpload = async (
+    e: React.ChangeEvent<HTMLInputElement>,
+    wine: Omit<WineItem, 'id'> | WineItem,
+    setWine: (wine: any) => void
+  ) => {
+    if (!e.target.files || !e.target.files[0]) return;
+
+    const file = e.target.files[0];
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(file.type)) {
+      toast({ title: 'Geçersiz dosya tipi', description: 'JPG, PNG, GIF veya WebP yükleyin', variant: 'destructive' });
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast({ title: 'Dosya çok büyük', description: 'Görsel 5MB\'dan küçük olmalı', variant: 'destructive' });
+      return;
+    }
+
+    setUploadingWineImage(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('wine-images')
+        .upload(fileName, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('wine-images')
+        .getPublicUrl(fileName);
+
+      setWine({ ...wine, image_url: publicUrl });
+      toast({ title: 'Başarılı', description: 'Görsel yüklendi' });
+    } catch (error: any) {
+      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+    } finally {
+      setUploadingWineImage(false);
+    }
+  };
+
   const colorLabels: Record<string, string> = { red: 'Kırmızı', white: 'Beyaz', orange: 'Orange', rose: 'Rosé' };
   const styleLabels: Record<string, string> = { funky: 'Funky', clean: 'Temiz' };
   const acidityLabels: Record<string, string> = { acidic: 'Asidik', soft: 'Yumuşak' };
@@ -449,6 +491,42 @@ const Admin = () => {
             </SelectContent>
           </Select>
         </div>
+      </div>
+
+      {/* Image Upload */}
+      <div>
+        <label className="text-sm font-medium text-foreground mb-1 block">Görsel</label>
+        {wine.image_url ? (
+          <div className="relative inline-block">
+            <img
+              src={wine.image_url}
+              alt="Wine"
+              className="w-full max-w-xs h-40 object-cover rounded-xl border border-border"
+            />
+            <button
+              type="button"
+              onClick={() => setWine({ ...wine, image_url: '' })}
+              className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="relative">
+            <Input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleWineImageUpload(e, wine, setWine)}
+              disabled={uploadingWineImage}
+              className="cursor-pointer"
+            />
+            {uploadingWineImage && (
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       <div>
