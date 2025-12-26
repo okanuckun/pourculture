@@ -5,7 +5,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, HelpCircle, Lightbulb, MessagesSquare } from 'lucide-react';
+import { MessageSquare, Plus, User, Clock, MessageCircle, Search, Loader2, HelpCircle, Lightbulb, MessagesSquare, Heart } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -34,6 +34,8 @@ interface Topic {
   created_at: string;
   comment_count: number;
   author_name: string;
+  like_count: number;
+  is_liked: boolean;
 }
 
 const categories = [
@@ -71,10 +73,12 @@ const Forum = () => {
       setUserId(session?.user?.id ?? null);
     });
 
-    fetchTopics();
-
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    fetchTopics();
+  }, [userId]);
 
   const fetchTopics = async () => {
     setLoading(true);
@@ -91,13 +95,30 @@ const Forum = () => {
       return;
     }
 
-    // Get comment counts for each topic
+    // Get comment counts, like counts and author names for each topic
     const topicsWithCounts = await Promise.all(
       (topicsData || []).map(async (topic) => {
-        const { count } = await supabase
+        const { count: commentCount } = await supabase
           .from('forum_comments')
           .select('*', { count: 'exact', head: true })
           .eq('topic_id', topic.id);
+
+        const { count: likeCount } = await supabase
+          .from('forum_likes')
+          .select('*', { count: 'exact', head: true })
+          .eq('topic_id', topic.id);
+
+        // Check if current user liked this topic
+        let isLiked = false;
+        if (userId) {
+          const { data: likeData } = await supabase
+            .from('forum_likes')
+            .select('id')
+            .eq('topic_id', topic.id)
+            .eq('user_id', userId)
+            .maybeSingle();
+          isLiked = !!likeData;
+        }
 
         // Get author name from profiles
         const { data: profile } = await supabase
@@ -108,7 +129,9 @@ const Forum = () => {
 
         return {
           ...topic,
-          comment_count: count || 0,
+          comment_count: commentCount || 0,
+          like_count: likeCount || 0,
+          is_liked: isLiked,
           author_name: profile?.display_name || 'Anonymous',
         };
       })
@@ -170,6 +193,48 @@ const Forum = () => {
     setIsDialogOpen(false);
     setSubmitting(false);
     fetchTopics();
+  };
+
+  const handleToggleLike = async (e: React.MouseEvent, topicId: string, isLiked: boolean) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!userId) {
+      toast({
+        title: 'Giriş gerekli',
+        description: 'Beğenmek için lütfen giriş yapın',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (isLiked) {
+      // Remove like
+      await supabase
+        .from('forum_likes')
+        .delete()
+        .eq('topic_id', topicId)
+        .eq('user_id', userId);
+    } else {
+      // Add like
+      await supabase
+        .from('forum_likes')
+        .insert({
+          topic_id: topicId,
+          user_id: userId,
+        });
+    }
+
+    // Update local state
+    setTopics(topics.map(topic => 
+      topic.id === topicId 
+        ? { 
+            ...topic, 
+            is_liked: !isLiked, 
+            like_count: isLiked ? topic.like_count - 1 : topic.like_count + 1 
+          }
+        : topic
+    ));
   };
 
   const filteredTopics = topics.filter(topic => {
@@ -376,6 +441,15 @@ const Forum = () => {
                                 <MessageCircle className="w-3 h-3" />
                                 {topic.comment_count} yorum
                               </span>
+                              <button
+                                onClick={(e) => handleToggleLike(e, topic.id, topic.is_liked)}
+                                className={`flex items-center gap-1 transition-colors ${
+                                  topic.is_liked ? 'text-red-500' : 'hover:text-red-500'
+                                }`}
+                              >
+                                <Heart className={`w-3 h-3 ${topic.is_liked ? 'fill-current' : ''}`} />
+                                {topic.like_count}
+                              </button>
                             </div>
                           </div>
                         </div>
