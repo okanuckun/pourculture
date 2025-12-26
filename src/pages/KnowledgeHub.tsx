@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
-import { Book, FileText, Download, Grape, ChevronDown, ChevronRight, Search, ExternalLink } from 'lucide-react';
+import { Book, FileText, Download, Grape, ChevronRight, Search, ExternalLink, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 import {
   Accordion,
   AccordionContent,
@@ -11,129 +12,90 @@ import {
   AccordionTrigger,
 } from '@/components/ui/accordion';
 
-// Glossary data
-const glossaryTerms = [
-  { term: 'Biodynamic', definition: 'A holistic approach to farming that treats the vineyard as a self-sustaining ecosystem, following lunar cycles and using natural preparations.' },
-  { term: 'Carbonic Maceration', definition: 'A winemaking technique where whole grape clusters ferment in a carbon dioxide-rich environment, producing fruity, low-tannin wines.' },
-  { term: 'Conventional Wine', definition: 'Wine made using modern agricultural practices including synthetic pesticides, herbicides, and additives.' },
-  { term: 'Indigenous Yeast', definition: 'Wild yeasts naturally present on grape skins and in the winery, used for spontaneous fermentation instead of commercial yeasts.' },
-  { term: 'Lees', definition: 'Dead yeast cells and sediment that settle at the bottom of wine vessels. Aging on lees adds complexity and texture.' },
-  { term: 'Low Intervention', definition: 'Winemaking philosophy that minimizes additives and manipulation, allowing the wine to express its natural character.' },
-  { term: 'Maceration', definition: 'The process of soaking grape skins in juice to extract color, tannins, and flavor compounds.' },
-  { term: 'Minimal Sulfites', definition: 'Using little to no sulfur dioxide (SO2) as a preservative. Natural wines typically have less than 40mg/L total sulfites.' },
-  { term: 'Natural Wine', definition: 'Wine made from organically or biodynamically grown grapes, fermented with native yeasts, and produced with minimal intervention and additives.' },
-  { term: 'Orange Wine', definition: 'White wine made with extended skin contact, giving it an amber/orange color and tannic structure similar to red wine.' },
-  { term: 'Organic', definition: 'Farming without synthetic chemicals. Organic wines come from certified organic vineyards.' },
-  { term: 'Oxidative', definition: 'A style of winemaking that allows controlled oxygen exposure, creating nutty, complex flavors.' },
-  { term: 'Pét-Nat', definition: 'Pétillant Naturel - a naturally sparkling wine bottled before primary fermentation completes, creating gentle bubbles.' },
-  { term: 'Skin Contact', definition: 'The practice of leaving grape juice in contact with skins to extract color, tannins, and aromatics.' },
-  { term: 'Spontaneous Fermentation', definition: 'Fermentation that occurs naturally from wild yeasts without adding commercial yeast strains.' },
-  { term: 'Sulfites', definition: 'Sulfur dioxide compounds used as preservatives in wine. Natural wines use minimal or no added sulfites.' },
-  { term: 'Terroir', definition: 'The complete natural environment where wine is produced, including soil, climate, and local traditions.' },
-  { term: 'Unfined', definition: 'Wine that has not been clarified using fining agents, retaining more natural character and sometimes appearing cloudy.' },
-  { term: 'Unfiltered', definition: 'Wine that has not been passed through a filter to remove sediment, preserving more flavor compounds.' },
-  { term: 'Volatile Acidity', definition: 'Acidity from acetic acid that, in small amounts, adds complexity but in excess can taste like vinegar.' },
+interface GlossaryTerm {
+  id: string;
+  term: string;
+  definition: string;
+}
+
+interface Guide {
+  id: string;
+  title: string;
+  description: string;
+  read_time: string;
+  category: string;
+}
+
+interface PdfResource {
+  id: string;
+  title: string;
+  description: string;
+  file_url: string | null;
+  pages: number | null;
+  file_size: string | null;
+}
+
+interface HarvestReport {
+  id: string;
+  year: number;
+  region: string;
+  summary: string;
+  highlights: string[];
+}
+
+// Fallback data when database is empty
+const fallbackGlossary: GlossaryTerm[] = [
+  { id: '1', term: 'Biodynamic', definition: 'A holistic approach to farming that treats the vineyard as a self-sustaining ecosystem, following lunar cycles and using natural preparations.' },
+  { id: '2', term: 'Natural Wine', definition: 'Wine made from organically or biodynamically grown grapes, fermented with native yeasts, and produced with minimal intervention and additives.' },
+  { id: '3', term: 'Orange Wine', definition: 'White wine made with extended skin contact, giving it an amber/orange color and tannic structure similar to red wine.' },
+  { id: '4', term: 'Pét-Nat', definition: 'Pétillant Naturel - a naturally sparkling wine bottled before primary fermentation completes, creating gentle bubbles.' },
+  { id: '5', term: 'Terroir', definition: 'The complete natural environment where wine is produced, including soil, climate, and local traditions.' },
 ];
 
-// Guides data
-const guides = [
-  {
-    title: 'How to Taste Natural Wine',
-    description: 'A beginner\'s guide to understanding and appreciating natural wine flavors, aromas, and textures.',
-    readTime: '5 min read',
-    category: 'Beginner',
-  },
-  {
-    title: 'Storing Natural Wine at Home',
-    description: 'Tips for properly storing natural wines without sulfites to maximize their lifespan and quality.',
-    readTime: '4 min read',
-    category: 'Beginner',
-  },
-  {
-    title: 'Food Pairing with Orange Wines',
-    description: 'Discover the perfect food matches for skin-contact white wines.',
-    readTime: '6 min read',
-    category: 'Intermediate',
-  },
-  {
-    title: 'Understanding Wine Labels',
-    description: 'Decode natural wine labels and certifications like Demeter, Ecocert, and more.',
-    readTime: '7 min read',
-    category: 'Beginner',
-  },
-  {
-    title: 'The Art of Decanting',
-    description: 'When and how to decant natural wines for optimal enjoyment.',
-    readTime: '4 min read',
-    category: 'Intermediate',
-  },
-  {
-    title: 'Serving Temperatures',
-    description: 'A complete guide to serving temperatures for different natural wine styles.',
-    readTime: '3 min read',
-    category: 'Beginner',
-  },
+const fallbackGuides: Guide[] = [
+  { id: '1', title: 'How to Taste Natural Wine', description: "A beginner's guide to understanding and appreciating natural wine flavors, aromas, and textures.", read_time: '5 min read', category: 'Beginner' },
+  { id: '2', title: 'Storing Natural Wine at Home', description: 'Tips for properly storing natural wines without sulfites to maximize their lifespan and quality.', read_time: '4 min read', category: 'Beginner' },
 ];
 
-// PDFs data
-const pdfResources = [
-  {
-    title: 'Natural Wine 101',
-    description: 'Everything you need to know about natural wine in one comprehensive booklet.',
-    pages: 24,
-    size: '2.4 MB',
-  },
-  {
-    title: 'Regional Guide: France',
-    description: 'Explore the natural wine regions of France, from Loire to Beaujolais.',
-    pages: 36,
-    size: '4.1 MB',
-  },
-  {
-    title: 'Grape Variety Handbook',
-    description: 'A visual guide to indigenous and rare grape varieties used in natural wine.',
-    pages: 48,
-    size: '5.8 MB',
-  },
-  {
-    title: 'Biodynamic Calendar 2025',
-    description: 'A printable calendar with lunar phases and biodynamic farming dates.',
-    pages: 14,
-    size: '1.2 MB',
-  },
+const fallbackPdfs: PdfResource[] = [
+  { id: '1', title: 'Natural Wine 101', description: 'Everything you need to know about natural wine in one comprehensive booklet.', pages: 24, file_size: '2.4 MB', file_url: null },
 ];
 
-// Harvest reports data
-const harvestReports = [
-  {
-    year: 2024,
-    region: 'Loire Valley, France',
-    summary: 'A challenging vintage with late spring frosts and summer heat waves, resulting in concentrated, powerful wines.',
-    highlights: ['Early harvest', 'Low yields', 'Exceptional Chenin Blanc'],
-  },
-  {
-    year: 2024,
-    region: 'Catalonia, Spain',
-    summary: 'Drought conditions led to small berries and intense flavors. Garnacha shows remarkable depth.',
-    highlights: ['Water stress management', 'Organic resilience', 'High phenolic ripeness'],
-  },
-  {
-    year: 2024,
-    region: 'Sicily, Italy',
-    summary: 'A return to classic Mediterranean conditions after years of heat. Nerello Mascalese thrives.',
-    highlights: ['Volcanic terroir expression', 'Balanced acidity', 'Extended maceration experiments'],
-  },
-  {
-    year: 2023,
-    region: 'Jura, France',
-    summary: 'Textbook vintage for oxidative styles. Vin Jaune production reaches new heights.',
-    highlights: ['Ideal ripeness', 'Perfect conditions for sous voile aging', 'Strong Savagnin crop'],
-  },
+const fallbackReports: HarvestReport[] = [
+  { id: '1', year: 2024, region: 'Loire Valley, France', summary: 'A challenging vintage with late spring frosts and summer heat waves, resulting in concentrated, powerful wines.', highlights: ['Early harvest', 'Low yields', 'Exceptional Chenin Blanc'] },
 ];
 
 const KnowledgeHub = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSection, setActiveSection] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  
+  const [glossaryTerms, setGlossaryTerms] = useState<GlossaryTerm[]>([]);
+  const [guides, setGuides] = useState<Guide[]>([]);
+  const [pdfResources, setPdfResources] = useState<PdfResource[]>([]);
+  const [harvestReports, setHarvestReports] = useState<HarvestReport[]>([]);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    setLoading(true);
+    
+    const [glossaryRes, guidesRes, pdfsRes, reportsRes] = await Promise.all([
+      supabase.from('glossary_terms').select('*').order('term'),
+      supabase.from('guides').select('*').eq('is_published', true).order('created_at', { ascending: false }),
+      supabase.from('pdf_resources').select('*').eq('is_published', true).order('created_at', { ascending: false }),
+      supabase.from('harvest_reports').select('*').eq('is_published', true).order('year', { ascending: false }),
+    ]);
+
+    setGlossaryTerms(glossaryRes.data?.length ? glossaryRes.data : fallbackGlossary);
+    setGuides(guidesRes.data?.length ? guidesRes.data : fallbackGuides);
+    setPdfResources(pdfsRes.data?.length ? pdfsRes.data : fallbackPdfs);
+    setHarvestReports(reportsRes.data?.length ? reportsRes.data : fallbackReports);
+    
+    setLoading(false);
+  };
 
   const filteredTerms = glossaryTerms.filter(
     item => item.term.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -152,6 +114,21 @@ const KnowledgeHub = () => {
     hidden: { opacity: 0, y: 20 },
     visible: { opacity: 1, y: 0 }
   };
+
+  if (loading) {
+    return (
+      <>
+        <SEOHead
+          title="Open Knowledge Hub | Natural Wine Library"
+          description="Free educational resources about natural wine. Explore our glossary, guides, PDF booklets, and harvest reports."
+        />
+        <RaisinNavbar />
+        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
@@ -298,9 +275,9 @@ const KnowledgeHub = () => {
               </motion.div>
 
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {guides.map((guide, index) => (
+                {guides.map((guide) => (
                   <motion.article
-                    key={guide.title}
+                    key={guide.id}
                     variants={itemVariants}
                     className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all cursor-pointer"
                   >
@@ -308,11 +285,13 @@ const KnowledgeHub = () => {
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${
                         guide.category === 'Beginner' 
                           ? 'bg-green-500/10 text-green-600' 
+                          : guide.category === 'Advanced'
+                          ? 'bg-red-500/10 text-red-600'
                           : 'bg-orange-500/10 text-orange-600'
                       }`}>
                         {guide.category}
                       </span>
-                      <span className="text-xs text-muted-foreground">{guide.readTime}</span>
+                      <span className="text-xs text-muted-foreground">{guide.read_time}</span>
                     </div>
                     
                     <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
@@ -354,9 +333,9 @@ const KnowledgeHub = () => {
               </motion.div>
 
               <div className="grid md:grid-cols-2 gap-6">
-                {pdfResources.map((pdf, index) => (
+                {pdfResources.map((pdf) => (
                   <motion.div
-                    key={pdf.title}
+                    key={pdf.id}
                     variants={itemVariants}
                     className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all"
                   >
@@ -372,14 +351,21 @@ const KnowledgeHub = () => {
                         {pdf.description}
                       </p>
                       <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <span>{pdf.pages} pages</span>
-                        <span>{pdf.size}</span>
+                        {pdf.pages && <span>{pdf.pages} pages</span>}
+                        {pdf.file_size && <span>{pdf.file_size}</span>}
                       </div>
                     </div>
                     
-                    <button className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors">
-                      <Download className="w-5 h-5" />
-                    </button>
+                    {pdf.file_url && (
+                      <a 
+                        href={pdf.file_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="p-3 rounded-full bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-colors"
+                      >
+                        <Download className="w-5 h-5" />
+                      </a>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -414,9 +400,9 @@ const KnowledgeHub = () => {
               </motion.div>
 
               <div className="space-y-6">
-                {harvestReports.map((report, index) => (
+                {harvestReports.map((report) => (
                   <motion.article
-                    key={`${report.year}-${report.region}`}
+                    key={report.id}
                     variants={itemVariants}
                     className="bg-card border border-border rounded-xl p-6 md:p-8"
                   >
