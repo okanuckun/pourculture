@@ -280,6 +280,8 @@ const RaisinHome = () => {
                   city={venue.city}
                   imageUrl={venue.image_url}
                   isOpen={venue.is_open}
+                  isClaimed={venue.is_claimed}
+                  googleRating={venue.google_rating}
                   onClick={() => navigate(`/venue/${venue.slug}`)}
                 />
               </motion.div>

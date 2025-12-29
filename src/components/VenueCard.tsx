@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, Clock, ExternalLink } from 'lucide-react';
+import { MapPin, Clock, ExternalLink, Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export interface VenueCardProps {
@@ -11,6 +11,8 @@ export interface VenueCardProps {
   imageUrl?: string;
   isOpen?: boolean;
   openingHours?: string;
+  isClaimed?: boolean;
+  googleRating?: number | null;
   onClick?: () => void;
 }
 
@@ -22,6 +24,8 @@ export const VenueCard: React.FC<VenueCardProps> = ({
   imageUrl,
   isOpen = true,
   openingHours,
+  isClaimed = false,
+  googleRating,
   onClick,
 }) => {
   return (
@@ -48,7 +52,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
         )}
         
         {/* Status Badge */}
-        <div className="absolute top-3 right-3">
+        <div className="absolute top-3 right-3 flex flex-col gap-2 items-end">
           <div className={cn(
             "px-2 py-1 rounded-full text-xs font-medium",
             isOpen 
@@ -63,6 +67,14 @@ export const VenueCard: React.FC<VenueCardProps> = ({
               {isOpen ? 'Open' : 'Closed'}
             </span>
           </div>
+          
+          {/* Verified Badge */}
+          {isClaimed && (
+            <div className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/90 text-white flex items-center gap-1">
+              <Star className="w-3 h-3 fill-current" />
+              Verified
+            </div>
+          )}
         </div>
 
         {/* Opening Hours */}
@@ -71,6 +83,16 @@ export const VenueCard: React.FC<VenueCardProps> = ({
             <div className="px-2 py-1 rounded-full bg-card/90 backdrop-blur-sm text-xs font-medium text-foreground flex items-center gap-1">
               <Clock className="w-3 h-3" />
               {openingHours}
+            </div>
+          </div>
+        )}
+        
+        {/* Google Rating */}
+        {googleRating && (
+          <div className="absolute bottom-3 left-3">
+            <div className="px-2 py-1 rounded-full bg-yellow-500/90 text-white text-xs font-medium flex items-center gap-1">
+              <Star className="w-3 h-3 fill-current" />
+              {googleRating.toFixed(1)}
             </div>
           </div>
         )}
