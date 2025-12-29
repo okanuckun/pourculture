@@ -56,14 +56,6 @@ export const RaisinNavbar: React.FC = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
-              {/* Wine Map Link - scrolls to map on home page */}
-              <Link 
-                to="/" 
-                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
-              >
-                <Map className="w-4 h-4" />
-                WINE MAP
-              </Link>
 
               {/* Explore Dropdown */}
               <DropdownMenu>
@@ -200,14 +192,6 @@ export const RaisinNavbar: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-card border-t border-border animate-fade-in">
             <div className="px-4 py-4 space-y-2">
-              <Link 
-                to="/" 
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center gap-2 py-2 text-sm font-medium text-primary"
-              >
-                <Map className="w-4 h-4" />
-                Wine Map
-              </Link>
               <Link 
                 to="/" 
                 onClick={() => setIsMobileMenuOpen(false)}
