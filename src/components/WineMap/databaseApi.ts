@@ -88,12 +88,47 @@ export const fetchWineFairsFromDatabase = async (): Promise<WineVenue[]> => {
   }
 };
 
+// Fetch winemakers from database
+export const fetchWinemakersFromDatabase = async (): Promise<WineVenue[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('winemakers')
+      .select('*')
+      .not('latitude', 'is', null)
+      .not('longitude', 'is', null);
+
+    if (error) {
+      console.error('Error fetching winemakers from database:', error);
+      return [];
+    }
+
+    return (data || []).map(winemaker => ({
+      id: `db-winemaker-${winemaker.id}`,
+      name: winemaker.name,
+      category: 'winery' as WineVenueCategory,
+      lat: Number(winemaker.latitude),
+      lng: Number(winemaker.longitude),
+      address: winemaker.region || undefined,
+      city: undefined,
+      country: winemaker.country,
+      website: winemaker.website || undefined,
+      phone: undefined,
+      openingHours: undefined,
+      source: 'database' as const,
+    }));
+  } catch (error) {
+    console.error('Error fetching winemakers:', error);
+    return [];
+  }
+};
+
 // Fetch all database venues
 export const fetchAllDatabaseVenues = async (): Promise<WineVenue[]> => {
-  const [venues, wineFairs] = await Promise.all([
+  const [venues, wineFairs, winemakers] = await Promise.all([
     fetchVenuesFromDatabase(),
     fetchWineFairsFromDatabase(),
+    fetchWinemakersFromDatabase(),
   ]);
 
-  return [...venues, ...wineFairs];
+  return [...venues, ...wineFairs, ...winemakers];
 };

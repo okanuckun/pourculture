@@ -1,4 +1,5 @@
 export { WineMap, default } from './WineMap';
+export { MapboxMap } from './MapboxMap';
 export { VenueMarker } from './VenueMarker';
 export { CategoryFilter } from './CategoryFilter';
 export * from './types';
