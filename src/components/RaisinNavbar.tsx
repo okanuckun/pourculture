@@ -110,21 +110,28 @@ export const RaisinNavbar: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Sign Up & Submit Dropdown */}
+              {/* Submit & Claim Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-                  SIGN UP AND SUBMIT
+                  SUBMIT & CLAIM
                   <ChevronDown className="w-4 h-4" />
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-48">
-                  <DropdownMenuItem onClick={() => navigate('/submit/venue')}>
-                    Submit a Venue
+                <DropdownMenuContent align="start" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate('/submit/venue')} className="flex flex-col items-start">
+                    <span className="font-medium">Submit a Venue</span>
+                    <span className="text-xs text-muted-foreground">Bar, restaurant, wine shop</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit/winemaker')}>
-                    Register as Winemaker
+                  <DropdownMenuItem onClick={() => navigate('/submit/winemaker')} className="flex flex-col items-start">
+                    <span className="font-medium">Submit a Winemaker</span>
+                    <span className="text-xs text-muted-foreground">Natural wine producer</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit/event')}>
-                    Submit an Event
+                  <DropdownMenuItem onClick={() => navigate('/submit/event')} className="flex flex-col items-start">
+                    <span className="font-medium">Submit an Event</span>
+                    <span className="text-xs text-muted-foreground">Wine fair, tasting, festival</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/claim-venue')} className="flex flex-col items-start border-t mt-1 pt-2">
+                    <span className="font-medium">Claim Your Business</span>
+                    <span className="text-xs text-muted-foreground">Already listed? Claim ownership</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
