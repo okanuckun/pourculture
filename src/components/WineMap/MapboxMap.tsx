@@ -403,16 +403,25 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   // Handle search result click
   const handleResultClick = (result: any) => {
     if (!map.current) return;
-    
-    const [lng, lat] = result.center;
+
+    const center = Array.isArray(result?.center) ? result.center : null;
+    const [lng, lat] = (center?.length === 2 ? center : [null, null]) as [number | null, number | null];
+    if (lng == null || lat == null) return;
+
+    const placeTypes = Array.isArray(result?.place_type) ? result.place_type : [];
+
     map.current.flyTo({
       center: [lng, lat],
-      zoom: result.place_type.includes('country') ? 5 : 10,
+      zoom: placeTypes.includes('country') ? 5 : 10,
       pitch: 45,
       duration: 2000,
     });
-    
-    setSearchQuery(result.place_name);
+
+    const placeName = typeof result?.place_name === 'string' || typeof result?.place_name === 'number'
+      ? String(result.place_name)
+      : '';
+
+    setSearchQuery(placeName);
     setShowSearchResults(false);
   };
 
@@ -471,7 +480,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
               <X className="w-4 h-4 text-purple-400 hover:text-white transition-colors" />
             </button>
           )}
-          
+
           {/* Search Results */}
           <AnimatePresence>
             {showSearchResults && searchResults.length > 0 && (
@@ -481,19 +490,33 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
                 exit={{ opacity: 0, y: -10 }}
                 className="absolute top-full left-0 right-0 mt-2 bg-[#1a1a2e]/95 backdrop-blur-md border border-purple-500/30 rounded-xl overflow-hidden shadow-xl"
               >
-                {searchResults.map((result, index) => (
-                  <button
-                    key={result.id}
-                    onClick={() => handleResultClick(result)}
-                    className="w-full px-4 py-3 text-left hover:bg-purple-500/20 transition-colors flex items-center gap-3 border-b border-purple-500/10 last:border-b-0"
-                  >
-                    <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                    <div>
-                      <div className="text-white text-sm font-medium">{result.text}</div>
-                      <div className="text-purple-300/60 text-xs">{result.place_name}</div>
-                    </div>
-                  </button>
-                ))}
+                {searchResults.map((result, index) => {
+                  const key = typeof result?.id === 'string' || typeof result?.id === 'number'
+                    ? String(result.id)
+                    : `sr-${index}`;
+
+                  const text = typeof result?.text === 'string' || typeof result?.text === 'number'
+                    ? String(result.text)
+                    : '';
+
+                  const placeName = typeof result?.place_name === 'string' || typeof result?.place_name === 'number'
+                    ? String(result.place_name)
+                    : '';
+
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => handleResultClick(result)}
+                      className="w-full px-4 py-3 text-left hover:bg-purple-500/20 transition-colors flex items-center gap-3 border-b border-purple-500/10 last:border-b-0"
+                    >
+                      <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                      <div>
+                        <div className="text-white text-sm font-medium">{text}</div>
+                        <div className="text-purple-300/60 text-xs">{placeName}</div>
+                      </div>
+                    </button>
+                  );
+                })}
               </motion.div>
             )}
           </AnimatePresence>
