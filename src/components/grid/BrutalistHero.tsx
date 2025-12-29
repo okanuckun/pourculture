@@ -106,6 +106,14 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
 
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center">
+              {/* Wine Routes */}
+              <Link 
+                to="/wine-routes" 
+                className="px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+              >
+                WINE ROUTES
+              </Link>
+
               {/* Natural Wine Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
@@ -233,6 +241,17 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
                 Wine Shops
               </Link>
               
+              <div className="border-t border-foreground/10 pt-2 mt-2">
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Wine Routes</div>
+                <Link 
+                  to="/wine-routes" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Explore Wine Routes
+                </Link>
+              </div>
+
               <div className="border-t border-foreground/10 pt-2 mt-2">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Natural Wine</div>
                 <Link 
