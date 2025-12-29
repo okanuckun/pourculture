@@ -208,7 +208,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
         <>
           {/* Overlay */}
           <motion.div
-            className="fixed inset-0 bg-black/30 z-40"
+            className="fixed inset-0 bg-foreground/30 z-40"
             variants={overlayVariants}
             initial="hidden"
             animate="visible"
@@ -218,9 +218,9 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
 
           {/* Panel */}
           <motion.div
-            className={`fixed z-50 bg-background shadow-2xl overflow-hidden ${
+            className={`fixed z-50 bg-background shadow-2xl overflow-hidden border-l-2 border-foreground ${
               isMobile 
-                ? 'bottom-0 left-0 right-0 h-[85vh] rounded-t-3xl' 
+                ? 'bottom-0 left-0 right-0 h-[85vh] rounded-t-none border-t-2 border-l-0' 
                 : 'top-0 right-0 h-full w-full md:w-[480px] lg:w-[520px]'
             }`}
             variants={panelVariants}
@@ -232,30 +232,25 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
             {/* Mobile drag handle */}
             {isMobile && (
               <div className="flex justify-center pt-3 pb-2">
-                <div className="w-12 h-1.5 bg-muted-foreground/30 rounded-full" />
+                <div className="w-12 h-1.5 bg-foreground/30 rounded-full" />
               </div>
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between px-6 py-4 border-b">
+            <div className="flex items-center justify-between px-6 py-4 border-b-2 border-foreground/20">
               <div className="flex items-center gap-2">
                 <span 
-                  className="px-3 py-1 rounded-full text-xs font-medium text-white"
+                  className="px-3 py-1 text-[10px] font-medium text-white uppercase"
                   style={{ backgroundColor: config.color }}
                 >
                   {config.icon} {config.label}
                 </span>
-                {venue.source === 'database' && (
-                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                    ✓ Verified
-                  </span>
-                )}
               </div>
               <Button
                 variant="ghost"
                 size="icon"
                 onClick={onClose}
-                className="rounded-full"
+                className="hover:bg-foreground hover:text-background"
               >
                 <X className="w-5 h-5" />
               </Button>
@@ -265,13 +260,13 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
             <div className="overflow-y-auto h-[calc(100%-80px)] px-6 py-6">
               {loading ? (
                 <div className="flex items-center justify-center py-12">
-                  <Loader2 className="w-8 h-8 animate-spin text-primary" />
+                  <Loader2 className="w-8 h-8 animate-spin text-foreground" />
                 </div>
               ) : (
                 <div className="space-y-6">
                   {/* Hero Image */}
                   {displayData.photos && displayData.photos.length > 0 ? (
-                    <div className="relative aspect-video rounded-xl overflow-hidden">
+                    <div className="relative aspect-video overflow-hidden border-2 border-foreground">
                       <img 
                         src={displayData.photos[0]} 
                         alt={displayData.name}
@@ -279,7 +274,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                       />
                     </div>
                   ) : (
-                    <div className="aspect-video rounded-xl bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center">
+                    <div className="aspect-video bg-muted border-2 border-foreground/20 flex items-center justify-center">
                       <span className="text-5xl">{config.icon}</span>
                     </div>
                   )}
@@ -288,39 +283,39 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   <div>
                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                       {displayData.isOpen !== undefined && (
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        <span className={`px-2 py-0.5 text-[10px] font-medium uppercase border-2 ${
                           displayData.isOpen 
-                            ? 'bg-status-open/10 text-status-open' 
-                            : 'bg-status-closed/10 text-status-closed'
+                            ? 'border-green-500 text-green-600 bg-green-50' 
+                            : 'border-red-500 text-red-600 bg-red-50'
                         }`}>
                           {displayData.isOpen ? 'Open' : 'Closed'}
                         </span>
                       )}
                       {displayData.rating && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-500/10 text-yellow-600">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium uppercase border-2 border-yellow-500 text-yellow-600 bg-yellow-50">
                           <Star className="w-3 h-3 fill-current" />
                           {displayData.rating.toFixed(1)}
                           {'reviewCount' in displayData && displayData.reviewCount && (
-                            <span className="text-[10px]">({displayData.reviewCount})</span>
+                            <span>({displayData.reviewCount})</span>
                           )}
                         </span>
                       )}
                       {'isClaimed' in displayData && displayData.isClaimed ? (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600">
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium uppercase border-2 border-amber-500 text-amber-600 bg-amber-50">
                           <Star className="w-3 h-3 fill-current" />
-                          Doğrulanmış
+                          Verified
                         </span>
                       ) : venue?.source === 'database' ? (
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground cursor-help">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium uppercase border-2 border-foreground/30 text-muted-foreground cursor-help">
                                 <AlertCircle className="w-3 h-3" />
-                                Doğrulanmamış
+                                Unverified
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                              <p className="text-xs">Bu mekanın sahibi henüz sitemize üye değil veya mekanını talep etmedi.</p>
+                            <TooltipContent side="bottom" className="max-w-[200px] text-center border-2 border-foreground">
+                              <p className="text-xs">The owner of this venue has not yet claimed their profile on our platform.</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -328,19 +323,19 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground cursor-help">
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium uppercase border-2 border-foreground/30 text-muted-foreground cursor-help">
                                 <AlertCircle className="w-3 h-3" />
-                                Doğrulanmamış
+                                Unverified
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[220px] text-center">
-                              <p className="text-xs">Bu mekanın sahibi henüz siteye üye değil. Bilgiler Google'dan alınmaktadır.</p>
+                            <TooltipContent side="bottom" className="max-w-[220px] text-center border-2 border-foreground">
+                              <p className="text-xs">The owner has not claimed this venue. Information is sourced from Google.</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       ) : null}
                     </div>
-                    <h2 className="text-2xl font-bold text-foreground">{displayData.name}</h2>
+                    <h2 className="text-2xl font-medium text-foreground uppercase tracking-tight">{displayData.name}</h2>
                     {displayData.address && (
                       <p className="text-muted-foreground text-sm mt-1 flex items-center gap-1">
                         <MapPin className="w-4 h-4" />
@@ -353,33 +348,33 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   <div className="flex flex-wrap gap-3">
                     <Button 
                       onClick={handleViewProfile}
-                      className="flex-1"
+                      className="flex-1 bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase text-xs font-medium"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      Profili Gör
+                      View Profile
                     </Button>
                     
                     <Button 
                       variant="outline"
                       onClick={() => setNavigationDialogOpen(true)}
-                      className="flex-1"
+                      className="flex-1 border-2 border-foreground hover:bg-foreground hover:text-background uppercase text-xs font-medium"
                     >
                       <Navigation className="w-4 h-4 mr-2" />
-                      Yol Tarifi
+                      Directions
                     </Button>
                   </div>
 
                   {/* Description/Story */}
                   {'description' in displayData && displayData.description && (
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-2">About</h3>
+                      <h3 className="text-[11px] font-medium text-foreground mb-2 uppercase">About</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed">{displayData.description}</p>
                     </div>
                   )}
                   
                   {'story' in displayData && displayData.story && (
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-2">Our Story</h3>
+                      <h3 className="text-[11px] font-medium text-foreground mb-2 uppercase">Our Story</h3>
                       <p className="text-muted-foreground text-sm leading-relaxed whitespace-pre-line">{displayData.story}</p>
                     </div>
                   )}
@@ -387,11 +382,11 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   {/* Opening Hours */}
                   {displayData.openingHours && (
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
+                      <h3 className="text-[11px] font-medium text-foreground mb-2 flex items-center gap-2 uppercase">
                         <Clock className="w-4 h-4" />
                         Opening Hours
                       </h3>
-                      <div className="bg-muted/50 rounded-lg p-3">
+                      <div className="bg-muted/50 border-2 border-foreground/10 p-3">
                         {Array.isArray(displayData.openingHours) ? (
                           <ul className="space-y-1">
                             {displayData.openingHours.map((hours, index) => (
@@ -417,10 +412,10 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   {/* Photo Gallery */}
                   {displayData.photos && displayData.photos.length > 1 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-2">Photos</h3>
+                      <h3 className="text-[11px] font-medium text-foreground mb-2 uppercase">Photos</h3>
                       <div className="grid grid-cols-3 gap-2">
                         {displayData.photos.slice(1, 7).map((photo, index) => (
-                          <div key={index} className="aspect-square rounded-lg overflow-hidden">
+                          <div key={index} className="aspect-square overflow-hidden border-2 border-foreground/20">
                             <img 
                               src={photo} 
                               alt={`${displayData.name} photo ${index + 2}`}
@@ -437,9 +432,9 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                     {displayData.phone && (
                       <a 
                         href={`tel:${displayData.phone}`}
-                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        className="flex items-center gap-3 p-3 bg-muted/50 border-2 border-foreground/10 hover:border-foreground transition-colors"
                       >
-                        <Phone className="w-5 h-5 text-primary" />
+                        <Phone className="w-5 h-5 text-foreground" />
                         <span className="text-sm">{displayData.phone}</span>
                       </a>
                     )}
@@ -449,9 +444,9 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                         href={displayData.website.startsWith('http') ? displayData.website : `https://${displayData.website}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                        className="flex items-center gap-3 p-3 bg-muted/50 border-2 border-foreground/10 hover:border-foreground transition-colors"
                       >
-                        <Globe className="w-5 h-5 text-primary" />
+                        <Globe className="w-5 h-5 text-foreground" />
                         <span className="text-sm truncate">{displayData.website.replace(/^https?:\/\//, '')}</span>
                       </a>
                     )}
@@ -460,10 +455,10 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   {/* Google Reviews */}
                   {'reviews' in displayData && displayData.reviews && displayData.reviews.length > 0 && (
                     <div>
-                      <h3 className="text-sm font-semibold text-foreground mb-3">Reviews</h3>
+                      <h3 className="text-[11px] font-medium text-foreground mb-3 uppercase">Reviews</h3>
                       <div className="space-y-3">
                         {displayData.reviews.map((review, index) => (
-                          <div key={index} className="bg-muted/50 rounded-lg p-3">
+                          <div key={index} className="bg-muted/50 border-2 border-foreground/10 p-3">
                             <div className="flex items-center justify-between mb-1">
                               <span className="font-medium text-sm">{review.author}</span>
                               <div className="flex items-center gap-1">
@@ -481,20 +476,20 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
 
                   {/* Claim Link for unclaimed venues - subtle at bottom */}
                   {((venue?.source === 'database' && !('isClaimed' in displayData && displayData.isClaimed)) || venue?.source === 'google') && (
-                    <div className="pt-4 border-t border-border">
+                    <div className="pt-4 border-t-2 border-foreground/10">
                       <button 
                         onClick={() => setClaimDialogOpen(true)}
-                        className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                        className="text-xs text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1.5 uppercase"
                       >
                         <Building2 className="w-3 h-3" />
-                        Bu mekanın sahibi misiniz? Talep edin
+                        Own this venue? Claim it
                       </button>
                     </div>
                   )}
 
                   {/* Google Attribution - Required for Google Places data */}
                   {venue.source === 'google' && (
-                    <div className="pt-4 border-t border-border">
+                    <div className="pt-4 border-t-2 border-foreground/10">
                       <GoogleAttribution />
                       <p className="text-[10px] text-muted-foreground mt-1">
                         Data provided by Google Maps Platform
