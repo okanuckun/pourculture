@@ -116,14 +116,10 @@ const Admin = () => {
       return;
     }
 
-    const { data: roles, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', session.user.id)
-      .eq('role', 'admin')
-      .maybeSingle();
+    // Use RPC function to check admin status (bypasses RLS issues)
+    const { data: isAdminUser, error } = await supabase.rpc('check_is_admin');
 
-    if (error || !roles) {
+    if (error || !isAdminUser) {
       toast({
         title: 'Access Denied',
         description: 'You do not have admin privileges',
