@@ -149,6 +149,8 @@ const ExploreCategory = () => {
                   category={venue.category}
                   imageUrl={venue.image_url}
                   isOpen={venue.is_open}
+                  isClaimed={venue.is_claimed}
+                  googleRating={venue.google_rating}
                   openingHours={venue.opening_hours}
                 />
               ))}
