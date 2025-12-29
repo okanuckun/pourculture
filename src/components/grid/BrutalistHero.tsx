@@ -28,19 +28,9 @@ export const BrutalistHero: React.FC = () => {
       {/* Main Navbar */}
       <header className="border-b border-foreground/20">
         <div className="flex items-center justify-between h-12 px-4">
-          <nav className="flex items-center gap-6">
-            {['DISCOVER', 'VENUES', 'WINEMAKERS', 'INFO'].map((item, i) => (
-              <Link
-                key={item}
-                to={i === 0 ? '/discover' : '#'}
-                className={`text-xs tracking-wider transition-colors ${
-                  i === 1 ? 'bg-foreground text-background px-3 py-1 rounded-sm' : 'hover:text-muted-foreground'
-                }`}
-              >
-                {item}
-              </Link>
-            ))}
-          </nav>
+          <Link to="/" className="text-sm font-bold tracking-tight">
+            POURCULTURE
+          </Link>
 
           <div className="flex items-center gap-4 text-xs">
             <Link to="/submit-venue" className="text-muted-foreground hover:text-foreground transition-colors">
