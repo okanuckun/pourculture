@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrutalistHero } from '@/components/grid/BrutalistHero';
-import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
+
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Star } from 'lucide-react';
@@ -11,37 +11,6 @@ const BrutalistHome = () => {
       {/* Hero Section */}
       <BrutalistHero />
 
-      {/* Map Section */}
-      <section className="border-b border-foreground/20">
-        <div className="grid grid-cols-12">
-          <div className="col-span-12 md:col-span-3 border-r border-foreground/20 p-4">
-            <div className="sticky top-4">
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-                INTERACTIVE MAP
-              </p>
-              <h3 className="text-2xl font-bold tracking-tight mb-4">
-                EXPLORE
-              </h3>
-              <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-                Find natural wine venues near you. Filter by category, location, and status.
-              </p>
-              <Link
-                to="/discover"
-                className="inline-flex items-center gap-2 text-xs border border-foreground px-4 py-2 hover:bg-foreground hover:text-background transition-colors"
-              >
-                FULL MAP
-                <ArrowUpRight className="w-3 h-3" />
-              </Link>
-            </div>
-          </div>
-          
-          <div className="col-span-12 md:col-span-9">
-            <div className="aspect-[16/9] md:aspect-[21/12]">
-              <HomeWineMap className="w-full h-full" />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Stats Section */}
       <section className="border-b border-foreground/20">
