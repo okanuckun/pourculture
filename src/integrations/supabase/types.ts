@@ -425,6 +425,45 @@ export type Database = {
         }
         Relationships: []
       }
+      submissions: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          data: Json
+          id: string
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: string
+          submission_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submission_type: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          data?: Json
+          id?: string
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: string
+          submission_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
