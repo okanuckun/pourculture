@@ -66,26 +66,6 @@ export const BrutalistHero: React.FC = () => {
         </div>
       </header>
 
-      {/* Subnavbar */}
-      <div className="border-b border-foreground/20">
-        <div className="flex items-center h-10 px-4 text-xs">
-          <div className="flex items-center gap-2 flex-1">
-            <span className="text-muted-foreground">&gt;</span>
-            <span>INDEX</span>
-            <span className="text-muted-foreground ml-4">[+]</span>
-          </div>
-          <div className="flex-1 text-center text-muted-foreground">
-            <span className="text-foreground">P.C</span> / VENUES
-          </div>
-          <div className="flex items-center gap-4 flex-1 justify-end">
-            <span className="flex items-center gap-1">
-              <span className="text-muted-foreground">Q</span>
-              SEARCH
-            </span>
-            <span>[+]</span>
-          </div>
-        </div>
-      </div>
 
       {/* Category Pills */}
       <div className="border-b border-foreground/20 py-3 px-4 overflow-x-auto">
