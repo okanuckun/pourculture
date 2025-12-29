@@ -119,9 +119,9 @@ const RaisinHome = () => {
           </div>
 
           {/* Interactive Vintage Map */}
-          <div className="flex-1 relative px-4 pb-4 min-h-[450px] md:min-h-[550px]">
+          <div className="flex-1 relative px-4 pb-4">
             <motion.div 
-              className="h-full w-full max-w-6xl mx-auto relative"
+              className="w-full max-w-6xl mx-auto relative h-[450px] md:h-[550px]"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.3 }}
@@ -130,7 +130,7 @@ const RaisinHome = () => {
               <div className="absolute -inset-2 rounded-3xl border-4 border-amber-300/50 pointer-events-none z-10" />
               <div className="absolute -inset-4 rounded-3xl border-2 border-amber-200/30 pointer-events-none z-10" />
               
-              <HomeWineMap className="h-full rounded-2xl shadow-2xl" />
+              <HomeWineMap className="w-full h-full rounded-2xl shadow-2xl" />
             </motion.div>
           </div>
 
