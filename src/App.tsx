@@ -38,6 +38,7 @@ import EditRoute from "./pages/EditRoute";
 import UserProfile from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
+import SEOAdmin from "./pages/admin/SEOAdmin";
 
 const App = () => (
   <TooltipProvider>
@@ -74,6 +75,7 @@ const App = () => (
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/claims" element={<AdminClaims />} />
+      <Route path="/admin/seo" element={<SEOAdmin />} />
       <Route path="/dashboard" element={<OwnerDashboard />} />
       <Route path="/dashboard/venue/:id/edit" element={<EditVenueProfile />} />
       <Route path="/dashboard/winemaker/:id/edit" element={<EditWinemakerProfile />} />
