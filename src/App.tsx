@@ -25,6 +25,7 @@ import GuideDetail from "./pages/GuideDetail";
 import HarvestReportDetail from "./pages/HarvestReportDetail";
 import Forum from "./pages/Forum";
 import ForumTopic from "./pages/ForumTopic";
+import WineMapPage from "./pages/WineMapPage";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -33,6 +34,7 @@ const App = () => (
     <Sonner />
     <Routes>
       <Route path="/" element={<RaisinHome />} />
+      <Route path="/map" element={<WineMapPage />} />
       <Route path="/discover" element={<Discover />} />
       <Route path="/explore/:category" element={<ExploreCategory />} />
       <Route path="/news" element={<News />} />

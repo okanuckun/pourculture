@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, X, Wine } from 'lucide-react';
+import { ChevronDown, Menu, X, Wine, Map } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { AuthSheet } from './AuthSheet';
@@ -56,6 +56,15 @@ export const RaisinNavbar: React.FC = () => {
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
+              {/* Wine Map Link */}
+              <Link 
+                to="/map" 
+                className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-primary hover:text-primary/80 transition-colors"
+              >
+                <Map className="w-4 h-4" />
+                WINE MAP
+              </Link>
+
               {/* Explore Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
@@ -184,6 +193,14 @@ export const RaisinNavbar: React.FC = () => {
         {isMobileMenuOpen && (
           <div className="md:hidden bg-card border-t border-border animate-fade-in">
             <div className="px-4 py-4 space-y-2">
+              <Link 
+                to="/map" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex items-center gap-2 py-2 text-sm font-medium text-primary"
+              >
+                <Map className="w-4 h-4" />
+                Wine Map
+              </Link>
               <Link 
                 to="/" 
                 onClick={() => setIsMobileMenuOpen(false)}
