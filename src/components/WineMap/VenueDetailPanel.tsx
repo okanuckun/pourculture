@@ -1,13 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2, User } from 'lucide-react';
+import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2, User, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { WineVenue, CATEGORY_CONFIG } from './types';
 import { MapNavigationDialog } from '@/components/MapNavigationDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { GoogleAttribution } from '@/components/GoogleAttribution';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface VenueDetailPanelProps {
   venue: WineVenue | null;
@@ -297,12 +303,40 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                           )}
                         </span>
                       )}
-                      {'isClaimed' in displayData && displayData.isClaimed && (
+                      {'isClaimed' in displayData && displayData.isClaimed ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600">
                           <Star className="w-3 h-3 fill-current" />
-                          Verified Owner
+                          Doğrulanmış
                         </span>
-                      )}
+                      ) : venue?.source === 'database' ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground cursor-help">
+                                <AlertCircle className="w-3 h-3" />
+                                Doğrulanmamış
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                              <p className="text-xs">Bu mekanın sahibi henüz sitemize üye değil veya mekanını talep etmedi.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : venue?.source === 'google' ? (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground cursor-help">
+                                <AlertCircle className="w-3 h-3" />
+                                Google
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                              <p className="text-xs">Bu mekan Google Places'tan alınmıştır. Mekan sahibi olarak kaydolabilirsiniz.</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      ) : null}
                     </div>
                     <h2 className="text-2xl font-bold text-foreground">{displayData.name}</h2>
                     {displayData.address && (
