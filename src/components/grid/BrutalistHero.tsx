@@ -28,17 +28,7 @@ export const BrutalistHero: React.FC = () => {
       {/* Main Navbar */}
       <header className="border-b border-foreground/20">
         <div className="flex items-center justify-between h-12 px-4">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-foreground rounded-sm" />
-              <div className="flex items-center gap-1 border border-foreground/30 rounded-sm px-2 py-0.5 text-[10px] uppercase tracking-wider">
-                <span>Navigate</span>
-                <span className="text-muted-foreground">Explore</span>
-              </div>
-            </div>
-          </div>
-          
-          <nav className="hidden md:flex items-center gap-6">
+          <nav className="flex items-center gap-6">
             {['DISCOVER', 'VENUES', 'WINEMAKERS', 'INFO'].map((item, i) => (
               <Link
                 key={item}
@@ -53,7 +43,13 @@ export const BrutalistHero: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-4 text-xs">
-            <Link to="/auth" className="text-muted-foreground hover:text-foreground transition-colors">
+            <Link to="/submit-venue" className="text-muted-foreground hover:text-foreground transition-colors">
+              SUBMIT
+            </Link>
+            <Link to="/claim-venue" className="text-muted-foreground hover:text-foreground transition-colors">
+              CLAIM
+            </Link>
+            <Link to="/auth" className="hover:text-muted-foreground transition-colors">
               SIGN IN
             </Link>
             <span className="flex items-center gap-1">
