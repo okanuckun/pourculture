@@ -907,9 +907,36 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
         </div>
       </div>
 
+      {/* Category Legend */}
+      {filteredVenues.length > 0 && (
+        <div className="absolute bottom-24 right-4 z-20 bg-amber-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-amber-200 p-3">
+          <p className="text-xs text-amber-600 font-medium mb-2" style={{ fontFamily: 'Georgia, serif' }}>Kategoriler</p>
+          <div className="space-y-1.5">
+            {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
+              const config = CATEGORY_CONFIG[category];
+              const count = filteredVenues.filter(v => v.category === category).length;
+              return (
+                <div key={category} className="flex items-center gap-2">
+                  <span 
+                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
+                    style={{ backgroundColor: config.color }}
+                  >
+                    {config.icon}
+                  </span>
+                  <span className="text-xs text-amber-800 flex-1">{config.label}</span>
+                  <span className="text-xs font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full min-w-[24px] text-center">
+                    {count}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Decorative compass rose */}
-      <div className="absolute bottom-20 right-4 z-10 opacity-20 pointer-events-none">
-        <svg width="60" height="60" viewBox="0 0 100 100" fill="none">
+      <div className="absolute bottom-4 right-4 z-10 opacity-20 pointer-events-none">
+        <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
           <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
           <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
           <path d="M50 90 L55 55 L50 50 L45 55 Z" fill="#d4a574" />
