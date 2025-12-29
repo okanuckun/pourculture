@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Wine, MapPin, Globe } from 'lucide-react';
 import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
-import { WineMap } from '@/components/WineMap';
+import { MapboxMap } from '@/components/WineMap';
 
 const WineMapPage = () => {
   const navigate = useNavigate();
@@ -79,7 +79,7 @@ const WineMapPage = () => {
               transition={{ delay: 0.2 }}
               className="h-[calc(100vh-280px)] min-h-[500px] rounded-2xl overflow-hidden shadow-xl border border-border"
             >
-              <WineMap />
+              <MapboxMap />
             </motion.div>
             
             {/* Info box */}
