@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck, Filter, X } from 'lucide-react';
+import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck, Filter, X, ArrowUpDown } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -14,6 +14,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+type SortOption = 'newest' | 'oldest' | 'venues_high' | 'venues_low' | 'days_short' | 'days_long';
+
 interface WineRoute {
   id: string;
   title: string;
@@ -29,6 +32,7 @@ interface WineRoute {
   curator_title: string | null;
   curator_user_id: string | null;
   slug: string;
+  created_at?: string;
 }
 
 interface UserProgress {
@@ -188,7 +192,30 @@ const WineRoutes = () => {
   const [selectedCountry, setSelectedCountry] = useState<string>('all');
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
   const navigate = useNavigate();
+
+  // Sort function
+  const sortRoutes = (routeList: WineRoute[]): WineRoute[] => {
+    return [...routeList].sort((a, b) => {
+      switch (sortBy) {
+        case 'newest':
+          return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+        case 'oldest':
+          return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+        case 'venues_high':
+          return b.venue_count - a.venue_count;
+        case 'venues_low':
+          return a.venue_count - b.venue_count;
+        case 'days_short':
+          return a.estimated_days - b.estimated_days;
+        case 'days_long':
+          return b.estimated_days - a.estimated_days;
+        default:
+          return 0;
+      }
+    });
+  };
 
   // Extract unique countries, regions, and difficulties for filters
   const allRoutes = useMemo(() => [...curatedRoutes, ...routes], [curatedRoutes, routes]);
@@ -211,24 +238,26 @@ const WineRoutes = () => {
     return uniqueDifficulties;
   }, [allRoutes]);
 
-  // Filter routes based on selections
+  // Filter and sort routes based on selections
   const filteredCuratedRoutes = useMemo(() => {
-    return curatedRoutes.filter(route => {
+    const filtered = curatedRoutes.filter(route => {
       if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
       if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
       if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
       return true;
     });
-  }, [curatedRoutes, selectedCountry, selectedRegion, selectedDifficulty]);
+    return sortRoutes(filtered);
+  }, [curatedRoutes, selectedCountry, selectedRegion, selectedDifficulty, sortBy]);
 
   const filteredRoutes = useMemo(() => {
-    return routes.filter(route => {
+    const filtered = routes.filter(route => {
       if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
       if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
       if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
       return true;
     });
-  }, [routes, selectedCountry, selectedRegion, selectedDifficulty]);
+    return sortRoutes(filtered);
+  }, [routes, selectedCountry, selectedRegion, selectedDifficulty, sortBy]);
 
   const hasActiveFilters = selectedCountry !== 'all' || selectedRegion !== 'all' || selectedDifficulty !== 'all';
 
@@ -236,6 +265,7 @@ const WineRoutes = () => {
     setSelectedCountry('all');
     setSelectedRegion('all');
     setSelectedDifficulty('all');
+    setSortBy('newest');
   };
 
   // Reset region when country changes
@@ -399,6 +429,27 @@ const WineRoutes = () => {
                 {difficulties.map(diff => (
                   <SelectItem key={diff} value={diff} className="capitalize">{diff}</SelectItem>
                 ))}
+              </SelectContent>
+            </Select>
+
+            <div className="h-6 w-px bg-foreground/20 mx-1 hidden sm:block" />
+
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <ArrowUpDown className="w-4 h-4" />
+              <span className="text-xs font-medium uppercase tracking-wider hidden sm:inline">Sort</span>
+            </div>
+
+            <Select value={sortBy} onValueChange={(value) => setSortBy(value as SortOption)}>
+              <SelectTrigger className="w-[150px] h-9 text-xs border-2 border-foreground/30 bg-background">
+                <SelectValue placeholder="Sort by" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-2 border-foreground/30">
+                <SelectItem value="newest">Newest First</SelectItem>
+                <SelectItem value="oldest">Oldest First</SelectItem>
+                <SelectItem value="venues_high">Most Venues</SelectItem>
+                <SelectItem value="venues_low">Fewest Venues</SelectItem>
+                <SelectItem value="days_short">Shortest Trip</SelectItem>
+                <SelectItem value="days_long">Longest Trip</SelectItem>
               </SelectContent>
             </Select>
 
