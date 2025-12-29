@@ -36,7 +36,7 @@ const EventCard = ({
   
   return (
     <div 
-      className="relative cursor-pointer group border-2 border-foreground/20 hover:border-foreground transition-colors"
+      className="relative cursor-pointer group border-2 border-foreground/30 hover:border-foreground transition-colors bg-background"
       onClick={() => navigate(isCreated ? `/event/${event.id}/edit` : `/event/${event.id}`)}
     >
       <div className="overflow-hidden">
@@ -47,23 +47,23 @@ const EventCard = ({
       </div>
       <div className="absolute top-4 left-4 flex flex-col gap-0">
         <div className="bg-background border-2 border-foreground px-3 h-6 flex items-center">
-          <div className="text-[10px] font-bold uppercase tracking-wide">{event.date}</div>
+          <div className="text-[10px] font-bold uppercase tracking-wider text-foreground">{event.date}</div>
         </div>
         <div className="bg-background border-2 border-t-0 border-foreground px-3 h-6 flex items-center">
-          <div className="text-[10px] font-medium">{event.time}</div>
+          <div className="text-[10px] font-medium text-foreground">{event.time}</div>
         </div>
       </div>
       {isCreated && (
         <button
           onClick={handleDelete}
-          className="absolute top-4 right-4 bg-background border-2 border-foreground p-2 hover:bg-destructive hover:text-white hover:border-destructive transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-4 right-4 bg-background border-2 border-foreground p-2 hover:bg-destructive hover:text-destructive-foreground hover:border-destructive transition-colors opacity-0 group-hover:opacity-100"
           aria-label="Delete event"
         >
           <Trash2 className="w-4 h-4" />
         </button>
       )}
-      <div className="p-4 border-t-2 border-foreground/20 group-hover:border-foreground transition-colors">
-        <h3 className="font-bold tracking-tight group-hover:underline">{event.title}</h3>
+      <div className="p-4 border-t-2 border-foreground/30 group-hover:border-foreground transition-colors">
+        <h3 className="font-bold tracking-tight text-foreground group-hover:underline">{event.title}</h3>
       </div>
     </div>
   );
@@ -182,7 +182,7 @@ const MyEvents = () => {
             className={`px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${
               activeTab === 'created'
                 ? 'bg-foreground text-background border-foreground'
-                : 'border-foreground/20 hover:border-foreground'
+                : 'bg-background text-foreground border-foreground/30 hover:border-foreground'
             }`}
           >
             CREATED BY ME ({createdEvents.length})
@@ -192,7 +192,7 @@ const MyEvents = () => {
             className={`px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 border-l-0 ${
               activeTab === 'registered'
                 ? 'bg-foreground text-background border-foreground'
-                : 'border-foreground/20 hover:border-foreground'
+                : 'bg-background text-foreground border-foreground/30 hover:border-foreground'
             }`}
           >
             REGISTERED ({registeredEvents.length})
@@ -202,11 +202,11 @@ const MyEvents = () => {
         {/* Events Grid */}
         {loading ? (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="w-6 h-6 animate-spin" />
+            <Loader2 className="w-6 h-6 animate-spin text-foreground" />
           </div>
         ) : displayedEvents.length === 0 ? (
-          <div className="text-center py-16 border-2 border-foreground/20">
-            <p className="text-muted-foreground">
+          <div className="text-center py-16 border-2 border-foreground/30 bg-background">
+            <p className="text-muted-foreground text-sm">
               {activeTab === 'created' 
                 ? "You haven't created any events yet" 
                 : "You haven't registered for any events yet"}
