@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Search, MapPin, X, Wine, Compass } from 'lucide-react';
+import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
@@ -44,6 +44,11 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
   // Venue detail panel state
   const [selectedVenue, setSelectedVenue] = useState<WineVenue | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
+  
+  // Filter state
+  const [showFilters, setShowFilters] = useState(false);
+  const [showOnlyVerified, setShowOnlyVerified] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<WineVenueCategory[]>(['wine_shop', 'wine_bar', 'winery', 'restaurant']);
 
   // Fetch Mapbox token
   const fetchToken = useCallback(async () => {
@@ -275,6 +280,33 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     return combined;
   }, [googleVenues, dbVenues]);
 
+  // Filtered venues based on filters
+  const filteredVenues = useMemo(() => {
+    return allVenues.filter(venue => {
+      // Filter by verified status
+      if (showOnlyVerified && !venue.isClaimed) {
+        return false;
+      }
+      // Filter by category
+      if (!selectedCategories.includes(venue.category)) {
+        return false;
+      }
+      return true;
+    });
+  }, [allVenues, showOnlyVerified, selectedCategories]);
+
+  // Toggle category filter
+  const toggleCategory = (category: WineVenueCategory) => {
+    setSelectedCategories(prev => {
+      if (prev.includes(category)) {
+        // Don't allow removing all categories
+        if (prev.length === 1) return prev;
+        return prev.filter(c => c !== category);
+      }
+      return [...prev, category];
+    });
+  };
+
   // Handle venue click to open panel
   const handleVenueClick = useCallback((venue: WineVenue) => {
     setSelectedVenue(venue);
@@ -288,7 +320,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    allVenues.forEach(venue => {
+    filteredVenues.forEach(venue => {
       const config = CATEGORY_CONFIG[venue.category];
       const isVerified = venue.isClaimed === true;
       
@@ -483,7 +515,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
       markersRef.current.push(marker);
     });
-  }, [allVenues, mapReady, handleVenueClick]);
+  }, [filteredVenues, mapReady, handleVenueClick]);
 
   // Search functionality
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -692,6 +724,91 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
         </AnimatePresence>
       </div>
 
+      {/* Filter Panel */}
+      <div className="absolute top-20 left-4 z-20">
+        <div className="flex flex-col gap-2">
+          {/* Filter Toggle Button */}
+          <motion.button
+            onClick={() => setShowFilters(!showFilters)}
+            className={`px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 font-medium border-2 transition-colors ${
+              showFilters || showOnlyVerified || selectedCategories.length < 4
+                ? 'bg-amber-600 text-white border-amber-500'
+                : 'bg-amber-50/95 text-amber-800 border-amber-200'
+            }`}
+            style={{ fontFamily: 'Georgia, serif' }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
+            <Filter className="w-4 h-4" />
+            <span className="text-sm">Filtreler</span>
+            {(showOnlyVerified || selectedCategories.length < 4) && (
+              <span className="w-5 h-5 rounded-full bg-white text-amber-600 text-xs flex items-center justify-center font-bold">
+                {(showOnlyVerified ? 1 : 0) + (4 - selectedCategories.length)}
+              </span>
+            )}
+          </motion.button>
+
+          {/* Filter Options */}
+          <AnimatePresence>
+            {showFilters && (
+              <motion.div
+                initial={{ opacity: 0, y: -10, height: 0 }}
+                animate={{ opacity: 1, y: 0, height: 'auto' }}
+                exit={{ opacity: 0, y: -10, height: 0 }}
+                className="bg-amber-50/98 backdrop-blur-lg rounded-xl shadow-xl overflow-hidden border-2 border-amber-200 p-3"
+              >
+                {/* Verified Only Toggle */}
+                <button
+                  onClick={() => setShowOnlyVerified(!showOnlyVerified)}
+                  className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-colors mb-2 ${
+                    showOnlyVerified 
+                      ? 'bg-amber-500 text-white' 
+                      : 'bg-white hover:bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  <ShieldCheck className="w-4 h-4" />
+                  <span className="text-sm font-medium flex-1 text-left">Sadece Doğrulanmış</span>
+                  {showOnlyVerified && <Check className="w-4 h-4" />}
+                </button>
+
+                <div className="h-px bg-amber-200 my-2" />
+
+                {/* Category Filters */}
+                <p className="text-xs text-amber-600 mb-2 font-medium">Kategoriler</p>
+                <div className="space-y-1.5">
+                  {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
+                    const config = CATEGORY_CONFIG[category];
+                    const isSelected = selectedCategories.includes(category);
+                    return (
+                      <button
+                        key={category}
+                        onClick={() => toggleCategory(category)}
+                        className={`w-full px-3 py-2 rounded-lg flex items-center gap-2.5 transition-colors ${
+                          isSelected 
+                            ? 'bg-white border border-amber-300' 
+                            : 'bg-amber-100/50 opacity-60'
+                        }`}
+                      >
+                        <span 
+                          className="w-6 h-6 rounded-full flex items-center justify-center text-sm"
+                          style={{ backgroundColor: isSelected ? config.color : '#ccc' }}
+                        >
+                          {config.icon}
+                        </span>
+                        <span className={`text-sm flex-1 text-left ${isSelected ? 'text-amber-900' : 'text-amber-600'}`}>
+                          {config.label}
+                        </span>
+                        {isSelected && <Check className="w-4 h-4 text-amber-600" />}
+                      </button>
+                    );
+                  })}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+      </div>
+
       {/* Loading indicator */}
       <AnimatePresence>
         {loading && (
@@ -729,7 +846,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           Search this area
         </motion.button>
         
-        {allVenues.length > 0 && !loading && (
+        {filteredVenues.length > 0 && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -737,7 +854,10 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
             style={{ fontFamily: 'Georgia, serif' }}
           >
             <Wine className="w-4 h-4 text-amber-600" />
-            <span>{allVenues.length} wine venues discovered</span>
+            <span>
+              {filteredVenues.length} mekan
+              {allVenues.length !== filteredVenues.length && ` (${allVenues.length} toplam)`}
+            </span>
           </motion.div>
         )}
       </div>
