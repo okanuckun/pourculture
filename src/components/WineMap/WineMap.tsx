@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, Wine } from 'lucide-react';
+import { Loader2, RefreshCw, Wine, Database } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 import { WineVenue, WineVenueCategory, MapBounds } from './types';
 import { fetchWineVenuesFromOSM, debounce } from './overpassApi';
+import { fetchAllDatabaseVenues } from './databaseApi';
 import { VenueMarker } from './VenueMarker';
 import { CategoryFilter } from './CategoryFilter';
 
@@ -58,11 +59,51 @@ export const WineMap: React.FC<WineMapProps> = ({
   initialCenter = [46.2276, 2.2137], // France center
   initialZoom = 5,
 }) => {
-  const [venues, setVenues] = useState<WineVenue[]>([]);
+  const [osmVenues, setOsmVenues] = useState<WineVenue[]>([]);
+  const [dbVenues, setDbVenues] = useState<WineVenue[]>([]);
   const [loading, setLoading] = useState(false);
+  const [dbLoading, setDbLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<WineVenueCategory>('all');
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
+
+  // Load database venues on mount
+  useEffect(() => {
+    const loadDbVenues = async () => {
+      setDbLoading(true);
+      try {
+        const venues = await fetchAllDatabaseVenues();
+        setDbVenues(venues);
+      } catch (error) {
+        console.error('Error loading database venues:', error);
+      } finally {
+        setDbLoading(false);
+      }
+    };
+    loadDbVenues();
+  }, []);
+
+  // Combine OSM and database venues
+  const allVenues = useMemo(() => {
+    // Database venues take priority (shown first, unique by location)
+    const combined = [...dbVenues];
+    
+    // Add OSM venues that don't overlap with database venues
+    osmVenues.forEach(osmVenue => {
+      const isDuplicate = dbVenues.some(dbVenue => {
+        // Check if venues are within ~100m of each other
+        const latDiff = Math.abs(osmVenue.lat - dbVenue.lat);
+        const lngDiff = Math.abs(osmVenue.lng - dbVenue.lng);
+        return latDiff < 0.001 && lngDiff < 0.001;
+      });
+      
+      if (!isDuplicate) {
+        combined.push(osmVenue);
+      }
+    });
+    
+    return combined;
+  }, [osmVenues, dbVenues]);
 
   // Calculate venue counts by category
   const venueCounts = useMemo(() => {
@@ -74,26 +115,26 @@ export const WineMap: React.FC<WineMapProps> = ({
       restaurant: 0,
     };
     
-    venues.forEach(venue => {
+    allVenues.forEach(venue => {
       counts[venue.category]++;
       counts.all++;
     });
     
     return counts;
-  }, [venues]);
+  }, [allVenues]);
 
   // Filter venues by selected category
   const filteredVenues = useMemo(() => {
-    if (selectedCategory === 'all') return venues;
-    return venues.filter(v => v.category === selectedCategory);
-  }, [venues, selectedCategory]);
+    if (selectedCategory === 'all') return allVenues;
+    return allVenues.filter(v => v.category === selectedCategory);
+  }, [allVenues, selectedCategory]);
 
-  // Fetch venues when bounds change
+  // Fetch OSM venues when bounds change
   const fetchVenues = useCallback(async (bounds: MapBounds) => {
     setLoading(true);
     try {
-      const osmVenues = await fetchWineVenuesFromOSM(bounds);
-      setVenues(osmVenues);
+      const venues = await fetchWineVenuesFromOSM(bounds);
+      setOsmVenues(venues);
       setHasSearched(true);
     } catch (error) {
       console.error('Error fetching venues:', error);
@@ -161,13 +202,19 @@ export const WineMap: React.FC<WineMapProps> = ({
           Search this area
         </motion.button>
         
-        {hasSearched && !loading && (
+        {(hasSearched || dbVenues.length > 0) && !loading && (
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow text-xs text-gray-600"
+            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow text-xs text-gray-600 flex items-center gap-2"
           >
-            {filteredVenues.length} venues found
+            <span>{filteredVenues.length} venues found</span>
+            {dbVenues.length > 0 && (
+              <span className="flex items-center gap-1 text-primary">
+                <Database className="w-3 h-3" />
+                {dbVenues.length} from database
+              </span>
+            )}
           </motion.div>
         )}
       </div>
@@ -192,7 +239,7 @@ export const WineMap: React.FC<WineMapProps> = ({
       </MapContainer>
 
       {/* Empty state */}
-      {hasSearched && !loading && venues.length === 0 && (
+      {hasSearched && !loading && allVenues.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
