@@ -17,13 +17,13 @@ interface MapboxMapProps {
   initialZoom?: number;
 }
 
-const DEFAULT_CENTER: [number, number] = [2.2137, 46.2276]; // [lng, lat]
+const DEFAULT_CENTER: [number, number] = [-73.9857, 40.7484]; // NYC [lng, lat]
 const TOKEN_FETCH_TIMEOUT = 10000; // 10 seconds
 
 export const MapboxMap: React.FC<MapboxMapProps> = ({
   className = '',
   initialCenter = DEFAULT_CENTER,
-  initialZoom = 5,
+  initialZoom = 12,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
