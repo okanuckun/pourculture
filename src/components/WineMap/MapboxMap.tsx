@@ -420,17 +420,43 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     }
   };
 
-  // Search for locations
+  // Search for locations AND database venues
   const searchLocation = useCallback(async (query: string) => {
     if (!query.trim() || !mapboxToken) return;
     
     setSearchLoading(true);
     try {
-      const response = await fetch(
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=place,region,country,locality&limit=5`
-      );
-      const data = await response.json();
-      setSearchResults(data.features || []);
+      // Search both Mapbox places AND database venues in parallel
+      const [mapboxResponse, dbVenueResults] = await Promise.all([
+        fetch(
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=place,region,country,locality&limit=5`
+        ),
+        // Search database venues
+        supabase
+          .from('venues')
+          .select('id, name, slug, city, country, latitude, longitude, category')
+          .ilike('name', `%${query}%`)
+          .not('latitude', 'is', null)
+          .limit(5)
+      ]);
+      
+      const mapboxData = await mapboxResponse.json();
+      
+      // Format database venues to match mapbox result structure
+      const dbResults = (dbVenueResults.data || []).map((venue: any) => ({
+        id: `db-venue-${venue.id}`,
+        place_name: `${venue.name} - ${venue.city}, ${venue.country}`,
+        center: [Number(venue.longitude), Number(venue.latitude)],
+        place_type: ['venue'],
+        isDbVenue: true,
+        slug: venue.slug,
+        venueType: 'venue',
+        category: venue.category,
+      }));
+      
+      // Combine results: database venues first, then mapbox places
+      const combinedResults = [...dbResults, ...(mapboxData.features || [])];
+      setSearchResults(combinedResults);
       setShowSearchResults(true);
     } catch (error) {
       console.error('Search error:', error);
@@ -472,10 +498,13 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     if (lng == null || lat == null) return;
 
     const placeTypes = Array.isArray(result?.place_type) ? result.place_type : [];
+    
+    // If it's a database venue, zoom in closer
+    const isDbVenue = result?.isDbVenue === true;
 
     map.current.flyTo({
       center: [lng, lat],
-      zoom: placeTypes.includes('country') ? 5 : 10,
+      zoom: isDbVenue ? 16 : (placeTypes.includes('country') ? 5 : 10),
       pitch: 45,
       duration: 2000,
     });
@@ -596,9 +625,13 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
                     ? String(result.id)
                     : `sr-${index}`;
 
-                  const text = typeof result?.text === 'string' || typeof result?.text === 'number'
-                    ? String(result.text)
-                    : '';
+                  const isDbVenue = result?.isDbVenue === true;
+                  
+                  const text = isDbVenue 
+                    ? result?.place_name?.split(' - ')[0] || ''
+                    : (typeof result?.text === 'string' || typeof result?.text === 'number'
+                      ? String(result.text)
+                      : '');
 
                   const placeName = typeof result?.place_name === 'string' || typeof result?.place_name === 'number'
                     ? String(result.place_name)
@@ -610,10 +643,21 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
                       onClick={() => handleResultClick(result)}
                       className="w-full px-4 py-3 text-left hover:bg-purple-500/20 transition-colors flex items-center gap-3 border-b border-purple-500/10 last:border-b-0"
                     >
-                      <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
-                      <div>
-                        <div className="text-white text-sm font-medium">{text}</div>
-                        <div className="text-purple-300/60 text-xs">{placeName}</div>
+                      {isDbVenue ? (
+                        <Wine className="w-4 h-4 text-amber-400 flex-shrink-0" />
+                      ) : (
+                        <MapPin className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                      )}
+                      <div className="flex-1">
+                        <div className="text-white text-sm font-medium flex items-center gap-2">
+                          {text}
+                          {isDbVenue && (
+                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 font-medium">
+                              ✓ Verified Venue
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-purple-300/60 text-xs">{isDbVenue ? placeName.split(' - ')[1] : placeName}</div>
                       </div>
                     </button>
                   );
