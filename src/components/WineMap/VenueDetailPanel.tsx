@@ -368,27 +368,6 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                       Yol Tarifi
                     </Button>
                   </div>
-                  
-                  {/* Claim Button for unclaimed venues */}
-                  {(venue?.source === 'database' && !('isClaimed' in displayData && displayData.isClaimed)) || venue?.source === 'google' ? (
-                    <Button 
-                      variant="secondary"
-                      onClick={() => setClaimDialogOpen(true)}
-                      className="w-full"
-                    >
-                      <Building2 className="w-4 h-4 mr-2" />
-                      Bu Mekanı Talep Et
-                    </Button>
-                  ) : null}
-                  
-                  {'googleMapsUrl' in displayData && displayData.googleMapsUrl && (
-                    <a href={displayData.googleMapsUrl} target="_blank" rel="noopener noreferrer">
-                      <Button variant="ghost" size="sm" className="w-full">
-                        <ExternalLink className="w-4 h-4 mr-2" />
-                        Open in Google Maps
-                      </Button>
-                    </a>
-                  )}
 
                   {/* Description/Story */}
                   {'description' in displayData && displayData.description && (
@@ -497,6 +476,19 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Claim Link for unclaimed venues - subtle at bottom */}
+                  {((venue?.source === 'database' && !('isClaimed' in displayData && displayData.isClaimed)) || venue?.source === 'google') && (
+                    <div className="pt-4 border-t border-border">
+                      <button 
+                        onClick={() => setClaimDialogOpen(true)}
+                        className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1.5"
+                      >
+                        <Building2 className="w-3 h-3" />
+                        Bu mekanın sahibi misiniz? Talep edin
+                      </button>
                     </div>
                   )}
 
