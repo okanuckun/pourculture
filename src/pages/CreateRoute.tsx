@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Loader2, Plus, X, Search } from 'lucide-react';
+import { Loader2, Plus, X, Search, ShieldX } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -19,10 +19,17 @@ interface Venue {
   slug: string;
 }
 
+interface Profile {
+  is_verified: boolean;
+  display_name: string | null;
+}
+
 const CreateRoute = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Venue[]>([]);
   const [selectedVenues, setSelectedVenues] = useState<Venue[]>([]);
@@ -45,6 +52,7 @@ const CreateRoute = () => {
         return;
       }
       setUser(session.user);
+      checkVerification(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -53,10 +61,29 @@ const CreateRoute = () => {
         return;
       }
       setUser(session.user);
+      checkVerification(session.user.id);
     });
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  const checkVerification = async (userId: string) => {
+    setCheckingAccess(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('is_verified, display_name')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (error) throw error;
+      setProfile(data as Profile);
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error checking verification:', error);
+    } finally {
+      setCheckingAccess(false);
+    }
+  };
 
   const searchVenues = async (query: string) => {
     if (query.length < 2) {
@@ -152,6 +179,47 @@ const CreateRoute = () => {
       setLoading(false);
     }
   };
+
+  if (checkingAccess) {
+    return (
+      <BrutalistLayout>
+        <div className="flex items-center justify-center py-32">
+          <Loader2 className="w-6 h-6 animate-spin text-foreground" />
+        </div>
+      </BrutalistLayout>
+    );
+  }
+
+  if (!profile?.is_verified) {
+    return (
+      <BrutalistLayout
+        title="ACCESS DENIED"
+        showBackButton
+        backPath="/wine-routes"
+        backLabel="Wine Routes"
+      >
+        <SEOHead
+          title="Create Wine Route | PourCulture"
+          description="Create and share your own wine route with the PourCulture community"
+        />
+        <div className="max-w-2xl mx-auto px-4 md:px-6 py-16 text-center">
+          <div className="border-2 border-foreground/30 p-8">
+            <ShieldX className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+            <h2 className="text-xl font-bold mb-2">Verification Required</h2>
+            <p className="text-muted-foreground mb-6">
+              Only verified users can create wine routes. Verified users are sommeliers, winemakers, and wine enthusiasts approved by our team.
+            </p>
+            <Link
+              to="/wine-routes"
+              className="inline-block px-6 py-3 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+            >
+              Explore Routes
+            </Link>
+          </div>
+        </div>
+      </BrutalistLayout>
+    );
+  }
 
   return (
     <BrutalistLayout

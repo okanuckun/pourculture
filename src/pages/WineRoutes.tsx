@@ -34,6 +34,10 @@ interface UserWishlist {
   route_id: string;
 }
 
+interface UserProfile {
+  is_verified: boolean;
+}
+
 const RouteCard = ({
   route,
   isInWishlist,
@@ -156,6 +160,7 @@ const RouteCard = ({
 
 const WineRoutes = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [routes, setRoutes] = useState<WineRoute[]>([]);
   const [curatedRoutes, setCuratedRoutes] = useState<WineRoute[]>([]);
   const [wishlist, setWishlist] = useState<UserWishlist[]>([]);
@@ -182,8 +187,23 @@ const WineRoutes = () => {
   useEffect(() => {
     if (user) {
       fetchUserData();
+      fetchUserProfile();
     }
   }, [user]);
+
+  const fetchUserProfile = async () => {
+    if (!user) return;
+    try {
+      const { data } = await supabase
+        .from('profiles')
+        .select('is_verified')
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (data) setProfile(data as UserProfile);
+    } catch (error) {
+      if (import.meta.env.DEV) console.error('Error fetching profile:', error);
+    }
+  };
 
   const fetchRoutes = async () => {
     setLoading(true);
@@ -263,8 +283,8 @@ const WineRoutes = () => {
       />
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        {/* Create Route Button */}
-        {user && (
+        {/* Create Route Button - only for verified users */}
+        {user && profile?.is_verified && (
           <div className="flex justify-end mb-6">
             <button
               onClick={() => navigate('/wine-routes/create')}

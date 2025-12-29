@@ -127,6 +127,9 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                     <DropdownMenuItem onClick={() => navigate('/dashboard')} className="text-xs">
                       My Dashboard
                     </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)} className="text-xs">
+                      My Profile
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/my-events')} className="text-xs">
                       My Events
                     </DropdownMenuItem>

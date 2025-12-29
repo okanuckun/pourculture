@@ -403,25 +403,46 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          bio: string | null
           created_at: string
           display_name: string | null
           id: string
+          instagram: string | null
+          is_verified: boolean | null
+          location: string | null
+          twitter: string | null
           updated_at: string
           user_id: string
+          website: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          instagram?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+          twitter?: string | null
           updated_at?: string
           user_id: string
+          website?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           display_name?: string | null
           id?: string
+          instagram?: string | null
+          is_verified?: boolean | null
+          location?: string | null
+          twitter?: string | null
           updated_at?: string
           user_id?: string
+          website?: string | null
         }
         Relationships: []
       }
@@ -855,6 +876,7 @@ export type Database = {
           curator_id: string | null
           curator_name: string | null
           curator_title: string | null
+          curator_user_id: string | null
           description: string | null
           difficulty: string | null
           estimated_days: number | null
@@ -876,6 +898,7 @@ export type Database = {
           curator_id?: string | null
           curator_name?: string | null
           curator_title?: string | null
+          curator_user_id?: string | null
           description?: string | null
           difficulty?: string | null
           estimated_days?: number | null
@@ -897,6 +920,7 @@ export type Database = {
           curator_id?: string | null
           curator_name?: string | null
           curator_title?: string | null
+          curator_user_id?: string | null
           description?: string | null
           difficulty?: string | null
           estimated_days?: number | null
@@ -911,7 +935,15 @@ export type Database = {
           venue_count?: number | null
           venue_ids?: string[] | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wine_routes_curator_user_id_fkey"
+            columns: ["curator_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       winemaker_claims: {
         Row: {
