@@ -68,6 +68,7 @@ const VenueDetail: React.FC = () => {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  // Claim removed from venue profile pages per product requirement
   const [claimDialogOpen, setClaimDialogOpen] = useState(false);
   const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -242,24 +243,7 @@ const VenueDetail: React.FC = () => {
               Yol Tarifi Al
             </Button>
             
-            {/* Claim Button */}
-            {!venue.is_claimed && user && (
-              <Button 
-                onClick={() => setClaimDialogOpen(true)}
-                variant="outline"
-              >
-                <Shield className="w-4 h-4 mr-2" />
-                Claim This Venue
-              </Button>
-            )}
-            {!venue.is_claimed && !user && (
-              <Link to="/auth">
-                <Button variant="outline">
-                  <Shield className="w-4 h-4 mr-2" />
-                  Log in to Claim
-                </Button>
-              </Link>
-            )}
+            
           </div>
         </div>
         
@@ -391,14 +375,6 @@ const VenueDetail: React.FC = () => {
         />
       </main>
 
-      {/* Claim Dialog */}
-      <ClaimVenueDialog
-        open={claimDialogOpen}
-        onOpenChange={setClaimDialogOpen}
-        venueId={venue.id}
-        venueName={venue.name}
-        venueType="venue"
-      />
 
       {/* Navigation Dialog */}
       <MapNavigationDialog

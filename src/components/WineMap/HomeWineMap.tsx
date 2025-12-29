@@ -326,24 +326,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                 View Details
               </a>
             ` : ''}
-            ${venue.source === 'google' && venue.googlePlaceId ? `
-              <a href="/claim-venue?placeId=${venue.googlePlaceId}&name=${encodeURIComponent(venue.name)}" 
-                 style="
-                   display: inline-flex; 
-                   align-items: center; 
-                   gap: 4px; 
-                   font-size: 12px; 
-                   color: white; 
-                   background: #10b981;
-                   padding: 6px 14px; 
-                   border-radius: 20px; 
-                   text-decoration: none; 
-                   font-weight: 500;
-                   font-family: sans-serif;
-                 ">
-                Claim
-              </a>
-            ` : ''}
+            
           </div>
         </div>
       `);
