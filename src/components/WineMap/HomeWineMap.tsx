@@ -154,10 +154,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
             fetchVenues(newBounds);
           });
           
-          toast.success('Location detected', {
-            description: 'Searching for nearby venues...',
-            duration: 3000,
-          });
+          // Location detected - silently search without notification
         },
         (error) => {
           console.log('Geolocation error:', error.message);
