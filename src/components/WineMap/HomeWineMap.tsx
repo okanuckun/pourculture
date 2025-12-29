@@ -326,7 +326,24 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                 View Details
               </a>
             ` : ''}
-            
+            ${!detailUrl && venue.source === 'google' && venue.googlePlaceId ? `
+              <a href="/place/google/${venue.googlePlaceId.replace('google_', '')}" 
+                 style="
+                   display: inline-flex; 
+                   align-items: center; 
+                   gap: 4px; 
+                   font-size: 12px; 
+                   color: white; 
+                   background: #8b5cf6;
+                   padding: 6px 14px; 
+                   border-radius: 20px; 
+                   text-decoration: none; 
+                   font-weight: 500;
+                   font-family: sans-serif;
+                 ">
+                View Details
+              </a>
+            ` : ''}
           </div>
         </div>
       `);

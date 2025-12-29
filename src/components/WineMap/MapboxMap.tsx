@@ -355,18 +355,18 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
                 👁️ View Details
               </a>
             ` : ''}
+            ${!detailUrl && venue.source === 'google' && venue.googlePlaceId ? `
+              <a href="/place/google/${venue.googlePlaceId.replace('google_', '')}" 
+                 style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: white; background: linear-gradient(135deg, #8b5cf6, #a855f7); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+                👁️ View Details
+              </a>
+            ` : ''}
             ${venue.website ? `
               <a href="${venue.website.startsWith('http') ? venue.website : `https://${venue.website}`}" 
                  target="_blank" 
                  rel="noopener noreferrer"
                  style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8b5cf6; padding: 6px 12px; border-radius: 8px; border: 1px solid #8b5cf6; text-decoration: none;">
                 🔗 Website
-              </a>
-            ` : ''}
-            ${venue.source === 'google' && venue.googlePlaceId ? `
-              <a href="/claim-venue?placeId=${venue.googlePlaceId}&name=${encodeURIComponent(venue.name)}" 
-                 style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: white; background: linear-gradient(135deg, #10b981, #059669); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 500;">
-                🏷️ Claim
               </a>
             ` : ''}
           </div>
