@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
+import { WineVenueCategory } from '@/components/WineMap/types';
 
 export type CategoryType = 'overview' | 'bar' | 'wine_shop' | 'restaurant' | 'winemaker' | 'events';
 
@@ -10,6 +11,25 @@ interface BrutalistHeroProps {
   onCategoryChange: (category: CategoryType) => void;
   userLocation?: string;
 }
+
+// Map CategoryType to WineVenueCategory for the map filter
+const categoryToMapFilter = (category: CategoryType): WineVenueCategory[] => {
+  switch (category) {
+    case 'bar':
+      return ['wine_bar'];
+    case 'wine_shop':
+      return ['wine_shop'];
+    case 'restaurant':
+      return ['restaurant'];
+    case 'winemaker':
+      return ['winery'];
+    case 'events':
+      return []; // Hide all venue markers for events view
+    case 'overview':
+    default:
+      return ['wine_shop', 'wine_bar', 'winery', 'restaurant'];
+  }
+};
 
 export const BrutalistHero: React.FC<BrutalistHeroProps> = ({ 
   minimalMapStyle = true,
@@ -25,6 +45,8 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
     { label: 'WINEMAKERS', value: 'winemaker' },
     { label: 'EVENTS', value: 'events' },
   ];
+
+  const mapCategories = categoryToMapFilter(activeCategory);
 
   return (
     <div className="bg-background text-foreground">
@@ -62,7 +84,10 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
 
       {/* Map Section - Full Width */}
       <div className="border-b border-foreground/20 h-[50vh] min-h-[350px]">
-        <HomeWineMap minimalStyle={minimalMapStyle} />
+        <HomeWineMap 
+          minimalStyle={minimalMapStyle} 
+          filterCategories={mapCategories}
+        />
       </div>
 
       {/* Category Pills */}
