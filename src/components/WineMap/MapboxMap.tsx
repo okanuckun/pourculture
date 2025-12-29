@@ -239,7 +239,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       const el = document.createElement('div');
       el.className = 'wine-marker';
       el.innerHTML = `
-        <div style="
+        <div class="wine-marker-inner" style="
           background: linear-gradient(135deg, ${config.color}, ${config.color}dd);
           width: 40px;
           height: 40px;
@@ -251,19 +251,22 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
           box-shadow: 0 4px 15px rgba(0,0,0,0.4), 0 0 20px ${config.color}44;
           border: 2px solid rgba(255,255,255,0.9);
           cursor: pointer;
-          transition: all 0.3s ease;
+          transform-origin: center center;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
         ">
           ${config.icon}
         </div>
       `;
 
-      // Add hover effect
+      const inner = el.querySelector('.wine-marker-inner') as HTMLDivElement | null;
+
+      // Add hover effect (IMPORTANT: never mutate `el.style.transform` since Mapbox uses it for positioning)
       el.addEventListener('mouseenter', () => {
-        el.style.transform = 'scale(1.2)';
+        if (inner) inner.style.transform = 'scale(1.15)';
         el.style.zIndex = '1000';
       });
       el.addEventListener('mouseleave', () => {
-        el.style.transform = 'scale(1)';
+        if (inner) inner.style.transform = 'scale(1)';
         el.style.zIndex = '1';
       });
 
