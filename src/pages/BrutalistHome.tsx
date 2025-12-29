@@ -1,26 +1,94 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrutalistHero } from '@/components/grid/BrutalistHero';
 
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Star } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+
+interface Stats {
+  totalVenues: number;
+  countries: number;
+  verifiedPercent: number;
+  winemakers: number;
+}
 
 const BrutalistHome = () => {
+  const [stats, setStats] = useState<Stats>({
+    totalVenues: 0,
+    countries: 0,
+    verifiedPercent: 0,
+    winemakers: 0,
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        // Fetch total venues count
+        const { count: venuesCount } = await supabase
+          .from('venues')
+          .select('*', { count: 'exact', head: true });
+
+        // Fetch verified venues count
+        const { count: verifiedCount } = await supabase
+          .from('venues')
+          .select('*', { count: 'exact', head: true })
+          .eq('is_claimed', true);
+
+        // Fetch distinct countries count
+        const { count: countriesCount } = await supabase
+          .from('countries')
+          .select('*', { count: 'exact', head: true });
+
+        // Fetch winemakers count
+        const { count: winemakersCount } = await supabase
+          .from('winemakers')
+          .select('*', { count: 'exact', head: true });
+
+        const totalVenues = venuesCount || 0;
+        const verified = verifiedCount || 0;
+        const verifiedPercent = totalVenues > 0 ? Math.round((verified / totalVenues) * 100) : 0;
+
+        setStats({
+          totalVenues,
+          countries: countriesCount || 0,
+          verifiedPercent,
+          winemakers: winemakersCount || 0,
+        });
+      } catch (error) {
+        console.error('Error fetching stats:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+    }
+    return num.toLocaleString();
+  };
+
+  const statsData = [
+    { label: 'TOTAL VENUES', value: formatNumber(stats.totalVenues), suffix: '+' },
+    { label: 'COUNTRIES', value: String(stats.countries), suffix: '' },
+    { label: 'VERIFIED', value: String(stats.verifiedPercent), suffix: '%' },
+    { label: 'WINEMAKERS', value: formatNumber(stats.winemakers), suffix: '+' },
+  ];
+
   return (
     <div className="min-h-screen bg-background text-foreground font-grotesk">
       {/* Hero Section */}
       <BrutalistHero />
 
-
       {/* Stats Section */}
       <section className="border-b border-foreground/20">
         <div className="grid grid-cols-2 md:grid-cols-4">
-          {[
-            { label: 'TOTAL VENUES', value: '1,247', suffix: '+' },
-            { label: 'COUNTRIES', value: '43', suffix: '' },
-            { label: 'VERIFIED', value: '89', suffix: '%' },
-            { label: 'ACTIVE USERS', value: '12K', suffix: '+' },
-          ].map((stat, index) => (
+          {statsData.map((stat, index) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
@@ -33,7 +101,7 @@ const BrutalistHome = () => {
                 {stat.label}
               </p>
               <p className="text-4xl md:text-5xl font-bold tracking-tighter">
-                {stat.value}
+                {loading ? '...' : stat.value}
                 <span className="text-muted-foreground">{stat.suffix}</span>
               </p>
             </motion.div>
