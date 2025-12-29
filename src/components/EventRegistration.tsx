@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
+import { ArrowRight } from 'lucide-react';
 
 interface EventRegistrationProps {
   eventId: string;
@@ -96,7 +97,6 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
     
     try {
       if (isRegistered) {
-        // Unregister
         const { error } = await supabase
           .from('event_registrations')
           .delete()
@@ -111,7 +111,6 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
           description: 'You have been unregistered from this event'
         });
       } else {
-        // Register
         const { error } = await supabase
           .from('event_registrations')
           .insert({
@@ -144,43 +143,24 @@ export const EventRegistration: React.FC<EventRegistrationProps> = ({
       <button 
         onClick={handleRegister}
         disabled={loading || isPastEvent}
-        className={`flex h-[50px] justify-center items-center gap-2.5 border relative px-2.5 py-3.5 border-solid transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed w-[calc(100%-50px)] z-10 ${
+        className={`flex h-[50px] justify-center items-center gap-2.5 border-2 relative px-2.5 py-3.5 border-solid transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed w-[calc(100%-50px)] z-10 ${
           isPastEvent 
-            ? 'bg-gray-400 border-gray-400 cursor-not-allowed' 
-            : 'bg-[#1A1A1A] border-[#1A1A1A] group-hover:w-full group-hover:bg-[#FA76FF] group-hover:border-[#FA76FF]'
+            ? 'bg-muted border-muted cursor-not-allowed' 
+            : 'bg-foreground border-foreground group-hover:w-full group-hover:bg-primary group-hover:border-primary'
         }`}
         aria-label={isPastEvent ? "Event has ended" : isRegistered ? "Unregister from event" : "Register for event"}
       >
-        <span className={`text-white text-[13px] font-normal uppercase relative transition-colors duration-300 ${!isPastEvent && 'group-hover:text-black'}`}>
+        <span className={`text-background text-[13px] font-medium uppercase relative transition-colors duration-300 ${!isPastEvent && 'group-hover:text-primary-foreground'}`}>
           {loading ? "LOADING..." : isPastEvent ? "EVENT ENDED" : isRegistered ? "UNREGISTER" : "REGISTER"}
         </span>
-        <svg 
-          width="12" 
-          height="12" 
-          viewBox="0 0 12 12" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg"
-          className="absolute right-[18px] opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100"
+        <ArrowRight 
+          className="w-3 h-3 absolute right-[18px] opacity-0 transition-all duration-300 ease-in-out group-hover:opacity-100 text-primary-foreground"
           aria-hidden="true"
-        >
-          <path d="M0.857178 6H10.3929" stroke="#1A1A1A" strokeWidth="1.5" />
-          <path d="M6.39282 10L10.3928 6L6.39282 2" stroke="#1A1A1A" strokeWidth="1.5" />
-        </svg>
+        />
       </button>
       {!isPastEvent && (
-        <div className="flex w-[50px] h-[50px] justify-center items-center border absolute right-0 bg-white rounded-[99px] border-solid border-[#1A1A1A] transition-all duration-300 ease-in-out group-hover:opacity-0 group-hover:scale-50 pointer-events-none z-0">
-        <svg 
-          width="12" 
-          height="12" 
-          viewBox="0 0 12 12" 
-          fill="none" 
-          xmlns="http://www.w3.org/2000/svg" 
-          className="arrow-icon"
-          aria-hidden="true"
-        >
-          <path d="M0.857178 6H10.3929" stroke="#1A1A1A" strokeWidth="1.5" />
-          <path d="M6.39282 10L10.3928 6L6.39282 2" stroke="#1A1A1A" strokeWidth="1.5" />
-        </svg>
+        <div className="flex w-[50px] h-[50px] justify-center items-center border-2 absolute right-0 bg-background rounded-full border-solid border-foreground transition-all duration-300 ease-in-out group-hover:opacity-0 group-hover:scale-50 pointer-events-none z-0">
+          <ArrowRight className="w-3 h-3 text-foreground" aria-hidden="true" />
         </div>
       )}
     </div>

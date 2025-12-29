@@ -11,6 +11,8 @@ import { EventRegistration } from './EventRegistration';
 import { AuthSheet } from './AuthSheet';
 import { SEOHead } from './SEOHead';
 import { RotatingBadge } from './RotatingBadge';
+import { motion } from 'framer-motion';
+
 interface Event {
   id: string;
   title: string;
@@ -22,6 +24,7 @@ interface Event {
   background_image_url: string;
   target_date: string;
 }
+
 export const EventDetailPage: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -67,8 +70,8 @@ export const EventDetailPage: React.FC = () => {
     
     setIsRegistered(!!data);
   };
+
   const handleGetDirections = () => {
-    // Here you would typically open a maps application or navigate to directions
     console.log('Opening directions');
     window.open('https://maps.google.com', '_blank');
   };
@@ -79,49 +82,66 @@ export const EventDetailPage: React.FC = () => {
     const target = new Date(event.target_date).getTime();
     const distance = target - now;
     const oneHour = 1000 * 60 * 60;
-    // Match EventCountdown logic: show from 1 hour before to 1 hour after
     return distance >= -oneHour && distance <= oneHour;
   };
 
   if (loading) {
-    return <div className="flex h-screen items-center justify-center bg-white">
-        <div className="text-[#1A1A1A] text-2xl">Loading...</div>
-      </div>;
+    return (
+      <div className="flex h-screen items-center justify-center bg-background">
+        <div className="text-foreground text-2xl font-medium uppercase tracking-tight">Loading...</div>
+      </div>
+    );
   }
+
   if (notFound || !event) {
     return (
-      <div className="flex flex-col h-screen items-center justify-center bg-white px-4">
+      <div className="flex flex-col h-screen items-center justify-center bg-background px-4">
         <SEOHead 
           title="Event Not Found"
           description="The event you're looking for doesn't exist or has been removed."
         />
         <Navbar />
         <div className="text-center mt-20">
-          <h1 className="text-4xl font-medium mb-4 text-[#1A1A1A]">Event Not Found</h1>
-          <p className="text-lg text-[#1A1A1A] opacity-70 mb-8">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl md:text-6xl font-medium mb-4 text-foreground uppercase tracking-tight"
+          >
+            Event Not Found
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-lg text-muted-foreground mb-8"
+          >
             The event you're looking for doesn't exist or has been removed.
-          </p>
-          <button
+          </motion.p>
+          <motion.button
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
             onClick={() => navigate('/discover')}
-            className="px-6 py-3 bg-[#1A1A1A] text-white border border-[#1A1A1A] hover:bg-white hover:text-[#1A1A1A] transition-colors uppercase text-sm font-medium"
+            className="px-6 py-3 bg-foreground text-background border-2 border-foreground hover:bg-background hover:text-foreground transition-colors uppercase text-sm font-medium"
           >
             Browse Events
-          </button>
+          </motion.button>
         </div>
       </div>
     );
   }
-  return <>
+
+  return (
+    <>
       <SEOHead 
         title={event.title}
         description={event.description.substring(0, 160)}
         image={event.background_image_url}
         keywords={`event, ${event.title}, ${event.address}, community event`}
       />
-      <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <Navbar />
 
-      <main className="flex h-screen justify-center items-start w-full relative bg-white mx-auto my-0 max-lg:flex-col max-lg:h-auto">
+      <main className="flex h-screen justify-center items-start w-full relative bg-background mx-auto my-0 max-lg:flex-col max-lg:h-auto">
         <div className="flex flex-col justify-end items-start fixed h-screen w-[calc(100%-540px)] pl-[49px] pr-[590px] pt-[calc(100vh-97px)] pb-12 left-0 top-0 overflow-hidden max-lg:relative max-lg:w-full max-lg:h-[400px] max-lg:bg-cover max-lg:bg-center max-lg:pt-80 max-lg:pb-6 max-lg:px-4 max-lg:right-0 max-sm:h-[300px] max-sm:pt-60 max-sm:pb-6 max-sm:px-4" role="img" aria-label="Event background image">
           <div className="absolute inset-0 animate-[zoom-in_1.2s_ease-out_forwards]" style={{
             backgroundImage: `url("${event.background_image_url}")`,
@@ -133,7 +153,7 @@ export const EventDetailPage: React.FC = () => {
           </div>
         </div>
         
-        <aside className="flex w-[540px] flex-col justify-start items-start fixed h-screen box-border right-0 top-0 bg-white overflow-y-auto max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-0 max-lg:overflow-y-visible">
+        <aside className="flex w-[540px] flex-col justify-start items-start fixed h-screen box-border right-0 top-0 bg-background overflow-y-auto max-lg:relative max-lg:w-full max-lg:h-auto max-lg:right-auto max-lg:top-0 max-lg:overflow-y-visible border-l-2 border-border">
           <div className="flex w-full flex-col items-start gap-10 relative p-10 pb-24 max-lg:w-full max-lg:px-4 max-lg:py-6 max-lg:pb-6 max-lg:gap-8 opacity-0 animate-fade-in [animation-delay:200ms]">
             <div className="flex flex-col items-start gap-4 self-stretch relative">
               <EventMeta date={event.date} time={event.time} />
@@ -145,20 +165,21 @@ export const EventDetailPage: React.FC = () => {
             <EventLocation address={event.address} onGetDirections={handleGetDirections} />
           </div>
           
-          <div className="fixed bottom-0 right-0 w-[540px] bg-white py-6 border-t border-border max-lg:relative max-lg:w-full max-lg:py-6 max-lg:border-t-0">
+          <div className="fixed bottom-0 right-0 w-[540px] bg-background py-6 border-t-2 border-border max-lg:relative max-lg:w-full max-lg:py-6 max-lg:border-t-2">
             <div className="px-10 max-lg:px-4">
-            <EventRegistration 
-              eventId={event.id}
-              onRegister={checkRegistration} 
-              isRegistered={isRegistered}
-              onAuthRequired={() => setIsAuthOpen(true)}
-              targetDate={new Date(event.target_date)}
-              className="opacity-0 animate-fade-in [animation-delay:400ms]" 
-            />
+              <EventRegistration 
+                eventId={event.id}
+                onRegister={checkRegistration} 
+                isRegistered={isRegistered}
+                onAuthRequired={() => setIsAuthOpen(true)}
+                targetDate={new Date(event.target_date)}
+                className="opacity-0 animate-fade-in [animation-delay:400ms]" 
+              />
             </div>
           </div>
         </aside>
       </main>
       <AuthSheet isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
-    </>;
+    </>
+  );
 };
