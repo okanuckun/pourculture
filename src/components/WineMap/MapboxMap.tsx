@@ -20,6 +20,8 @@ interface MapboxMapProps {
 const CUSTOM_STYLE: mapboxgl.Style = {
   version: 8,
   name: 'Wine Dark',
+  glyphs: 'mapbox://fonts/mapbox/{fontstack}/{range}.pbf',
+  sprite: 'mapbox://sprites/mapbox/streets-v12',
   sources: {
     'mapbox-streets': {
       type: 'vector',
