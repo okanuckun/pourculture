@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { MapContainer, TileLayer, useMap, useMapEvents } from 'react-leaflet';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, Wine, Database } from 'lucide-react';
+import { Loader2, RefreshCw, Wine, Database, MapPin } from 'lucide-react';
 import 'leaflet/dist/leaflet.css';
 
 import { WineVenue, WineVenueCategory, MapBounds } from './types';
 import { fetchWineVenuesFromOSM, debounce } from './overpassApi';
+import { fetchWineVenuesFromGoogle } from './googlePlacesApi';
 import { fetchAllDatabaseVenues } from './databaseApi';
 import { VenueMarker } from './VenueMarker';
 import { CategoryFilter } from './CategoryFilter';
@@ -60,11 +61,13 @@ export const WineMap: React.FC<WineMapProps> = ({
   initialZoom = 5,
 }) => {
   const [osmVenues, setOsmVenues] = useState<WineVenue[]>([]);
+  const [googleVenues, setGoogleVenues] = useState<WineVenue[]>([]);
   const [dbVenues, setDbVenues] = useState<WineVenue[]>([]);
   const [loading, setLoading] = useState(false);
   const [dbLoading, setDbLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState<WineVenueCategory>('all');
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(initialCenter);
   const [hasSearched, setHasSearched] = useState(false);
 
   // Load database venues on mount
@@ -83,27 +86,32 @@ export const WineMap: React.FC<WineMapProps> = ({
     loadDbVenues();
   }, []);
 
-  // Combine OSM and database venues
+  // Combine all venue sources
   const allVenues = useMemo(() => {
     // Database venues take priority (shown first, unique by location)
     const combined = [...dbVenues];
+    const seenLocations = new Set(dbVenues.map(v => `${v.lat.toFixed(4)},${v.lng.toFixed(4)}`));
     
-    // Add OSM venues that don't overlap with database venues
-    osmVenues.forEach(osmVenue => {
-      const isDuplicate = dbVenues.some(dbVenue => {
-        // Check if venues are within ~100m of each other
-        const latDiff = Math.abs(osmVenue.lat - dbVenue.lat);
-        const lngDiff = Math.abs(osmVenue.lng - dbVenue.lng);
-        return latDiff < 0.001 && lngDiff < 0.001;
-      });
-      
-      if (!isDuplicate) {
-        combined.push(osmVenue);
+    // Add Google Places venues
+    googleVenues.forEach(venue => {
+      const locationKey = `${venue.lat.toFixed(4)},${venue.lng.toFixed(4)}`;
+      if (!seenLocations.has(locationKey)) {
+        combined.push(venue);
+        seenLocations.add(locationKey);
+      }
+    });
+    
+    // Add OSM venues that don't overlap
+    osmVenues.forEach(venue => {
+      const locationKey = `${venue.lat.toFixed(4)},${venue.lng.toFixed(4)}`;
+      if (!seenLocations.has(locationKey)) {
+        combined.push(venue);
+        seenLocations.add(locationKey);
       }
     });
     
     return combined;
-  }, [osmVenues, dbVenues]);
+  }, [osmVenues, googleVenues, dbVenues]);
 
   // Calculate venue counts by category
   const venueCounts = useMemo(() => {
@@ -129,13 +137,32 @@ export const WineMap: React.FC<WineMapProps> = ({
     return allVenues.filter(v => v.category === selectedCategory);
   }, [allVenues, selectedCategory]);
 
-  // Fetch OSM venues when bounds change
+  // Fetch venues when bounds change
   const fetchVenues = useCallback(async (bounds: MapBounds) => {
     setLoading(true);
     try {
-      const venues = await fetchWineVenuesFromOSM(bounds);
-      setOsmVenues(venues);
+      // Calculate center of bounds for Google Places search
+      const centerLat = (bounds.north + bounds.south) / 2;
+      const centerLng = (bounds.east + bounds.west) / 2;
+      
+      // Calculate radius based on bounds (approximate)
+      const latDiff = bounds.north - bounds.south;
+      const lngDiff = bounds.east - bounds.west;
+      const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2; // 111km per degree
+      const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000); // Clamp 1-50km
+      
+      // Fetch from both sources in parallel
+      const [osmResults, googleResults] = await Promise.all([
+        fetchWineVenuesFromOSM(bounds),
+        fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM)
+      ]);
+      
+      setOsmVenues(osmResults);
+      setGoogleVenues(googleResults);
+      setMapCenter([centerLat, centerLng]);
       setHasSearched(true);
+      
+      console.log(`Fetched ${osmResults.length} OSM + ${googleResults.length} Google venues`);
     } catch (error) {
       console.error('Error fetching venues:', error);
     } finally {
@@ -206,13 +233,19 @@ export const WineMap: React.FC<WineMapProps> = ({
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow text-xs text-gray-600 flex items-center gap-2"
+            className="bg-white/95 backdrop-blur-sm rounded-full px-3 py-1 shadow text-xs text-gray-600 flex items-center gap-3"
           >
             <span>{filteredVenues.length} venues found</span>
+            {googleVenues.length > 0 && (
+              <span className="flex items-center gap-1 text-green-600">
+                <MapPin className="w-3 h-3" />
+                {googleVenues.length} Google
+              </span>
+            )}
             {dbVenues.length > 0 && (
               <span className="flex items-center gap-1 text-primary">
                 <Database className="w-3 h-3" />
-                {dbVenues.length} from database
+                {dbVenues.length} verified
               </span>
             )}
           </motion.div>
