@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, X, Wine, Map } from 'lucide-react';
+import { ChevronDown, Menu, X, Wine, Map, LayoutDashboard } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { AuthSheet } from './AuthSheet';
@@ -151,20 +151,27 @@ export const RaisinNavbar: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Login */}
+              {/* Login / Account */}
               {user ? (
                 <DropdownMenu>
                   <DropdownMenuTrigger className="px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
                     ACCOUNT
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-40">
-                    <DropdownMenuItem onClick={() => navigate('/my-venues')}>
-                      My Venues
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate('/dashboard')} className="flex items-center gap-2">
+                      <LayoutDashboard className="w-4 h-4" />
+                      My Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/my-events')}>
                       My Events
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={async () => await supabase.auth.signOut()}>
+                    <DropdownMenuItem onClick={() => navigate('/claim-venue')}>
+                      Claim a Venue
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={async () => await supabase.auth.signOut()}
+                      className="text-destructive focus:text-destructive"
+                    >
                       Sign Out
                     </DropdownMenuItem>
                   </DropdownMenuContent>
@@ -232,18 +239,33 @@ export const RaisinNavbar: React.FC = () => {
               {user ? (
                 <>
                   <Link 
-                    to="/my-venues" 
+                    to="/dashboard" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 text-sm font-medium text-primary"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    My Dashboard
+                  </Link>
+                  <Link 
+                    to="/my-events" 
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-2 text-sm font-medium text-foreground"
                   >
-                    My Venues
+                    My Events
+                  </Link>
+                  <Link 
+                    to="/claim-venue" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-2 text-sm font-medium text-foreground"
+                  >
+                    Claim a Venue
                   </Link>
                   <button 
                     onClick={async () => {
                       await supabase.auth.signOut();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="block py-2 text-sm font-medium text-foreground"
+                    className="block py-2 text-sm font-medium text-destructive"
                   >
                     Sign Out
                   </button>
