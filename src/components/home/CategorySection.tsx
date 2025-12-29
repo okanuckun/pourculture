@@ -10,6 +10,7 @@ type Winemaker = Tables<'winemakers'>;
 interface CategorySectionProps {
   title: string;
   subtitle: string;
+  description?: string;
   items: (Venue | Winemaker)[];
   type: 'venue' | 'winemaker';
   linkPrefix: string;
@@ -21,6 +22,7 @@ interface CategorySectionProps {
 const CategorySection: React.FC<CategorySectionProps> = ({
   title,
   subtitle,
+  description,
   items,
   type,
   linkPrefix,
@@ -53,17 +55,24 @@ const CategorySection: React.FC<CategorySectionProps> = ({
     <section className="border-b border-foreground/20">
       <div className="grid grid-cols-12">
         {/* Left Column - Section Info */}
-        <div className="col-span-12 md:col-span-3 border-r border-foreground/20 p-4">
-          <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-            {subtitle}
-          </p>
-          <h3 className="text-3xl md:text-4xl font-bold tracking-tighter mb-4">
-            {title}
-          </h3>
+        <div className="col-span-12 md:col-span-3 border-r border-foreground/20 p-4 flex flex-col">
+          <div className="flex-1">
+            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
+              {subtitle}
+            </p>
+            <h3 className="text-3xl md:text-4xl font-bold tracking-tighter mb-3">
+              {title}
+            </h3>
+            {description && (
+              <p className="text-xs text-muted-foreground leading-relaxed mb-4">
+                {description}
+              </p>
+            )}
+          </div>
           {showViewAll && viewAllLink && (
             <Link
               to={viewAllLink}
-              className="inline-flex items-center gap-2 text-xs border border-foreground px-4 py-2 hover:bg-foreground hover:text-background transition-colors"
+              className="inline-flex items-center gap-2 text-xs border border-foreground px-4 py-2 hover:bg-foreground hover:text-background transition-colors w-fit"
             >
               VIEW ALL
               <ArrowUpRight className="w-3 h-3" />
