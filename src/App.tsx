@@ -34,6 +34,7 @@ import GooglePlaceDetail from "./pages/GooglePlaceDetail";
 import WineRoutes from "./pages/WineRoutes";
 import RouteDetail from "./pages/RouteDetail";
 import CreateRoute from "./pages/CreateRoute";
+import EditRoute from "./pages/EditRoute";
 import UserProfile from "./pages/UserProfile";
 import EditProfile from "./pages/EditProfile";
 import NotFound from "./pages/NotFound";
@@ -51,6 +52,7 @@ const App = () => (
       <Route path="/wine-routes" element={<WineRoutes />} />
       <Route path="/wine-routes/create" element={<CreateRoute />} />
       <Route path="/wine-routes/:slug" element={<RouteDetail />} />
+      <Route path="/wine-routes/:slug/edit" element={<EditRoute />} />
       <Route path="/profile/:userId" element={<UserProfile />} />
       <Route path="/profile/edit" element={<EditProfile />} />
       <Route path="/knowledge" element={<KnowledgeHub />} />

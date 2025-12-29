@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Calendar, Heart, CheckCircle, Check, Star, ArrowLeft, Loader2 } from 'lucide-react';
+import { MapPin, Calendar, Heart, CheckCircle, Check, Star, ArrowLeft, Loader2, Edit } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -24,6 +24,7 @@ interface WineRoute {
   curator_name: string | null;
   curator_title: string | null;
   slug: string;
+  created_by: string | null;
 }
 
 interface Venue {
@@ -460,6 +461,17 @@ const RouteDetail = () => {
                   <Heart className={`w-4 h-4 ${isInWishlist ? 'fill-current' : ''}`} />
                   {isInWishlist ? 'In Wishlist' : 'Add to Wishlist'}
                 </button>
+
+                {/* Edit Button - only for route owner */}
+                {user && route.created_by === user.id && (
+                  <Link
+                    to={`/wine-routes/${route.slug}/edit`}
+                    className="w-full flex items-center justify-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground/30 hover:border-foreground hover:bg-foreground hover:text-background transition-colors"
+                  >
+                    <Edit className="w-4 h-4" />
+                    Edit Route
+                  </Link>
+                )}
               </div>
             </div>
           </div>
