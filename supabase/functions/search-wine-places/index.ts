@@ -26,7 +26,7 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng, radius = 5000 } = await req.json();
+    const { lat, lng, radius = 5000, naturalWineOnly = false } = await req.json();
     
     if (!lat || !lng) {
       return new Response(
@@ -44,15 +44,17 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Searching for wine venues near ${lat}, ${lng} with radius ${radius}m`);
+    const filterMode = naturalWineOnly ? 'natural wine' : 'wine';
+    console.log(`Searching for ${filterMode} venues near ${lat}, ${lng} with radius ${radius}m`);
 
-    // Search queries for different wine venue types
+    // Search queries - if natural wine filter is on, prepend "natural" to queries
+    const prefix = naturalWineOnly ? 'natural ' : '';
     const searchQueries = [
-      { query: 'wine bar', category: 'wine_bar' as const },
-      { query: 'wine shop', category: 'wine_shop' as const },
-      { query: 'wine store', category: 'wine_shop' as const },
-      { query: 'winery', category: 'winery' as const },
-      { query: 'vineyard', category: 'winery' as const },
+      { query: `${prefix}wine bar`, category: 'wine_bar' as const },
+      { query: `${prefix}wine shop`, category: 'wine_shop' as const },
+      { query: `${prefix}wine store`, category: 'wine_shop' as const },
+      { query: `${prefix}winery`, category: 'winery' as const },
+      { query: naturalWineOnly ? 'organic winery' : 'vineyard', category: 'winery' as const },
     ];
 
     const allPlaces: PlaceResult[] = [];

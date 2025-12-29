@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, Wine, Database, Search, MapPin, X, AlertCircle } from 'lucide-react';
+import { Loader2, RefreshCw, Wine, Database, Search, MapPin, X, AlertCircle, Leaf } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
@@ -40,6 +40,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [naturalWineOnly, setNaturalWineOnly] = useState(false);
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -376,7 +377,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   }, [filteredVenues, mapReady]);
 
   // Fetch Google Places venues
-  const fetchVenues = useCallback(async (bounds: MapBounds) => {
+  const fetchVenues = useCallback(async (bounds: MapBounds, useNaturalFilter: boolean = naturalWineOnly) => {
     setLoading(true);
     try {
       const centerLat = (bounds.north + bounds.south) / 2;
@@ -387,16 +388,16 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
       const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
       
-      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM);
+      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, useNaturalFilter);
       setGoogleVenues(venues);
       setHasSearched(true);
-      console.log(`Fetched ${venues.length} Google Places venues`);
+      console.log(`Fetched ${venues.length} Google Places venues (naturalWineOnly: ${useNaturalFilter})`);
     } catch (error) {
       console.error('Error fetching venues:', error);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [naturalWineOnly]);
 
   // Auto-fetch venues when bounds are first set
   useEffect(() => {
@@ -408,7 +409,16 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   // Handle refresh
   const handleRefresh = () => {
     if (currentBounds) {
-      fetchVenues(currentBounds);
+      fetchVenues(currentBounds, naturalWineOnly);
+    }
+  };
+
+  // Handle natural wine toggle
+  const handleNaturalWineToggle = () => {
+    const newValue = !naturalWineOnly;
+    setNaturalWineOnly(newValue);
+    if (currentBounds) {
+      fetchVenues(currentBounds, newValue);
     }
   };
 
@@ -640,8 +650,27 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
         )}
       </AnimatePresence>
 
-      {/* Search Button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-2">
+      {/* Natural Wine Toggle & Search Button */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-10 flex flex-col items-center gap-3">
+        {/* Natural Wine Toggle */}
+        <motion.button
+          onClick={handleNaturalWineToggle}
+          className={`flex items-center gap-2 px-4 py-2 rounded-full shadow-lg backdrop-blur-md transition-all border ${
+            naturalWineOnly 
+              ? 'bg-green-600/90 border-green-400/50 text-white' 
+              : 'bg-[#1a1a2e]/90 border-purple-500/30 text-purple-300 hover:border-green-500/50 hover:text-green-300'
+          }`}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <Leaf className={`w-4 h-4 ${naturalWineOnly ? 'text-white' : 'text-green-400'}`} />
+          <span className="text-sm font-medium">Natural Wine Only</span>
+          <div className={`w-10 h-5 rounded-full relative transition-colors ${naturalWineOnly ? 'bg-green-400' : 'bg-purple-900'}`}>
+            <div className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-transform ${naturalWineOnly ? 'translate-x-5' : 'translate-x-0.5'}`} />
+          </div>
+        </motion.button>
+
+        {/* Search Button */}
         <motion.button
           onClick={handleRefresh}
           disabled={loading}
@@ -664,6 +693,12 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
             className="bg-[#1a1a2e]/90 backdrop-blur-md rounded-full px-4 py-2 shadow-lg text-xs text-purple-300 flex items-center gap-3 border border-purple-500/20"
           >
             <span>{filteredVenues.length} venues found</span>
+            {naturalWineOnly && (
+              <span className="flex items-center gap-1 text-green-400">
+                <Leaf className="w-3 h-3" />
+                natural
+              </span>
+            )}
             {dbVenues.length > 0 && (
               <span className="flex items-center gap-1 text-purple-400">
                 <Database className="w-3 h-3" />

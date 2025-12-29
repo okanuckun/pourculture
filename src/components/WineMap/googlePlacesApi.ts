@@ -23,13 +23,14 @@ interface SearchResponse {
 export async function fetchWineVenuesFromGoogle(
   lat: number,
   lng: number,
-  radius: number = 5000
+  radius: number = 5000,
+  naturalWineOnly: boolean = false
 ): Promise<WineVenue[]> {
   try {
-    console.log(`Fetching Google Places for ${lat}, ${lng} with radius ${radius}m`);
+    console.log(`Fetching Google Places for ${lat}, ${lng} with radius ${radius}m, naturalWineOnly: ${naturalWineOnly}`);
     
     const { data, error } = await supabase.functions.invoke('search-wine-places', {
-      body: { lat, lng, radius }
+      body: { lat, lng, radius, naturalWineOnly }
     });
 
     if (error) {
