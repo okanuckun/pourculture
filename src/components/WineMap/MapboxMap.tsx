@@ -2,7 +2,8 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, RefreshCw, Wine, Database, Search, MapPin, X } from 'lucide-react';
+import { Loader2, RefreshCw, Wine, Database, Search, MapPin, X, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
 import { fetchWineVenuesFromOSM, debounce } from './overpassApi';
@@ -17,6 +18,7 @@ interface MapboxMapProps {
 }
 
 const DEFAULT_CENTER: [number, number] = [2.2137, 46.2276]; // [lng, lat]
+const TOKEN_FETCH_TIMEOUT = 10000; // 10 seconds
 
 export const MapboxMap: React.FC<MapboxMapProps> = ({
   className = '',
@@ -29,6 +31,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [tokenLoading, setTokenLoading] = useState(true);
+  const [tokenError, setTokenError] = useState<string | null>(null);
   const [osmVenues, setOsmVenues] = useState<WineVenue[]>([]);
   const [dbVenues, setDbVenues] = useState<WineVenue[]>([]);
   const [loading, setLoading] = useState(false);
@@ -44,23 +47,55 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
 
-  // Fetch Mapbox token from edge function
-  useEffect(() => {
-    const fetchToken = async () => {
-      try {
-        const { data, error } = await supabase.functions.invoke('get-mapbox-token');
-        if (error) throw error;
-        if (data?.token) {
-          setMapboxToken(data.token);
-        }
-      } catch (error) {
-        console.error('Error fetching Mapbox token:', error);
-      } finally {
-        setTokenLoading(false);
+  // Fetch Mapbox token from edge function with timeout
+  const fetchToken = useCallback(async () => {
+    setTokenLoading(true);
+    setTokenError(null);
+    
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), TOKEN_FETCH_TIMEOUT);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('get-mapbox-token', {
+        body: {},
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to fetch token');
       }
-    };
-    fetchToken();
+      
+      if (!data?.token) {
+        throw new Error('Token not configured in backend');
+      }
+      
+      setMapboxToken(data.token);
+      setTokenError(null);
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+      
+      const isTimeout = error.name === 'AbortError';
+      const errorMessage = isTimeout 
+        ? 'Token fetch timed out. Please try again.' 
+        : (error.message || 'Failed to load map configuration');
+      
+      console.error('Error fetching Mapbox token:', error);
+      setTokenError(errorMessage);
+      
+      toast.error('Map Loading Error', {
+        description: errorMessage,
+        duration: 5000,
+      });
+    } finally {
+      setTokenLoading(false);
+    }
   }, []);
+
+  // Initial token fetch
+  useEffect(() => {
+    fetchToken();
+  }, [fetchToken]);
 
   // Load database venues on mount
   useEffect(() => {
@@ -444,10 +479,48 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   if (!mapboxToken) {
     return (
       <div className={`relative w-full h-full min-h-[400px] rounded-2xl overflow-hidden bg-[#1a1a2e] flex items-center justify-center ${className}`}>
-        <div className="text-center p-8">
-          <Wine className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-white mb-2">Map Configuration Required</h3>
-          <p className="text-purple-300">Mapbox token is not configured.</p>
+        <div className="text-center p-8 max-w-md">
+          {tokenError ? (
+            <>
+              <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Map Loading Failed</h3>
+              <p className="text-purple-300 mb-6">{tokenError}</p>
+              <motion.button
+                onClick={fetchToken}
+                disabled={tokenLoading}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-full font-medium shadow-lg shadow-purple-500/30 transition-all disabled:opacity-50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {tokenLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-5 h-5" />
+                )}
+                Retry
+              </motion.button>
+            </>
+          ) : (
+            <>
+              <Wine className="w-12 h-12 text-purple-400 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-white mb-2">Map Configuration Required</h3>
+              <p className="text-purple-300 mb-6">Mapbox token is not configured in the backend.</p>
+              <motion.button
+                onClick={fetchToken}
+                disabled={tokenLoading}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-full font-medium shadow-lg shadow-purple-500/30 transition-all disabled:opacity-50"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                {tokenLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <RefreshCw className="w-5 h-5" />
+                )}
+                Retry
+              </motion.button>
+            </>
+          )}
         </div>
       </div>
     );
