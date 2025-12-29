@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Upload, X, Loader2, Camera } from 'lucide-react';
+import { Upload, X, Loader2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
@@ -20,8 +20,48 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 }) => {
   const [uploading, setUploading] = useState(false);
   const [urlInput, setUrlInput] = useState('');
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
+  };
+
+  const handleDrop = (e: React.DragEvent, dropIndex: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === dropIndex) {
+      setDraggedIndex(null);
+      setDragOverIndex(null);
+      return;
+    }
+
+    const newPhotos = [...photos];
+    const [draggedPhoto] = newPhotos.splice(draggedIndex, 1);
+    newPhotos.splice(dropIndex, 0, draggedPhoto);
+    onPhotosChange(newPhotos);
+
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedIndex(null);
+    setDragOverIndex(null);
+  };
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -146,15 +186,32 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       {photos.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {photos.map((photo, index) => (
-            <div key={index} className="relative aspect-square rounded-lg overflow-hidden group bg-muted">
+            <div 
+              key={index} 
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={(e) => handleDragOver(e, index)}
+              onDragLeave={handleDragLeave}
+              onDrop={(e) => handleDrop(e, index)}
+              onDragEnd={handleDragEnd}
+              className={`relative aspect-square rounded-lg overflow-hidden group bg-muted cursor-grab active:cursor-grabbing transition-all duration-200 ${
+                draggedIndex === index ? 'opacity-50 scale-95' : ''
+              } ${
+                dragOverIndex === index ? 'ring-2 ring-primary ring-offset-2' : ''
+              }`}
+            >
               <img 
                 src={photo} 
                 alt={`Photo ${index + 1}`} 
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover pointer-events-none"
                 onError={(e) => {
                   (e.target as HTMLImageElement).src = 'https://via.placeholder.com/200?text=Error';
                 }}
               />
+              {/* Drag handle indicator */}
+              <div className="absolute top-2 left-2 p-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                <GripVertical className="w-4 h-4" />
+              </div>
               <button
                 onClick={() => removePhoto(index)}
                 className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
@@ -162,6 +219,10 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
               >
                 <X className="w-4 h-4" />
               </button>
+              {/* Position indicator */}
+              <div className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/50 text-white text-xs">
+                {index + 1}
+              </div>
             </div>
           ))}
         </div>
