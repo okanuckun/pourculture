@@ -58,7 +58,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({ minimalMapStyle = 
       </header>
 
       {/* Map Section - Full Width */}
-      <div className="border-b border-foreground/20">
+      <div className="border-b border-foreground/20 h-[60vh] min-h-[400px]">
         <HomeWineMap minimalStyle={minimalMapStyle} />
       </div>
       {/* Category Pills */}
