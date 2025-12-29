@@ -227,7 +227,9 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: CUSTOM_STYLE,
+      // Use Mapbox's maintained base style for stability.
+      // Our custom style was throwing "source-layer does not exist" errors and causing flicker.
+      style: 'mapbox://styles/mapbox/dark-v11',
       center: initialCenter,
       zoom: initialZoom,
       pitch: 45,
