@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
 import { fetchWineVenuesFromGoogle } from './googlePlacesApi';
 import { fetchAllDatabaseVenues } from './databaseApi';
+import { VenueDetailPanel } from './VenueDetailPanel';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HomeWineMapProps {
@@ -38,6 +39,10 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showSearchResults, setShowSearchResults] = useState(false);
+  
+  // Venue detail panel state
+  const [selectedVenue, setSelectedVenue] = useState<WineVenue | null>(null);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   // Fetch Mapbox token
   const fetchToken = useCallback(async () => {
@@ -173,6 +178,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     return combined;
   }, [googleVenues, dbVenues]);
 
+  // Handle venue click to open panel
+  const handleVenueClick = useCallback((venue: WineVenue) => {
+    setSelectedVenue(venue);
+    setIsPanelOpen(true);
+  }, []);
+
   // Update markers
   useEffect(() => {
     if (!map.current || !mapReady) return;
@@ -229,36 +240,32 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
         el.style.zIndex = '1';
       });
 
-      const getDetailUrl = () => {
-        if (venue.source !== 'database' || !venue.slug) return null;
-        switch (venue.venueType) {
-          case 'venue': return `/venue/${venue.slug}`;
-          case 'winemaker': return `/winemaker/${venue.slug}`;
-          case 'wine_fair': return `/wine-fair/${venue.slug}`;
-          default: return null;
-        }
-      };
-      const detailUrl = getDetailUrl();
+      // Click handler to open panel instead of popup
+      el.addEventListener('click', (e) => {
+        e.stopPropagation();
+        handleVenueClick(venue);
+      });
 
+      // Create popup with minimal info - clicking opens the panel
       const popup = new mapboxgl.Popup({
         offset: 30,
         closeButton: true,
-        closeOnClick: false,
+        closeOnClick: true,
         className: 'vintage-popup',
       }).setHTML(`
         <div style="
           padding: 12px; 
-          min-width: 220px; 
-          max-width: 300px;
+          min-width: 200px; 
+          max-width: 280px;
           background: linear-gradient(180deg, #fffbf5, #f8f0e3);
           font-family: 'Georgia', serif;
         ">
           <div style="
             display: flex; 
             gap: 6px; 
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             border-bottom: 1px solid #d4c4a8;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
           ">
             <span style="
               padding: 3px 10px;
@@ -288,8 +295,8 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           <h3 style="
             font-weight: 700; 
             color: #3d2914; 
-            font-size: 16px; 
-            margin-bottom: 8px;
+            font-size: 15px; 
+            margin-bottom: 6px;
             font-family: 'Georgia', serif;
           ">
             ${venue.name}
@@ -299,54 +306,47 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
               display: flex; 
               align-items: flex-start; 
               gap: 6px; 
-              font-size: 12px; 
+              font-size: 11px; 
               color: #6b5a47;
-              margin-bottom: 6px;
+              margin-bottom: 8px;
             ">
               <span>📍</span>
               <span>${venue.address}${venue.city ? `, ${venue.city}` : ''}</span>
             </div>
           ` : ''}
-          <div style="display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;">
-            ${detailUrl ? `
-              <a href="${detailUrl}" 
-                 style="
-                   display: inline-flex; 
-                   align-items: center; 
-                   gap: 4px; 
-                   font-size: 12px; 
-                   color: white; 
-                   background: #8b5cf6;
-                   padding: 6px 14px; 
-                   border-radius: 20px; 
-                   text-decoration: none; 
-                   font-weight: 500;
-                   font-family: sans-serif;
-                 ">
-                View Details
-              </a>
-            ` : ''}
-            ${!detailUrl && venue.source === 'google' && venue.googlePlaceId ? `
-              <a href="/place/google/${venue.googlePlaceId.replace('google_', '')}" 
-                 style="
-                   display: inline-flex; 
-                   align-items: center; 
-                   gap: 4px; 
-                   font-size: 12px; 
-                   color: white; 
-                   background: #8b5cf6;
-                   padding: 6px 14px; 
-                   border-radius: 20px; 
-                   text-decoration: none; 
-                   font-weight: 500;
-                   font-family: sans-serif;
-                 ">
-                View Details
-              </a>
-            ` : ''}
-          </div>
+          <button 
+            id="view-details-${venue.id}"
+            style="
+              width: 100%;
+              display: flex; 
+              align-items: center; 
+              justify-content: center;
+              gap: 4px; 
+              font-size: 12px; 
+              color: white; 
+              background: #8b5cf6;
+              padding: 8px 14px; 
+              border-radius: 20px; 
+              border: none;
+              cursor: pointer;
+              font-weight: 500;
+              font-family: sans-serif;
+            ">
+            View Details
+          </button>
         </div>
       `);
+
+      // Add click handler after popup opens
+      popup.on('open', () => {
+        const btn = document.getElementById(`view-details-${venue.id}`);
+        if (btn) {
+          btn.addEventListener('click', () => {
+            popup.remove();
+            handleVenueClick(venue);
+          });
+        }
+      });
 
       const marker = new mapboxgl.Marker({ element: el })
         .setLngLat([venue.lng, venue.lat])
@@ -355,7 +355,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
       markersRef.current.push(marker);
     });
-  }, [allVenues, mapReady]);
+  }, [allVenues, mapReady, handleVenueClick]);
 
   // Fetch venues
   const fetchVenues = useCallback(async (bounds: MapBounds) => {
@@ -669,6 +669,16 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           border-top: 1px solid #d4c4a8 !important;
         }
       `}</style>
+
+      {/* Venue Detail Panel */}
+      <VenueDetailPanel
+        venue={selectedVenue}
+        isOpen={isPanelOpen}
+        onClose={() => {
+          setIsPanelOpen(false);
+          setSelectedVenue(null);
+        }}
+      />
     </div>
   );
 };
