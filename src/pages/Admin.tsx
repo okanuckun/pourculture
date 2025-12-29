@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 
 // Input validation schema for events
@@ -102,6 +102,7 @@ const Admin = () => {
   const [newWine, setNewWine] = useState<Omit<WineItem, 'id'>>(emptyWine);
   const [savingWine, setSavingWine] = useState(false);
   const [uploadingWineImage, setUploadingWineImage] = useState(false);
+  const [importingNYC, setImportingNYC] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -766,15 +767,66 @@ const Admin = () => {
 
           {/* Claims Tab */}
           <TabsContent value="claims">
-            <div className="bg-card border border-border rounded-2xl p-6 text-center">
-              <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
-              <h3 className="text-lg font-semibold mb-2">Sahiplik Talepleri Yönetimi</h3>
-              <p className="text-muted-foreground mb-4">
-                Mekan ve üretici sahiplik taleplerini inceleyin ve yönetin.
-              </p>
-              <Button onClick={() => navigate('/admin/claims')}>
-                Talepleri Görüntüle
-              </Button>
+            <div className="space-y-6">
+              {/* NYC Import Section */}
+              <div className="bg-card border border-border rounded-2xl p-6">
+                <div className="flex items-start gap-4">
+                  <MapPin className="h-10 w-10 text-primary shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="text-lg font-semibold mb-2">NYC Veri İçe Aktarma</h3>
+                    <p className="text-muted-foreground mb-4 text-sm">
+                      Google Places API kullanarak New York City'deki natural wine mekanlarını veritabanına içe aktar.
+                      Bu işlem birkaç dakika sürebilir.
+                    </p>
+                    <Button 
+                      onClick={async () => {
+                        setImportingNYC(true);
+                        try {
+                          const { data, error } = await supabase.functions.invoke('import-google-places');
+                          if (error) throw error;
+                          toast({
+                            title: 'İçe Aktarma Tamamlandı',
+                            description: data.message,
+                          });
+                        } catch (error: any) {
+                          toast({
+                            title: 'Hata',
+                            description: error.message,
+                            variant: 'destructive',
+                          });
+                        } finally {
+                          setImportingNYC(false);
+                        }
+                      }}
+                      disabled={importingNYC}
+                    >
+                      {importingNYC ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          İçe Aktarılıyor...
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="h-4 w-4 mr-2" />
+                          NYC Mekanlarını İçe Aktar
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Claims Management */}
+              <div className="bg-card border border-border rounded-2xl p-6 text-center">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
+                <h3 className="text-lg font-semibold mb-2">Sahiplik Talepleri Yönetimi</h3>
+                <p className="text-muted-foreground mb-4">
+                  Mekan ve üretici sahiplik taleplerini inceleyin ve yönetin.
+                </p>
+                <Button onClick={() => navigate('/admin/claims')}>
+                  Talepleri Görüntüle
+                </Button>
+              </div>
             </div>
           </TabsContent>
 
