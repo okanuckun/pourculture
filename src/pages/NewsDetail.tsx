@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
 import { ArrowLeft, Calendar, User } from 'lucide-react';
 import { format } from 'date-fns';
+import { motion } from 'framer-motion';
+import { Button } from '@/components/ui/button';
 
 interface NewsArticle {
   id: string;
@@ -57,44 +59,37 @@ const NewsDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <RaisinNavbar />
-        <main className="pt-20 pb-16">
-          <div className="container mx-auto px-4 max-w-4xl">
-            <div className="h-8 w-32 bg-muted animate-pulse rounded mb-6" />
-            <div className="h-12 w-3/4 bg-muted animate-pulse rounded mb-4" />
-            <div className="h-6 w-1/2 bg-muted animate-pulse rounded mb-8" />
-            <div className="aspect-video bg-muted animate-pulse rounded-xl mb-8" />
-            <div className="space-y-4">
-              <div className="h-4 bg-muted animate-pulse rounded" />
-              <div className="h-4 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-2/3 bg-muted animate-pulse rounded" />
-            </div>
+      <BrutalistLayout>
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
+          <div className="h-6 w-32 bg-muted animate-pulse mb-6" />
+          <div className="h-10 w-3/4 bg-muted animate-pulse mb-4" />
+          <div className="h-6 w-1/2 bg-muted animate-pulse mb-8" />
+          <div className="aspect-video bg-muted animate-pulse mb-8" />
+          <div className="space-y-4">
+            <div className="h-4 bg-muted animate-pulse" />
+            <div className="h-4 bg-muted animate-pulse" />
+            <div className="h-4 w-2/3 bg-muted animate-pulse" />
           </div>
-        </main>
-      </div>
+        </div>
+      </BrutalistLayout>
     );
   }
 
   if (notFound || !article) {
     return (
-      <div className="min-h-screen bg-background">
-        <SEOHead title="Article Not Found | RAW CELLAR" description="The article you're looking for doesn't exist." />
-        <RaisinNavbar />
-        <main className="pt-20 pb-16">
-          <div className="container mx-auto px-4 text-center py-16">
-            <h1 className="text-2xl font-bold text-foreground mb-4">Article not found</h1>
-            <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist or has been removed.</p>
-            <button 
-              onClick={() => navigate('/news')}
-              className="flex items-center gap-2 text-primary hover:underline mx-auto"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              Back to News
-            </button>
-          </div>
-        </main>
-      </div>
+      <BrutalistLayout title="Article Not Found" showBackButton backPath="/news" backLabel="News">
+        <SEOHead title="Article Not Found | PourCulture" description="The article you're looking for doesn't exist." />
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-16 text-center">
+          <h1 className="text-2xl font-bold mb-4">ARTICLE NOT FOUND</h1>
+          <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist or has been removed.</p>
+          <Button 
+            onClick={() => navigate('/news')}
+            className="bg-foreground text-background hover:bg-foreground/90"
+          >
+            BACK TO NEWS
+          </Button>
+        </div>
+      </BrutalistLayout>
     );
   }
 
@@ -103,73 +98,75 @@ const NewsDetail = () => {
     : null;
 
   return (
-    <div className="min-h-screen bg-background">
+    <BrutalistLayout showBackButton backPath="/news" backLabel="News">
       <SEOHead 
-        title={`${article.title} | RAW CELLAR`}
+        title={`${article.title} | PourCulture`}
         description={article.excerpt || `Read about ${article.title}`}
       />
-      <RaisinNavbar />
       
-      <main className="pt-20 pb-16">
-        <div className="container mx-auto px-4 max-w-4xl">
-          {/* Back Button */}
-          <button 
-            onClick={() => navigate('/news')}
-            className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            Back to News
-          </button>
-
-          {/* Article Header */}
-          <header className="mb-8">
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              {article.title}
-            </h1>
-            
-            <div className="flex flex-wrap items-center gap-4 text-muted-foreground">
-              {article.author && (
-                <div className="flex items-center gap-2">
-                  <User className="w-4 h-4" />
-                  <span>{article.author}</span>
-                </div>
-              )}
-              {formattedDate && (
-                <div className="flex items-center gap-2">
-                  <Calendar className="w-4 h-4" />
-                  <span>{formattedDate}</span>
-                </div>
-              )}
-            </div>
-          </header>
-
-          {/* Featured Image */}
-          {article.image_url && (
-            <div className="aspect-video rounded-xl overflow-hidden mb-8">
-              <img 
-                src={article.image_url} 
-                alt={article.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
-          {/* Article Content */}
-          <article className="prose prose-lg max-w-none dark:prose-invert">
-            {article.content ? (
-              <div 
-                className="text-foreground leading-relaxed whitespace-pre-wrap"
-                dangerouslySetInnerHTML={{ __html: article.content }}
-              />
-            ) : article.excerpt ? (
-              <p className="text-foreground leading-relaxed">{article.excerpt}</p>
-            ) : (
-              <p className="text-muted-foreground italic">No content available.</p>
+      <article className="max-w-4xl mx-auto px-4 md:px-6 py-8">
+        {/* Article Header */}
+        <motion.header
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-4">
+            {article.title}
+          </h1>
+          
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            {article.author && (
+              <div className="flex items-center gap-2">
+                <User className="w-4 h-4" />
+                <span>{article.author}</span>
+              </div>
             )}
-          </article>
-        </div>
-      </main>
-    </div>
+            {formattedDate && (
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{formattedDate}</span>
+              </div>
+            )}
+          </div>
+        </motion.header>
+
+        {/* Featured Image */}
+        {article.image_url && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="aspect-video border-2 border-foreground/20 overflow-hidden mb-8"
+          >
+            <img 
+              src={article.image_url} 
+              alt={article.title}
+              className="w-full h-full object-cover"
+            />
+          </motion.div>
+        )}
+
+        {/* Article Content */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="prose prose-lg max-w-none"
+        >
+          {article.content ? (
+            <div 
+              className="text-foreground leading-relaxed whitespace-pre-wrap"
+              dangerouslySetInnerHTML={{ __html: article.content }}
+            />
+          ) : article.excerpt ? (
+            <p className="text-foreground leading-relaxed">{article.excerpt}</p>
+          ) : (
+            <p className="text-muted-foreground italic">No content available.</p>
+          )}
+        </motion.div>
+      </article>
+    </BrutalistLayout>
   );
 };
 
