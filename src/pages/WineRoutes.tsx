@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star } from 'lucide-react';
+import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -21,6 +21,7 @@ interface WineRoute {
   is_curated: boolean;
   curator_name: string | null;
   curator_title: string | null;
+  curator_user_id: string | null;
   slug: string;
 }
 
@@ -126,7 +127,19 @@ const RouteCard = ({
           {route.curator_name && (
             <div className="border-t border-foreground/10 pt-3">
               <p className="text-[10px] text-muted-foreground">
-                Curated by <span className="text-foreground font-medium">{route.curator_name}</span>
+                Curated by{' '}
+                {route.curator_user_id ? (
+                  <Link
+                    to={`/profile/${route.curator_user_id}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-foreground font-medium hover:underline inline-flex items-center gap-1"
+                  >
+                    {route.curator_name}
+                    <BadgeCheck className="w-3 h-3 text-primary" />
+                  </Link>
+                ) : (
+                  <span className="text-foreground font-medium">{route.curator_name}</span>
+                )}
                 {route.curator_title && `, ${route.curator_title}`}
               </p>
             </div>
