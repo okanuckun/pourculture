@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
@@ -14,7 +13,9 @@ import {
   Building2, User, Mail, Phone, MessageSquare, Calendar 
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { Navbar } from '@/components/Navbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
+import { SEOHead } from '@/components/SEOHead';
+import { motion } from 'framer-motion';
 
 interface Claim {
   id: string;
@@ -84,7 +85,6 @@ const AdminClaims: React.FC = () => {
 
   const fetchClaims = async () => {
     try {
-      // Fetch venue claims (without profiles join since no FK exists)
       const { data: venueData, error: venueError } = await supabase
         .from('venue_claims')
         .select(`
@@ -95,7 +95,6 @@ const AdminClaims: React.FC = () => {
 
       if (venueError) throw venueError;
       
-      // Fetch profiles separately for venue claims
       const venueUserIds = venueData?.map(c => c.user_id).filter(Boolean) || [];
       let venueProfiles: Record<string, string> = {};
       if (venueUserIds.length > 0) {
@@ -115,7 +114,6 @@ const AdminClaims: React.FC = () => {
       
       setVenueClaims(venueClaimsWithProfiles);
 
-      // Fetch winemaker claims
       const { data: winemakerData, error: winemakerError } = await supabase
         .from('winemaker_claims')
         .select(`
@@ -126,7 +124,6 @@ const AdminClaims: React.FC = () => {
 
       if (winemakerError) throw winemakerError;
       
-      // Fetch profiles separately for winemaker claims
       const winemakerUserIds = winemakerData?.map(c => c.user_id).filter(Boolean) || [];
       let winemakerProfiles: Record<string, string> = {};
       if (winemakerUserIds.length > 0) {
@@ -164,7 +161,6 @@ const AdminClaims: React.FC = () => {
       const entityTable = isVenueClaim ? 'venues' : 'winemakers';
       const entityId = isVenueClaim ? selectedClaim.venue_id : selectedClaim.winemaker_id;
 
-      // Update claim status
       const updateData: Record<string, unknown> = {
         status: actionType === 'approve' ? 'approved' : 'rejected',
         reviewed_by: user.id,
@@ -182,10 +178,8 @@ const AdminClaims: React.FC = () => {
 
       if (claimError) throw claimError;
 
-      // If approved
       if (actionType === 'approve') {
         if (entityId) {
-          // Existing venue/winemaker - just update owner
           const { error: entityError } = await supabase
             .from(entityTable)
             .update({
@@ -196,7 +190,6 @@ const AdminClaims: React.FC = () => {
 
           if (entityError) throw entityError;
         } else if (isVenueClaim && selectedClaim.google_place_id) {
-          // Google Place claim without existing venue - create new venue
           const slug = selectedClaim.business_name
             .toLowerCase()
             .replace(/[^a-z0-9]+/g, '-')
@@ -207,7 +200,7 @@ const AdminClaims: React.FC = () => {
             .insert({
               name: selectedClaim.business_name,
               slug: slug,
-              address: 'Address pending', // User will update
+              address: 'Address pending',
               city: 'City pending',
               country: 'Country pending',
               category: 'bar' as const,
@@ -223,7 +216,6 @@ const AdminClaims: React.FC = () => {
 
           if (createError) throw createError;
 
-          // Update claim with new venue_id
           await supabase
             .from('venue_claims')
             .update({ venue_id: newVenue.id })
@@ -249,11 +241,23 @@ const AdminClaims: React.FC = () => {
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
-        return <Badge variant="outline" className="border-yellow-500 text-yellow-500"><Clock className="w-3 h-3 mr-1" /> Pending</Badge>;
+        return (
+          <Badge variant="outline" className="border-2 border-yellow-500 text-yellow-600 bg-yellow-50">
+            <Clock className="w-3 h-3 mr-1" /> PENDING
+          </Badge>
+        );
       case 'approved':
-        return <Badge variant="outline" className="border-green-500 text-green-500"><CheckCircle className="w-3 h-3 mr-1" /> Approved</Badge>;
+        return (
+          <Badge variant="outline" className="border-2 border-green-500 text-green-600 bg-green-50">
+            <CheckCircle className="w-3 h-3 mr-1" /> APPROVED
+          </Badge>
+        );
       case 'rejected':
-        return <Badge variant="outline" className="border-red-500 text-red-500"><XCircle className="w-3 h-3 mr-1" /> Rejected</Badge>;
+        return (
+          <Badge variant="outline" className="border-2 border-red-500 text-red-600 bg-red-50">
+            <XCircle className="w-3 h-3 mr-1" /> REJECTED
+          </Badge>
+        );
       default:
         return null;
     }
@@ -266,97 +270,100 @@ const AdminClaims: React.FC = () => {
     const role = type === 'venue' ? claim.role_at_venue : claim.role_at_winemaker;
 
     return (
-      <Card className="bg-[#252542] border-purple-500/20">
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2 flex-1">
+      <motion.div 
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-background border-2 border-foreground/20 hover:border-foreground transition-colors p-6"
+      >
+        <div className="flex items-start justify-between">
+          <div className="space-y-3 flex-1">
+            <div className="flex items-center gap-3">
+              <Building2 className="w-5 h-5 text-foreground" />
+              <span className="font-medium text-foreground uppercase tracking-tight">{entityName}</span>
+              {getStatusBadge(claim.status)}
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4 text-purple-400" />
-                <span className="font-semibold text-white">{entityName}</span>
-                {getStatusBadge(claim.status)}
+                <User className="w-4 h-4" />
+                <span>{claim.profiles?.display_name || 'Unknown User'}</span>
               </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-sm text-purple-300">
-                <div className="flex items-center gap-1">
-                  <User className="w-3 h-3" />
-                  <span>{claim.profiles?.display_name || 'Unknown User'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Mail className="w-3 h-3" />
-                  <span>{claim.business_email}</span>
-                </div>
-                {claim.business_phone && (
-                  <div className="flex items-center gap-1">
-                    <Phone className="w-3 h-3" />
-                    <span>{claim.business_phone}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  <span>{format(new Date(claim.created_at), 'MMM d, yyyy')}</span>
-                </div>
-              </div>
-
               <div className="flex items-center gap-2">
-                <Badge variant="secondary" className="bg-purple-500/20 text-purple-300">
-                  {role}
-                </Badge>
-                {claim.google_place_id && (
-                  <Badge variant="secondary" className="bg-blue-500/20 text-blue-300">
-                    Google Place
-                  </Badge>
-                )}
+                <Mail className="w-4 h-4" />
+                <span>{claim.business_email}</span>
               </div>
-
-              {claim.message && (
-                <div className="mt-2 p-2 bg-[#1a1a2e] rounded text-sm text-purple-200">
-                  <MessageSquare className="w-3 h-3 inline mr-1" />
-                  {claim.message}
+              {claim.business_phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  <span>{claim.business_phone}</span>
                 </div>
               )}
+              <div className="flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                <span>{format(new Date(claim.created_at), 'MMM d, yyyy')}</span>
+              </div>
+            </div>
 
-              {claim.rejection_reason && (
-                <div className="mt-2 p-2 bg-red-500/10 rounded text-sm text-red-300">
-                  <XCircle className="w-3 h-3 inline mr-1" />
-                  {claim.rejection_reason}
-                </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="border-2 border-foreground/30 text-foreground uppercase text-[10px]">
+                {role}
+              </Badge>
+              {claim.google_place_id && (
+                <Badge variant="outline" className="border-2 border-blue-500 text-blue-600 uppercase text-[10px]">
+                  Google Place
+                </Badge>
               )}
             </div>
 
-            {claim.status === 'pending' && (
-              <div className="flex gap-2 ml-4">
-                <Button
-                  size="sm"
-                  className="bg-green-600 hover:bg-green-500"
-                  onClick={() => {
-                    setSelectedClaim(claim);
-                    setActionType('approve');
-                  }}
-                >
-                  <CheckCircle className="w-4 h-4" />
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => {
-                    setSelectedClaim(claim);
-                    setActionType('reject');
-                  }}
-                >
-                  <XCircle className="w-4 h-4" />
-                </Button>
+            {claim.message && (
+              <div className="mt-3 p-3 bg-muted border-2 border-border text-sm text-foreground">
+                <MessageSquare className="w-4 h-4 inline mr-2" />
+                {claim.message}
+              </div>
+            )}
+
+            {claim.rejection_reason && (
+              <div className="mt-3 p-3 bg-red-50 border-2 border-red-200 text-sm text-red-700">
+                <XCircle className="w-4 h-4 inline mr-2" />
+                {claim.rejection_reason}
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+
+          {claim.status === 'pending' && (
+            <div className="flex gap-2 ml-4">
+              <Button
+                size="sm"
+                className="bg-green-600 hover:bg-green-500 border-2 border-green-700 uppercase text-xs font-medium"
+                onClick={() => {
+                  setSelectedClaim(claim);
+                  setActionType('approve');
+                }}
+              >
+                <CheckCircle className="w-4 h-4" />
+              </Button>
+              <Button
+                size="sm"
+                variant="destructive"
+                className="border-2 border-red-700 uppercase text-xs font-medium"
+                onClick={() => {
+                  setSelectedClaim(claim);
+                  setActionType('reject');
+                }}
+              >
+                <XCircle className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
+        </div>
+      </motion.div>
     );
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#1a1a2e] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-purple-400" />
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-foreground" />
       </div>
     );
   }
@@ -367,49 +374,59 @@ const AdminClaims: React.FC = () => {
   const pendingWinemaker = winemakerClaims.filter(c => c.status === 'pending').length;
 
   return (
-    <div className="min-h-screen bg-[#1a1a2e]">
-      <Navbar />
+    <BrutalistLayout>
+      <SEOHead title="Ownership Claims - Admin" description="Review and manage venue/winemaker ownership requests" />
       
       <div className="container mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-4 mb-8"
+        >
           <Button
-            variant="ghost"
+            variant="outline"
             size="icon"
             onClick={() => navigate('/admin')}
-            className="text-purple-300 hover:text-white"
+            className="border-2 border-foreground hover:bg-foreground hover:text-background"
           >
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-3xl font-bold text-white">Ownership Claims</h1>
-            <p className="text-purple-300">Review and manage venue/winemaker ownership requests</p>
+            <h1 className="text-3xl md:text-4xl font-medium text-foreground uppercase tracking-tight">
+              Ownership Claims
+            </h1>
+            <p className="text-muted-foreground">Review and manage venue/winemaker ownership requests</p>
           </div>
-        </div>
+        </motion.div>
 
         <Tabs defaultValue="venues" className="space-y-6">
-          <TabsList className="bg-[#252542] border border-purple-500/20">
-            <TabsTrigger value="venues" className="data-[state=active]:bg-purple-600">
+          <TabsList className="bg-background border-2 border-foreground p-1">
+            <TabsTrigger 
+              value="venues" 
+              className="data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs font-medium"
+            >
               Venue Claims
               {pendingVenue > 0 && (
-                <Badge className="ml-2 bg-yellow-500 text-black">{pendingVenue}</Badge>
+                <Badge className="ml-2 bg-yellow-500 text-foreground border-2 border-yellow-600">{pendingVenue}</Badge>
               )}
             </TabsTrigger>
-            <TabsTrigger value="winemakers" className="data-[state=active]:bg-purple-600">
+            <TabsTrigger 
+              value="winemakers" 
+              className="data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs font-medium"
+            >
               Winemaker Claims
               {pendingWinemaker > 0 && (
-                <Badge className="ml-2 bg-yellow-500 text-black">{pendingWinemaker}</Badge>
+                <Badge className="ml-2 bg-yellow-500 text-foreground border-2 border-yellow-600">{pendingWinemaker}</Badge>
               )}
             </TabsTrigger>
           </TabsList>
 
           <TabsContent value="venues" className="space-y-4">
             {venueClaims.length === 0 ? (
-              <Card className="bg-[#252542] border-purple-500/20">
-                <CardContent className="p-8 text-center">
-                  <Building2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <p className="text-purple-300">No venue claims yet</p>
-                </CardContent>
-              </Card>
+              <div className="bg-background border-2 border-foreground/20 p-12 text-center">
+                <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground uppercase text-sm">No venue claims yet</p>
+              </div>
             ) : (
               venueClaims.map(claim => (
                 <ClaimCard key={claim.id} claim={claim} type="venue" />
@@ -419,12 +436,10 @@ const AdminClaims: React.FC = () => {
 
           <TabsContent value="winemakers" className="space-y-4">
             {winemakerClaims.length === 0 ? (
-              <Card className="bg-[#252542] border-purple-500/20">
-                <CardContent className="p-8 text-center">
-                  <Building2 className="w-12 h-12 text-purple-400 mx-auto mb-4" />
-                  <p className="text-purple-300">No winemaker claims yet</p>
-                </CardContent>
-              </Card>
+              <div className="bg-background border-2 border-foreground/20 p-12 text-center">
+                <Building2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground uppercase text-sm">No winemaker claims yet</p>
+              </div>
             ) : (
               winemakerClaims.map(claim => (
                 <ClaimCard key={claim.id} claim={claim} type="winemaker" />
@@ -440,12 +455,12 @@ const AdminClaims: React.FC = () => {
         setSelectedClaim(null);
         setRejectionReason('');
       }}>
-        <DialogContent className="bg-[#1a1a2e] border-purple-500/20 text-white">
+        <DialogContent className="bg-background border-2 border-foreground text-foreground">
           <DialogHeader>
-            <DialogTitle>
+            <DialogTitle className="uppercase tracking-tight">
               {actionType === 'approve' ? 'Approve Claim' : 'Reject Claim'}
             </DialogTitle>
-            <DialogDescription className="text-purple-300">
+            <DialogDescription className="text-muted-foreground">
               {actionType === 'approve' 
                 ? `This will grant ownership of "${selectedClaim?.business_name}" to the user.`
                 : 'Please provide a reason for rejection.'}
@@ -454,11 +469,11 @@ const AdminClaims: React.FC = () => {
 
           {actionType === 'reject' && (
             <div className="space-y-2">
-              <Label className="text-purple-200">Rejection Reason</Label>
+              <Label className="text-foreground uppercase text-xs font-medium">Rejection Reason</Label>
               <Textarea
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
-                className="bg-[#252542] border-purple-500/30 text-white"
+                className="bg-background border-2 border-foreground/30 text-foreground focus:border-foreground"
                 placeholder="Explain why this claim is being rejected..."
               />
             </div>
@@ -467,7 +482,7 @@ const AdminClaims: React.FC = () => {
           <div className="flex gap-3 mt-4">
             <Button
               variant="outline"
-              className="flex-1 border-purple-500/30"
+              className="flex-1 border-2 border-foreground hover:bg-foreground hover:text-background uppercase text-xs font-medium"
               onClick={() => {
                 setActionType(null);
                 setSelectedClaim(null);
@@ -477,7 +492,11 @@ const AdminClaims: React.FC = () => {
               Cancel
             </Button>
             <Button
-              className={`flex-1 ${actionType === 'approve' ? 'bg-green-600 hover:bg-green-500' : 'bg-red-600 hover:bg-red-500'}`}
+              className={`flex-1 border-2 uppercase text-xs font-medium ${
+                actionType === 'approve' 
+                  ? 'bg-green-600 hover:bg-green-500 border-green-700' 
+                  : 'bg-red-600 hover:bg-red-500 border-red-700'
+              }`}
               onClick={handleAction}
               disabled={actionLoading || (actionType === 'reject' && !rejectionReason)}
             >
@@ -492,7 +511,7 @@ const AdminClaims: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </BrutalistLayout>
   );
 };
 

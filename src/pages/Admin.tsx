@@ -9,10 +9,11 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle, LogOut } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
+import { motion } from 'framer-motion';
 
-// Input validation schema for events
 const eventSchema = z.object({
   title: z.string().trim().min(1, 'Title is required').max(200),
   creator: z.string().trim().min(1, 'Creator is required').max(100),
@@ -23,7 +24,6 @@ const eventSchema = z.object({
   target_date: z.string().refine((val) => !isNaN(new Date(val).getTime()), 'Invalid date format'),
 });
 
-// Input validation schema for wines
 const wineSchema = z.object({
   name: z.string().trim().min(1, 'Name is required').max(200),
   grape: z.string().trim().min(1, 'Grape is required').max(100),
@@ -95,7 +95,6 @@ const Admin = () => {
   const [uploading, setUploading] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   
-  // Wine state
   const [wines, setWines] = useState<WineItem[]>([]);
   const [selectedWine, setSelectedWine] = useState<WineItem | null>(null);
   const [isCreatingWine, setIsCreatingWine] = useState(false);
@@ -103,7 +102,6 @@ const Admin = () => {
   const [savingWine, setSavingWine] = useState(false);
   const [uploadingWineImage, setUploadingWineImage] = useState(false);
   
-  // Submissions state
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [submissionsLoading, setSubmissionsLoading] = useState(false);
   
@@ -121,7 +119,6 @@ const Admin = () => {
       return;
     }
 
-    // Use RPC function to check admin status (bypasses RLS issues)
     const { data: isAdminUser, error } = await supabase.rpc('check_is_admin');
 
     if (error || !isAdminUser) {
@@ -228,7 +225,6 @@ const Admin = () => {
         if (error) throw error;
       }
 
-      // Update submission status
       const { error: updateError } = await supabase
         .from('submissions')
         .update({ status: 'approved', reviewed_at: new Date().toISOString() })
@@ -357,7 +353,6 @@ const Admin = () => {
     }
   };
 
-  // Wine handlers
   const handleCreateWine = async () => {
     try {
       wineSchema.parse({
@@ -479,11 +474,11 @@ const Admin = () => {
     const file = e.target.files[0];
     const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!validTypes.includes(file.type)) {
-      toast({ title: 'Geçersiz dosya tipi', description: 'JPG, PNG, GIF veya WebP yükleyin', variant: 'destructive' });
+      toast({ title: 'Invalid file type', description: 'Please upload JPG, PNG, GIF or WebP', variant: 'destructive' });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast({ title: 'Dosya çok büyük', description: 'Görsel 5MB\'dan küçük olmalı', variant: 'destructive' });
+      toast({ title: 'File too large', description: 'Image must be less than 5MB', variant: 'destructive' });
       return;
     }
 
@@ -503,22 +498,22 @@ const Admin = () => {
         .getPublicUrl(fileName);
 
       setWine({ ...wine, image_url: publicUrl });
-      toast({ title: 'Başarılı', description: 'Görsel yüklendi' });
+      toast({ title: 'Success', description: 'Image uploaded' });
     } catch (error: any) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setUploadingWineImage(false);
     }
   };
 
-  const colorLabels: Record<string, string> = { red: 'Kırmızı', white: 'Beyaz', orange: 'Orange', rose: 'Rosé' };
-  const styleLabels: Record<string, string> = { funky: 'Funky', clean: 'Temiz' };
-  const acidityLabels: Record<string, string> = { acidic: 'Asidik', soft: 'Yumuşak' };
+  const colorLabels: Record<string, string> = { red: 'Red', white: 'White', orange: 'Orange', rose: 'Rosé' };
+  const styleLabels: Record<string, string> = { funky: 'Funky', clean: 'Clean' };
+  const acidityLabels: Record<string, string> = { acidic: 'Acidic', soft: 'Soft' };
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <Loader2 className="h-8 w-8 animate-spin text-foreground" />
       </div>
     );
   }
@@ -532,60 +527,65 @@ const Admin = () => {
     onCancel: () => void;
     isNew: boolean;
   }) => (
-    <div className="space-y-4 bg-card border border-border rounded-2xl p-6">
-      <h3 className="text-lg font-semibold text-foreground">
-        {isNew ? 'Yeni Şarap Ekle' : 'Şarap Düzenle'}
+    <div className="space-y-4 bg-background border-2 border-foreground p-6">
+      <h3 className="text-lg font-medium text-foreground uppercase tracking-tight">
+        {isNew ? 'Add New Wine' : 'Edit Wine'}
       </h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">İsim *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Name *</label>
           <Input
             value={wine.name}
             onChange={(e) => setWine({ ...wine, name: e.target.value })}
-            placeholder="Şarap adı"
+            placeholder="Wine name"
+            className="border-2 border-foreground/30 focus:border-foreground"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Üzüm *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Grape *</label>
           <Input
             value={wine.grape}
             onChange={(e) => setWine({ ...wine, grape: e.target.value })}
-            placeholder="Üzüm çeşidi"
+            placeholder="Grape variety"
+            className="border-2 border-foreground/30 focus:border-foreground"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Bölge *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Region *</label>
           <Input
             value={wine.region}
             onChange={(e) => setWine({ ...wine, region: e.target.value })}
-            placeholder="Bölge"
+            placeholder="Region"
+            className="border-2 border-foreground/30 focus:border-foreground"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Ülke *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Country *</label>
           <Input
             value={wine.country}
             onChange={(e) => setWine({ ...wine, country: e.target.value })}
-            placeholder="Ülke"
+            placeholder="Country"
+            className="border-2 border-foreground/30 focus:border-foreground"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Üretici</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Producer</label>
           <Input
             value={wine.winemaker || ''}
             onChange={(e) => setWine({ ...wine, winemaker: e.target.value })}
-            placeholder="Üretici adı"
+            placeholder="Producer name"
+            className="border-2 border-foreground/30 focus:border-foreground"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Fiyat Aralığı</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Price Range</label>
           <Select
             value={wine.price_range || ''}
             onValueChange={(value) => setWine({ ...wine, price_range: value })}
           >
-            <SelectTrigger>
-              <SelectValue placeholder="Seçin" />
+            <SelectTrigger className="border-2 border-foreground/30 focus:border-foreground">
+              <SelectValue placeholder="Select" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="€">€ (Budget)</SelectItem>
@@ -597,20 +597,19 @@ const Admin = () => {
         </div>
       </div>
 
-      {/* Image Upload */}
       <div>
-        <label className="text-sm font-medium text-foreground mb-1 block">Görsel</label>
+        <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Image</label>
         {wine.image_url ? (
           <div className="relative inline-block">
             <img
               src={wine.image_url}
               alt="Wine"
-              className="w-full max-w-xs h-40 object-cover rounded-xl border border-border"
+              className="w-full max-w-xs h-40 object-cover border-2 border-foreground"
             />
             <button
               type="button"
               onClick={() => setWine({ ...wine, image_url: '' })}
-              className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90"
+              className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -622,11 +621,11 @@ const Admin = () => {
               accept="image/*"
               onChange={(e) => handleWineImageUpload(e, wine, setWine)}
               disabled={uploadingWineImage}
-              className="cursor-pointer"
+              className="cursor-pointer border-2 border-foreground/30"
             />
             {uploadingWineImage && (
-              <div className="absolute inset-0 flex items-center justify-center bg-background/80 rounded-md">
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <div className="absolute inset-0 flex items-center justify-center bg-background/80">
+                <Loader2 className="h-5 w-5 animate-spin text-foreground" />
               </div>
             )}
           </div>
@@ -634,60 +633,61 @@ const Admin = () => {
       </div>
 
       <div>
-        <label className="text-sm font-medium text-foreground mb-1 block">Açıklama</label>
+        <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Description</label>
         <Textarea
           value={wine.description || ''}
           onChange={(e) => setWine({ ...wine, description: e.target.value })}
-          placeholder="Şarap hakkında açıklama"
+          placeholder="Wine description"
           rows={3}
+          className="border-2 border-foreground/30 focus:border-foreground"
         />
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Renk *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Color *</label>
           <Select
             value={wine.color}
             onValueChange={(value) => setWine({ ...wine, color: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-2 border-foreground/30">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="red">🍷 Kırmızı</SelectItem>
-              <SelectItem value="white">🥂 Beyaz</SelectItem>
+              <SelectItem value="red">🍷 Red</SelectItem>
+              <SelectItem value="white">🥂 White</SelectItem>
               <SelectItem value="orange">🧡 Orange</SelectItem>
               <SelectItem value="rose">🌸 Rosé</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Stil *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Style *</label>
           <Select
             value={wine.style}
             onValueChange={(value) => setWine({ ...wine, style: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-2 border-foreground/30">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="funky">🎸 Funky</SelectItem>
-              <SelectItem value="clean">✨ Temiz</SelectItem>
+              <SelectItem value="clean">✨ Clean</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Asitlik *</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Acidity *</label>
           <Select
             value={wine.acidity}
             onValueChange={(value) => setWine({ ...wine, acidity: value })}
           >
-            <SelectTrigger>
+            <SelectTrigger className="border-2 border-foreground/30">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="acidic">🍋 Asidik</SelectItem>
-              <SelectItem value="soft">🍑 Yumuşak</SelectItem>
+              <SelectItem value="acidic">🍋 Acidic</SelectItem>
+              <SelectItem value="soft">🍑 Soft</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -695,7 +695,7 @@ const Admin = () => {
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Alkol %</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Alcohol %</label>
           <Input
             type="number"
             step="0.1"
@@ -704,10 +704,11 @@ const Admin = () => {
             value={wine.alcohol_percentage || ''}
             onChange={(e) => setWine({ ...wine, alcohol_percentage: e.target.value ? parseFloat(e.target.value) : null })}
             placeholder="12.5"
+            className="border-2 border-foreground/30"
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-foreground mb-1 block">Yıl</label>
+          <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Year</label>
           <Input
             type="number"
             min="1900"
@@ -715,6 +716,7 @@ const Admin = () => {
             value={wine.year || ''}
             onChange={(e) => setWine({ ...wine, year: e.target.value ? parseInt(e.target.value) : null })}
             placeholder="2022"
+            className="border-2 border-foreground/30"
           />
         </div>
         <div className="flex items-end">
@@ -723,109 +725,116 @@ const Admin = () => {
               type="checkbox"
               checked={wine.is_featured}
               onChange={(e) => setWine({ ...wine, is_featured: e.target.checked })}
-              className="rounded border-border"
+              className="border-2 border-foreground"
             />
-            <span className="text-sm text-foreground">Öne çıkan</span>
+            <span className="text-sm text-foreground uppercase">Featured</span>
           </label>
         </div>
       </div>
 
       <div className="flex gap-3 pt-4">
-        <Button onClick={onCancel} variant="outline" className="flex-1">
-          İptal
+        <Button onClick={onCancel} variant="outline" className="flex-1 border-2 border-foreground uppercase">
+          Cancel
         </Button>
-        <Button onClick={onSave} disabled={savingWine} className="flex-1">
-          {savingWine ? <Loader2 className="h-4 w-4 animate-spin" /> : isNew ? 'Oluştur' : 'Kaydet'}
+        <Button onClick={onSave} disabled={savingWine} className="flex-1 bg-foreground text-background hover:bg-foreground/90 uppercase">
+          {savingWine ? <Loader2 className="h-4 w-4 animate-spin" /> : isNew ? 'Create' : 'Save'}
         </Button>
       </div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <BrutalistLayout>
       <SEOHead 
         title="Admin Dashboard"
-        description="Manage events and content for your event platform"
+        description="Manage events and content for your platform"
       />
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
+      <div className="container mx-auto px-4 py-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex justify-between items-center mb-8"
+        >
+          <h1 className="text-3xl md:text-4xl font-medium text-foreground uppercase tracking-tight">
             Admin Panel
           </h1>
-          <Button onClick={handleSignOut} variant="outline">
-            Çıkış Yap
+          <Button onClick={handleSignOut} variant="outline" className="border-2 border-foreground hover:bg-foreground hover:text-background uppercase text-xs">
+            <LogOut className="w-4 h-4 mr-2" />
+            Sign Out
           </Button>
-        </div>
+        </motion.div>
 
         <Tabs defaultValue="submissions" className="w-full">
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger value="submissions" className="flex items-center gap-2">
+          <TabsList className="grid w-full grid-cols-5 mb-6 bg-background border-2 border-foreground p-1">
+            <TabsTrigger value="submissions" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <FileText className="h-4 w-4" />
-              Başvurular
+              Submissions
             </TabsTrigger>
-            <TabsTrigger value="wines" className="flex items-center gap-2">
+            <TabsTrigger value="wines" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Wine className="h-4 w-4" />
-              Şaraplar
+              Wines
             </TabsTrigger>
-            <TabsTrigger value="claims" className="flex items-center gap-2">
+            <TabsTrigger value="claims" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Shield className="h-4 w-4" />
-              Sahiplik Talepleri
+              Claims
             </TabsTrigger>
-            <TabsTrigger value="knowledge" className="flex items-center gap-2">
+            <TabsTrigger value="knowledge" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Book className="h-4 w-4" />
-              Bilgi Merkezi
+              Knowledge
             </TabsTrigger>
-            <TabsTrigger value="events" className="flex items-center gap-2">
+            <TabsTrigger value="events" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Calendar className="h-4 w-4" />
-              Etkinlikler
+              Events
             </TabsTrigger>
           </TabsList>
 
           {/* Submissions Tab */}
           <TabsContent value="submissions" className="space-y-6">
-            <h2 className="text-xl font-semibold text-foreground">Kullanıcı Başvuruları</h2>
+            <h2 className="text-xl font-medium text-foreground uppercase tracking-tight">User Submissions</h2>
             
             {submissionsLoading ? (
               <div className="flex justify-center py-12">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <Loader2 className="h-8 w-8 animate-spin text-foreground" />
               </div>
             ) : submissions.length === 0 ? (
-              <div className="text-center py-12 text-muted-foreground">
-                Henüz başvuru yok.
+              <div className="text-center py-12 text-muted-foreground border-2 border-foreground/20">
+                No submissions yet.
               </div>
             ) : (
               <div className="space-y-4">
                 {submissions.map((submission) => (
-                  <div 
-                    key={submission.id} 
-                    className={`bg-card border rounded-xl p-6 ${
-                      submission.status === 'pending' ? 'border-amber-300' : 
-                      submission.status === 'approved' ? 'border-green-300' : 'border-red-300'
+                  <motion.div 
+                    key={submission.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`bg-background border-2 p-6 ${
+                      submission.status === 'pending' ? 'border-yellow-500' : 
+                      submission.status === 'approved' ? 'border-green-500' : 'border-red-500'
                     }`}
                   >
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex-1">
                         <div className="flex items-center gap-3 mb-2">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            submission.submission_type === 'venue' ? 'bg-blue-100 text-blue-700' :
-                            submission.submission_type === 'winemaker' ? 'bg-purple-100 text-purple-700' :
-                            'bg-orange-100 text-orange-700'
+                          <span className={`px-2 py-1 text-[10px] font-medium uppercase border-2 ${
+                            submission.submission_type === 'venue' ? 'border-blue-500 text-blue-600' :
+                            submission.submission_type === 'winemaker' ? 'border-purple-500 text-purple-600' :
+                            'border-orange-500 text-orange-600'
                           }`}>
-                            {submission.submission_type === 'venue' ? 'Mekan' : 
-                             submission.submission_type === 'winemaker' ? 'Üretici' : 'Etkinlik'}
+                            {submission.submission_type === 'venue' ? 'Venue' : 
+                             submission.submission_type === 'winemaker' ? 'Producer' : 'Event'}
                           </span>
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            submission.status === 'pending' ? 'bg-amber-100 text-amber-700' :
-                            submission.status === 'approved' ? 'bg-green-100 text-green-700' :
-                            'bg-red-100 text-red-700'
+                          <span className={`px-2 py-1 text-[10px] font-medium uppercase border-2 ${
+                            submission.status === 'pending' ? 'border-yellow-500 text-yellow-600' :
+                            submission.status === 'approved' ? 'border-green-500 text-green-600' :
+                            'border-red-500 text-red-600'
                           }`}>
-                            {submission.status === 'pending' ? 'Beklemede' : 
-                             submission.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}
+                            {submission.status === 'pending' ? 'Pending' : 
+                             submission.status === 'approved' ? 'Approved' : 'Rejected'}
                           </span>
                         </div>
                         
-                        <h3 className="text-lg font-semibold text-foreground">
-                          {submission.data?.name || submission.data?.title || 'İsimsiz'}
+                        <h3 className="text-lg font-medium text-foreground uppercase tracking-tight">
+                          {submission.data?.name || submission.data?.title || 'Untitled'}
                         </h3>
                         
                         <div className="mt-2 text-sm text-muted-foreground space-y-1">
@@ -833,18 +842,18 @@ const Admin = () => {
                             <p>📍 {submission.data.city}, {submission.data.country}</p>
                           )}
                           {submission.data?.category && (
-                            <p>🏷️ Kategori: {submission.data.category}</p>
+                            <p>🏷️ Category: {submission.data.category}</p>
                           )}
                           {submission.data?.description && (
                             <p className="line-clamp-2">📝 {submission.data.description}</p>
                           )}
                           {submission.data?.submitterName && (
-                            <p>👤 Gönderen: {submission.data.submitterName} ({submission.data.submitterRole || 'Belirtilmedi'})</p>
+                            <p>👤 Submitted by: {submission.data.submitterName} ({submission.data.submitterRole || 'Not specified'})</p>
                           )}
                         </div>
                         
                         <p className="text-xs text-muted-foreground mt-3">
-                          {new Date(submission.created_at).toLocaleDateString('tr-TR', { 
+                          {new Date(submission.created_at).toLocaleDateString('en-US', { 
                             day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
                           })}
                         </p>
@@ -855,23 +864,24 @@ const Admin = () => {
                           <Button 
                             size="sm" 
                             onClick={() => handleApproveSubmission(submission)}
-                            className="bg-green-600 hover:bg-green-700"
+                            className="bg-green-600 hover:bg-green-500 border-2 border-green-700 uppercase text-xs"
                           >
                             <Check className="h-4 w-4 mr-1" />
-                            Onayla
+                            Approve
                           </Button>
                           <Button 
                             size="sm" 
                             variant="destructive"
                             onClick={() => handleRejectSubmission(submission.id)}
+                            className="border-2 border-red-700 uppercase text-xs"
                           >
                             <XCircle className="h-4 w-4 mr-1" />
-                            Reddet
+                            Reject
                           </Button>
                         </div>
                       )}
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -880,9 +890,9 @@ const Admin = () => {
           {/* Wines Tab */}
           <TabsContent value="wines" className="space-y-6">
             {!isCreatingWine && !selectedWine && (
-              <Button onClick={() => setIsCreatingWine(true)} className="w-full md:w-auto">
+              <Button onClick={() => setIsCreatingWine(true)} className="w-full md:w-auto bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase">
                 <Plus className="h-4 w-4 mr-2" />
-                Yeni Şarap Ekle
+                Add New Wine
               </Button>
             )}
 
@@ -909,36 +919,38 @@ const Admin = () => {
             {!isCreatingWine && !selectedWine && (
               <div className="grid gap-4">
                 {wines.length === 0 ? (
-                  <div className="text-center py-12 text-muted-foreground">
-                    Henüz şarap eklenmemiş
+                  <div className="text-center py-12 text-muted-foreground border-2 border-foreground/20">
+                    No wines added yet
                   </div>
                 ) : (
                   wines.map((wine) => (
-                    <div
+                    <motion.div
                       key={wine.id}
-                      className="flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:bg-secondary/50 transition-colors"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="flex items-center justify-between p-4 bg-background border-2 border-foreground/20 hover:border-foreground transition-colors"
                     >
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <span className="text-lg">
                             {wine.color === 'red' ? '🍷' : wine.color === 'white' ? '🥂' : wine.color === 'orange' ? '🧡' : '🌸'}
                           </span>
-                          <h4 className="font-semibold text-foreground truncate">{wine.name}</h4>
+                          <h4 className="font-medium text-foreground truncate uppercase">{wine.name}</h4>
                           {wine.is_featured && (
-                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-xs rounded-full">Öne Çıkan</span>
+                            <span className="px-2 py-0.5 bg-primary/10 text-primary text-[10px] uppercase border border-primary">Featured</span>
                           )}
                         </div>
                         <p className="text-sm text-muted-foreground">
                           {wine.grape} • {wine.region}, {wine.country}
                         </p>
                         <div className="flex gap-2 mt-2">
-                          <span className="px-2 py-0.5 bg-secondary text-xs rounded-full text-muted-foreground">
+                          <span className="px-2 py-0.5 bg-muted text-[10px] uppercase text-muted-foreground border border-border">
                             {colorLabels[wine.color]}
                           </span>
-                          <span className="px-2 py-0.5 bg-secondary text-xs rounded-full text-muted-foreground">
+                          <span className="px-2 py-0.5 bg-muted text-[10px] uppercase text-muted-foreground border border-border">
                             {styleLabels[wine.style]}
                           </span>
-                          <span className="px-2 py-0.5 bg-secondary text-xs rounded-full text-muted-foreground">
+                          <span className="px-2 py-0.5 bg-muted text-[10px] uppercase text-muted-foreground border border-border">
                             {acidityLabels[wine.acidity]}
                           </span>
                         </div>
@@ -947,6 +959,7 @@ const Admin = () => {
                         <Button
                           size="icon"
                           variant="outline"
+                          className="border-2 border-foreground/30 hover:border-foreground"
                           onClick={() => setSelectedWine(wine)}
                         >
                           <Pencil className="h-4 w-4" />
@@ -954,13 +967,13 @@ const Admin = () => {
                         <Button
                           size="icon"
                           variant="outline"
-                          className="text-destructive hover:bg-destructive hover:text-destructive-foreground"
+                          className="border-2 border-destructive/30 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
                           onClick={() => handleDeleteWine(wine.id)}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   ))
                 )}
               </div>
@@ -970,15 +983,14 @@ const Admin = () => {
           {/* Claims Tab */}
           <TabsContent value="claims">
             <div className="space-y-6">
-              {/* Claims Management */}
-              <div className="bg-card border border-border rounded-2xl p-6 text-center">
-                <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
-                <h3 className="text-lg font-semibold mb-2">Sahiplik Talepleri Yönetimi</h3>
+              <div className="bg-background border-2 border-foreground/20 p-8 text-center">
+                <Shield className="h-12 w-12 mx-auto mb-4 text-foreground" />
+                <h3 className="text-lg font-medium mb-2 uppercase tracking-tight">Ownership Claims Management</h3>
                 <p className="text-muted-foreground mb-4">
-                  Mekan ve üretici sahiplik taleplerini inceleyin ve yönetin.
+                  Review and manage venue and producer ownership requests.
                 </p>
-                <Button onClick={() => navigate('/admin/claims')}>
-                  Talepleri Görüntüle
+                <Button onClick={() => navigate('/admin/claims')} className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase">
+                  View Claims
                 </Button>
               </div>
             </div>
@@ -992,64 +1004,69 @@ const Admin = () => {
           {/* Events Tab */}
           <TabsContent value="events">
             {selectedEvent && (
-              <form onSubmit={handleSaveEvent} className="space-y-6 bg-card border border-border rounded-2xl p-6">
+              <form onSubmit={handleSaveEvent} className="space-y-6 bg-background border-2 border-foreground p-6">
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Event Title</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Event Title</label>
                   <Input
                     value={selectedEvent.title}
                     onChange={(e) => setSelectedEvent({ ...selectedEvent, title: e.target.value })}
+                    className="border-2 border-foreground/30 focus:border-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Creator</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Creator</label>
                   <Input
                     value={selectedEvent.creator}
                     onChange={(e) => setSelectedEvent({ ...selectedEvent, creator: e.target.value })}
+                    className="border-2 border-foreground/30 focus:border-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Description</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Description</label>
                   <Textarea
                     value={selectedEvent.description}
                     onChange={(e) => setSelectedEvent({ ...selectedEvent, description: e.target.value })}
-                    className="min-h-[120px]"
+                    className="min-h-[120px] border-2 border-foreground/30 focus:border-foreground"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">Date</label>
+                    <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Date</label>
                     <Input
                       value={selectedEvent.date}
                       onChange={(e) => setSelectedEvent({ ...selectedEvent, date: e.target.value })}
+                      className="border-2 border-foreground/30 focus:border-foreground"
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-1 block">Time</label>
+                    <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Time</label>
                     <Input
                       value={selectedEvent.time}
                       onChange={(e) => setSelectedEvent({ ...selectedEvent, time: e.target.value })}
+                      className="border-2 border-foreground/30 focus:border-foreground"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Address</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Address</label>
                   <Input
                     value={selectedEvent.address}
                     onChange={(e) => setSelectedEvent({ ...selectedEvent, address: e.target.value })}
+                    className="border-2 border-foreground/30 focus:border-foreground"
                   />
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Background Image</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Background Image</label>
                   {selectedEvent.background_image_url && (
                     <img 
                       src={selectedEvent.background_image_url} 
                       alt="Current background" 
-                      className="w-full h-32 object-cover mb-2 rounded-xl"
+                      className="w-full h-32 object-cover mb-2 border-2 border-foreground"
                     />
                   )}
                   <Input
@@ -1057,20 +1074,22 @@ const Admin = () => {
                     accept="image/*"
                     onChange={handleImageUpload}
                     disabled={uploading}
+                    className="border-2 border-foreground/30"
                   />
                   {uploading && <p className="text-sm text-muted-foreground mt-1">Uploading...</p>}
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium text-foreground mb-1 block">Target Date</label>
+                  <label className="text-[11px] font-medium text-foreground mb-1 block uppercase">Target Date</label>
                   <Input
                     type="datetime-local"
                     value={selectedEvent.target_date.slice(0, 16)}
                     onChange={(e) => setSelectedEvent({ ...selectedEvent, target_date: e.target.value })}
+                    className="border-2 border-foreground/30 focus:border-foreground"
                   />
                 </div>
 
-                <Button type="submit" className="w-full">
+                <Button type="submit" className="w-full bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase">
                   Save Changes
                 </Button>
               </form>
@@ -1078,7 +1097,7 @@ const Admin = () => {
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </BrutalistLayout>
   );
 };
 
