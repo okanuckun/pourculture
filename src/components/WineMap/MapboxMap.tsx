@@ -6,7 +6,7 @@ import { Loader2, RefreshCw, Wine, Database, Search, MapPin, X, AlertCircle } fr
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
-import { fetchWineVenuesFromOSM, debounce } from './overpassApi';
+import { fetchWineVenuesFromGoogle } from './googlePlacesApi';
 import { fetchAllDatabaseVenues } from './databaseApi';
 import { CategoryFilter } from './CategoryFilter';
 import { supabase } from '@/integrations/supabase/client';
@@ -32,7 +32,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [tokenLoading, setTokenLoading] = useState(true);
   const [tokenError, setTokenError] = useState<string | null>(null);
-  const [osmVenues, setOsmVenues] = useState<WineVenue[]>([]);
+  const [googleVenues, setGoogleVenues] = useState<WineVenue[]>([]);
   const [dbVenues, setDbVenues] = useState<WineVenue[]>([]);
   const [loading, setLoading] = useState(false);
   const [dbLoading, setDbLoading] = useState(true);
@@ -183,24 +183,21 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     };
   }, [mapboxToken, centerLng, centerLat, initialZoom]);
 
-  // Combine OSM and database venues
+  // Combine Google Places and database venues
   const allVenues = useMemo(() => {
     const combined = [...dbVenues];
+    const seenLocations = new Set(dbVenues.map(v => `${v.lat.toFixed(4)},${v.lng.toFixed(4)}`));
     
-    osmVenues.forEach(osmVenue => {
-      const isDuplicate = dbVenues.some(dbVenue => {
-        const latDiff = Math.abs(osmVenue.lat - dbVenue.lat);
-        const lngDiff = Math.abs(osmVenue.lng - dbVenue.lng);
-        return latDiff < 0.001 && lngDiff < 0.001;
-      });
-      
-      if (!isDuplicate) {
-        combined.push(osmVenue);
+    googleVenues.forEach(venue => {
+      const locationKey = `${venue.lat.toFixed(4)},${venue.lng.toFixed(4)}`;
+      if (!seenLocations.has(locationKey)) {
+        combined.push(venue);
+        seenLocations.add(locationKey);
       }
     });
     
     return combined;
-  }, [osmVenues, dbVenues]);
+  }, [googleVenues, dbVenues]);
 
   // Calculate venue counts
   const venueCounts = useMemo(() => {
@@ -375,13 +372,22 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     });
   }, [filteredVenues, mapReady]);
 
-  // Fetch OSM venues
+  // Fetch Google Places venues
   const fetchVenues = useCallback(async (bounds: MapBounds) => {
     setLoading(true);
     try {
-      const venues = await fetchWineVenuesFromOSM(bounds);
-      setOsmVenues(venues);
+      const centerLat = (bounds.north + bounds.south) / 2;
+      const centerLng = (bounds.east + bounds.west) / 2;
+      
+      const latDiff = bounds.north - bounds.south;
+      const lngDiff = bounds.east - bounds.west;
+      const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
+      const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
+      
+      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM);
+      setGoogleVenues(venues);
       setHasSearched(true);
+      console.log(`Fetched ${venues.length} Google Places venues`);
     } catch (error) {
       console.error('Error fetching venues:', error);
     } finally {
@@ -389,7 +395,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     }
   }, []);
 
-  // Auto-fetch OSM venues when bounds are first set
+  // Auto-fetch venues when bounds are first set
   useEffect(() => {
     if (currentBounds && !hasSearched && mapReady) {
       fetchVenues(currentBounds);
@@ -422,11 +428,17 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     }
   }, [mapboxToken]);
 
-  // Debounced search
-  const debouncedSearch = useMemo(
-    () => debounce((query: string) => searchLocation(query), 300),
-    [searchLocation]
-  );
+  // Debounced search using useRef for timeout
+  const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  
+  const debouncedSearch = useCallback((query: string) => {
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
+    searchTimeoutRef.current = setTimeout(() => {
+      searchLocation(query);
+    }, 300);
+  }, [searchLocation]);
 
   // Handle search input
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
