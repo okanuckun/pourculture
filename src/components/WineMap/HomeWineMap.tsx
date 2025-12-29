@@ -15,12 +15,13 @@ import { GoogleAttribution } from '@/components/GoogleAttribution';
 interface HomeWineMapProps {
   className?: string;
   minimalStyle?: boolean;
+  filterCategories?: WineVenueCategory[];
 }
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lng, lat]
 const TOKEN_FETCH_TIMEOUT = 10000;
 
-export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false }) => {
+export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -299,6 +300,11 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
   // Filtered venues based on filters
   const filteredVenues = useMemo(() => {
+    // If filterCategories is provided externally, use it; otherwise use internal selectedCategories
+    const categoriesToFilter = filterCategories && filterCategories.length > 0 
+      ? filterCategories 
+      : selectedCategories;
+
     return allVenues.filter(venue => {
       // Filter by verified status
       if (showOnlyVerified && !venue.isClaimed) {
@@ -309,12 +315,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         return false;
       }
       // Filter by category
-      if (!selectedCategories.includes(venue.category)) {
+      if (!categoriesToFilter.includes(venue.category)) {
         return false;
       }
       return true;
     });
-  }, [allVenues, showOnlyVerified, showOnlyOpen, selectedCategories]);
+  }, [allVenues, showOnlyVerified, showOnlyOpen, selectedCategories, filterCategories]);
 
   // Toggle category filter
   const toggleCategory = (category: WineVenueCategory) => {
