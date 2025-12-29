@@ -485,6 +485,76 @@ export type Database = {
         }
         Relationships: []
       }
+      user_route_progress: {
+        Row: {
+          completed_at: string | null
+          created_at: string
+          id: string
+          is_completed: boolean | null
+          route_id: string
+          updated_at: string
+          user_id: string
+          visited_venue_ids: string[] | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          route_id: string
+          updated_at?: string
+          user_id: string
+          visited_venue_ids?: string[] | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          is_completed?: boolean | null
+          route_id?: string
+          updated_at?: string
+          user_id?: string
+          visited_venue_ids?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_route_progress_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "wine_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_route_wishlist: {
+        Row: {
+          created_at: string
+          id: string
+          route_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          route_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          route_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_route_wishlist_route_id_fkey"
+            columns: ["route_id"]
+            isOneToOne: false
+            referencedRelation: "wine_routes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venue_claims: {
         Row: {
           business_email: string
@@ -774,6 +844,72 @@ export type Database = {
           recommendation_name?: string
           recommendation_region?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      wine_routes: {
+        Row: {
+          country: string
+          created_at: string
+          created_by: string | null
+          curator_id: string | null
+          curator_name: string | null
+          curator_title: string | null
+          description: string | null
+          difficulty: string | null
+          estimated_days: number | null
+          id: string
+          image_url: string | null
+          is_curated: boolean | null
+          is_published: boolean | null
+          region: string
+          slug: string
+          title: string
+          updated_at: string
+          venue_count: number | null
+          venue_ids: string[] | null
+        }
+        Insert: {
+          country: string
+          created_at?: string
+          created_by?: string | null
+          curator_id?: string | null
+          curator_name?: string | null
+          curator_title?: string | null
+          description?: string | null
+          difficulty?: string | null
+          estimated_days?: number | null
+          id?: string
+          image_url?: string | null
+          is_curated?: boolean | null
+          is_published?: boolean | null
+          region: string
+          slug: string
+          title: string
+          updated_at?: string
+          venue_count?: number | null
+          venue_ids?: string[] | null
+        }
+        Update: {
+          country?: string
+          created_at?: string
+          created_by?: string | null
+          curator_id?: string | null
+          curator_name?: string | null
+          curator_title?: string | null
+          description?: string | null
+          difficulty?: string | null
+          estimated_days?: number | null
+          id?: string
+          image_url?: string | null
+          is_curated?: boolean | null
+          is_published?: boolean | null
+          region?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+          venue_count?: number | null
+          venue_ids?: string[] | null
         }
         Relationships: []
       }

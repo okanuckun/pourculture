@@ -69,6 +69,9 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                   <DropdownMenuItem onClick={() => navigate('/about/natural-wine')} className="text-xs">
                     What is Natural Wine?
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/wine-routes')} className="text-xs">
+                    Wine Routes
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/knowledge')} className="text-xs">
                     Knowledge Hub
                   </DropdownMenuItem>
@@ -170,6 +173,13 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                 className="block py-1.5 text-xs hover:text-muted-foreground"
               >
                 What is Natural Wine?
+              </Link>
+              <Link 
+                to="/wine-routes" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-1.5 text-xs hover:text-muted-foreground"
+              >
+                Wine Routes
               </Link>
               <Link 
                 to="/knowledge" 
