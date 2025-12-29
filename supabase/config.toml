@@ -1,1 +1,7 @@
 project_id = "ikqspsdqdunbvwawsvwq"
+
+[functions.get-mapbox-token]
+verify_jwt = false
+
+[functions.geocode-venues]
+verify_jwt = false
