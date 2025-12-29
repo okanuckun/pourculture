@@ -37,7 +37,7 @@ const WineMapPage = () => {
             >
               <div>
                 <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium mb-3">
-                  <Globe className="w-3 h-3" /> OpenStreetMap Data
+                  <Globe className="w-3 h-3" /> Google Places API
                 </span>
                 <h1 className="text-3xl md:text-4xl font-display font-bold text-foreground">
                   World <span className="text-primary">Wine Map</span>
@@ -96,8 +96,8 @@ const WineMapPage = () => {
                 <div>
                   <h3 className="font-medium text-foreground mb-1">How it works</h3>
                   <p className="text-sm text-muted-foreground">
-                    This map uses <strong>OpenStreetMap</strong> data to display wine-related venues. 
-                    Navigate to any area and click "Search this area" to load venues. 
+                    This map uses <strong>Google Places API</strong> to display wine-related venues. 
+                    Search for a city or navigate to any area and click "Search this area" to load venues. 
                     Use the category filters to narrow down your search. 
                     Click on any marker to see venue details.
                   </p>
