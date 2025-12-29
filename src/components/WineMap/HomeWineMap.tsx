@@ -14,12 +14,13 @@ import { GoogleAttribution } from '@/components/GoogleAttribution';
 
 interface HomeWineMapProps {
   className?: string;
+  minimalStyle?: boolean;
 }
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lng, lat]
 const TOKEN_FETCH_TIMEOUT = 10000;
 
-export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
+export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -176,18 +177,23 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     }
   }, [mapReady, currentBounds, fetchVenues]);
 
-  // Initialize map with vintage style
+  // Initialize map with style based on minimalStyle prop
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken || map.current) return;
 
     mapboxgl.accessToken = mapboxToken;
 
+    // Choose style based on minimalStyle prop
+    const mapStyle = minimalStyle 
+      ? 'mapbox://styles/mapbox/light-v11' 
+      : 'mapbox://styles/mapbox/outdoors-v12';
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/outdoors-v12',
+      style: mapStyle,
       center: DEFAULT_CENTER,
       zoom: 4,
-      pitch: 30,
+      pitch: minimalStyle ? 0 : 30,
       bearing: 0,
       antialias: true,
     });
@@ -212,20 +218,30 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     map.current.addControl(geolocateControl, 'bottom-right');
 
     map.current.on('style.load', () => {
-      // Apply vintage color scheme
       if (map.current) {
-        // Warm sepia-like fog for vintage feel
-        map.current.setFog({
-          color: 'rgb(255, 248, 235)',
-          'high-color': 'rgb(245, 235, 215)',
-          'horizon-blend': 0.08,
-          'space-color': 'rgb(245, 235, 215)',
-          'star-intensity': 0,
-        });
+        if (minimalStyle) {
+          // Minimal white/clean style - no fog
+          map.current.setFog({
+            color: 'rgb(255, 255, 255)',
+            'high-color': 'rgb(255, 255, 255)',
+            'horizon-blend': 0.02,
+            'space-color': 'rgb(255, 255, 255)',
+            'star-intensity': 0,
+          });
+        } else {
+          // Warm sepia-like fog for vintage feel
+          map.current.setFog({
+            color: 'rgb(255, 248, 235)',
+            'high-color': 'rgb(245, 235, 215)',
+            'horizon-blend': 0.08,
+            'space-color': 'rgb(245, 235, 215)',
+            'star-intensity': 0,
+          });
 
-        // Adjust water color to vintage blue
-        if (map.current.getLayer('water')) {
-          map.current.setPaintProperty('water', 'fill-color', '#c4d9e8');
+          // Adjust water color to vintage blue
+          if (map.current.getLayer('water')) {
+            map.current.setPaintProperty('water', 'fill-color', '#c4d9e8');
+          }
         }
       }
       setMapReady(true);
@@ -330,58 +346,83 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       const isVerified = venue.isClaimed === true;
       
       const el = document.createElement('div');
-      el.className = 'vintage-wine-marker';
-      el.innerHTML = `
-        <div class="marker-pin" style="
-          background: linear-gradient(180deg, ${config.color}, ${config.color}cc);
-          width: 32px;
-          height: 42px;
-          border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          padding-top: 2px;
-          font-size: 16px;
-          box-shadow: 
-            0 3px 10px rgba(0,0,0,0.3),
-            inset 0 1px 0 rgba(255,255,255,0.3)${isVerified ? ', 0 0 0 3px #f59e0b' : ''};
-          border: 2px solid ${isVerified ? '#f59e0b' : 'rgba(255,255,255,0.8)'};
-          cursor: pointer;
-          transition: transform 0.2s ease;
-          position: relative;
-        ">
-          ${config.icon}
-          ${isVerified ? `
+      el.className = minimalStyle ? 'minimal-wine-marker' : 'vintage-wine-marker';
+      
+      if (minimalStyle) {
+        // Minimal black & white marker style
+        el.innerHTML = `
+          <div class="marker-pin" style="
+            background: ${isVerified ? '#000' : '#fff'};
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            box-shadow: none;
+            border: 2px solid #000;
+            cursor: pointer;
+            transition: transform 0.2s ease, background 0.2s ease;
+            position: relative;
+          ">
+            <span style="filter: ${isVerified ? 'invert(1)' : 'none'};">${config.icon}</span>
+          </div>
+        `;
+      } else {
+        // Vintage colored marker style
+        el.innerHTML = `
+          <div class="marker-pin" style="
+            background: linear-gradient(180deg, ${config.color}, ${config.color}cc);
+            width: 32px;
+            height: 42px;
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 2px;
+            font-size: 16px;
+            box-shadow: 
+              0 3px 10px rgba(0,0,0,0.3),
+              inset 0 1px 0 rgba(255,255,255,0.3)${isVerified ? ', 0 0 0 3px #f59e0b' : ''};
+            border: 2px solid ${isVerified ? '#f59e0b' : 'rgba(255,255,255,0.8)'};
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            position: relative;
+          ">
+            ${config.icon}
+            ${isVerified ? `
+              <div style="
+                position: absolute;
+                top: -6px;
+                right: -6px;
+                width: 16px;
+                height: 16px;
+                background: #f59e0b;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 10px;
+                color: white;
+                border: 2px solid white;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+              ">✓</div>
+            ` : ''}
             <div style="
               position: absolute;
-              top: -6px;
-              right: -6px;
-              width: 16px;
-              height: 16px;
-              background: #f59e0b;
-              border-radius: 50%;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-              font-size: 10px;
-              color: white;
-              border: 2px solid white;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            ">✓</div>
-          ` : ''}
-          <div style="
-            position: absolute;
-            bottom: -6px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 0;
-            height: 0;
-            border-left: 6px solid transparent;
-            border-right: 6px solid transparent;
-            border-top: 8px solid ${config.color}cc;
-          "></div>
-        </div>
-      `;
+              bottom: -6px;
+              left: 50%;
+              transform: translateX(-50%);
+              width: 0;
+              height: 0;
+              border-left: 6px solid transparent;
+              border-right: 6px solid transparent;
+              border-top: 8px solid ${config.color}cc;
+            "></div>
+          </div>
+        `;
+      }
 
       const inner = el.querySelector('.marker-pin') as HTMLDivElement | null;
       el.addEventListener('mouseenter', () => {
@@ -520,7 +561,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
       markersRef.current.push(marker);
     });
-  }, [filteredVenues, mapReady, handleVenueClick]);
+  }, [filteredVenues, mapReady, handleVenueClick, minimalStyle]);
 
   // Search functionality
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -611,16 +652,16 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
   // Render loading state
   if (tokenLoading) {
     return (
-      <div className={`relative w-full h-full flex items-center justify-center ${className}`} style={{ background: 'linear-gradient(180deg, #f8f0e3, #e8dcc8)' }}>
+      <div className={`relative w-full h-full flex items-center justify-center ${className}`} style={{ background: minimalStyle ? '#fff' : 'linear-gradient(180deg, #f8f0e3, #e8dcc8)' }}>
         <motion.div 
           className="flex flex-col items-center gap-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
           <div className="relative">
-            <Compass className="w-16 h-16 text-amber-700 animate-pulse" />
+            <Compass className={`w-16 h-16 animate-pulse ${minimalStyle ? 'text-foreground' : 'text-amber-700'}`} />
           </div>
-          <p className="text-amber-800 font-serif text-lg">Loading the wine map...</p>
+          <p className={`text-lg ${minimalStyle ? 'font-grotesk text-foreground' : 'font-serif text-amber-800'}`}>Loading the wine map...</p>
         </motion.div>
       </div>
     );
@@ -628,17 +669,21 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
   if (tokenError) {
     return (
-      <div className={`relative w-full h-full flex items-center justify-center ${className}`} style={{ background: 'linear-gradient(180deg, #f8f0e3, #e8dcc8)' }}>
+      <div className={`relative w-full h-full flex items-center justify-center ${className}`} style={{ background: minimalStyle ? '#fff' : 'linear-gradient(180deg, #f8f0e3, #e8dcc8)' }}>
         <motion.div 
           className="flex flex-col items-center gap-4 text-center px-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
         >
-          <Wine className="w-16 h-16 text-amber-600" />
-          <p className="text-amber-800 font-serif">Could not load the map</p>
+          <Wine className={`w-16 h-16 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
+          <p className={minimalStyle ? 'font-grotesk text-foreground' : 'font-serif text-amber-800'}>Could not load the map</p>
           <button 
             onClick={fetchToken}
-            className="px-6 py-2 bg-amber-700 text-white rounded-full font-medium hover:bg-amber-800 transition-colors"
+            className={`px-6 py-2 rounded-full font-medium transition-colors ${
+              minimalStyle 
+                ? 'bg-foreground text-background hover:bg-foreground/90' 
+                : 'bg-amber-700 text-white hover:bg-amber-800'
+            }`}
           >
             Retry
           </button>
@@ -648,25 +693,30 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
   }
 
   return (
-    <div className={`relative w-full h-full overflow-hidden rounded-2xl ${className}`}>
-      {/* Vintage paper texture overlay */}
-      <div className="absolute inset-0 pointer-events-none z-10 opacity-30" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-      }} />
-      
-      {/* Vignette effect */}
-      <div className="absolute inset-0 pointer-events-none z-10" style={{
-        background: 'radial-gradient(ellipse at center, transparent 50%, rgba(139, 90, 43, 0.15) 100%)',
-      }} />
+    <div className={`relative w-full h-full overflow-hidden ${minimalStyle ? '' : 'rounded-2xl'} ${className}`}>
+      {/* Texture overlays - only for vintage style */}
+      {!minimalStyle && (
+        <>
+          {/* Vintage paper texture overlay */}
+          <div className="absolute inset-0 pointer-events-none z-10 opacity-30" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
+          }} />
+          
+          {/* Vignette effect */}
+          <div className="absolute inset-0 pointer-events-none z-10" style={{
+            background: 'radial-gradient(ellipse at center, transparent 50%, rgba(139, 90, 43, 0.15) 100%)',
+          }} />
+        </>
+      )}
 
       {/* Search Bar */}
       <div className="absolute top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md z-20">
         <div className="relative">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             {searchLoading ? (
-              <Loader2 className="w-5 h-5 text-amber-600 animate-spin" />
+              <Loader2 className={`w-5 h-5 animate-spin ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
             ) : (
-              <Search className="w-5 h-5 text-amber-600" />
+              <Search className={`w-5 h-5 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
             )}
           </div>
           <input
@@ -674,8 +724,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
             value={searchQuery}
             onChange={handleSearchChange}
             placeholder="Search wine venues & locations..."
-            className="w-full pl-12 pr-4 py-3 rounded-full border-2 border-amber-200 bg-amber-50/95 backdrop-blur-sm text-amber-900 placeholder-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400 shadow-lg font-medium"
-            style={{ fontFamily: 'Georgia, serif' }}
+            className={`w-full pl-12 pr-4 py-3 shadow-lg font-medium ${
+              minimalStyle 
+                ? 'rounded-none border-2 border-foreground bg-background text-foreground placeholder-muted-foreground focus:outline-none' 
+                : 'rounded-full border-2 border-amber-200 bg-amber-50/95 backdrop-blur-sm text-amber-900 placeholder-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400'
+            }`}
+            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
           />
           {searchQuery && (
             <button
@@ -685,7 +739,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
               }}
               className="absolute inset-y-0 right-0 pr-4 flex items-center"
             >
-              <X className="w-5 h-5 text-amber-500 hover:text-amber-700" />
+              <X className={`w-5 h-5 ${minimalStyle ? 'text-muted-foreground hover:text-foreground' : 'text-amber-500 hover:text-amber-700'}`} />
             </button>
           )}
         </div>
@@ -697,28 +751,38 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
-              className="absolute top-full mt-2 w-full bg-amber-50/98 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden border-2 border-amber-200"
+              className={`absolute top-full mt-2 w-full shadow-xl overflow-hidden ${
+                minimalStyle 
+                  ? 'bg-background border-2 border-foreground' 
+                  : 'bg-amber-50/98 backdrop-blur-lg rounded-2xl border-2 border-amber-200'
+              }`}
             >
               {searchResults.map((result: any, index: number) => (
                 <button
                   key={result.id || index}
                   onClick={() => handleResultClick(result)}
-                  className="w-full px-4 py-3 flex items-center gap-3 hover:bg-amber-100 transition-colors text-left border-b border-amber-100 last:border-b-0"
+                  className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left last:border-b-0 ${
+                    minimalStyle 
+                      ? 'hover:bg-muted border-b border-foreground/20' 
+                      : 'hover:bg-amber-100 border-b border-amber-100'
+                  }`}
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    result.isDbVenue ? 'bg-purple-100' : 'bg-amber-100'
+                    minimalStyle 
+                      ? (result.isDbVenue ? 'bg-foreground text-background' : 'border-2 border-foreground')
+                      : (result.isDbVenue ? 'bg-purple-100' : 'bg-amber-100')
                   }`}>
                     {result.isDbVenue ? (
-                      <Wine className="w-4 h-4 text-purple-600" />
+                      <Wine className={`w-4 h-4 ${minimalStyle ? '' : 'text-purple-600'}`} />
                     ) : (
-                      <MapPin className="w-4 h-4 text-amber-600" />
+                      <MapPin className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="font-medium text-amber-900 truncate" style={{ fontFamily: 'Georgia, serif' }}>
+                    <p className={`font-medium truncate ${minimalStyle ? 'text-foreground' : 'text-amber-900'}`} style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}>
                       {result.place_name?.split(',')[0]}
                     </p>
-                    <p className="text-xs text-amber-600 truncate">
+                    <p className={`text-xs truncate ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>
                       {result.isDbVenue ? 'Verified venue' : result.place_name?.split(',').slice(1).join(',').trim()}
                     </p>
                   </div>
@@ -735,19 +799,21 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           {/* Filter Toggle Button */}
           <motion.button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 font-medium border-2 transition-colors ${
-              showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4
-                ? 'bg-amber-600 text-white border-amber-500'
-                : 'bg-amber-50/95 text-amber-800 border-amber-200'
+            className={`px-4 py-2.5 shadow-lg flex items-center gap-2 font-medium transition-colors ${
+              minimalStyle 
+                ? `border-2 border-foreground ${showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4 ? 'bg-foreground text-background' : 'bg-background text-foreground'}`
+                : `rounded-full border-2 ${showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4 ? 'bg-amber-600 text-white border-amber-500' : 'bg-amber-50/95 text-amber-800 border-amber-200'}`
             }`}
-            style={{ fontFamily: 'Georgia, serif' }}
+            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             <Filter className="w-4 h-4" />
             <span className="text-sm">Filtreler</span>
             {(showOnlyVerified || showOnlyOpen || selectedCategories.length < 4) && (
-              <span className="w-5 h-5 rounded-full bg-white text-amber-600 text-xs flex items-center justify-center font-bold">
+              <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold ${
+                minimalStyle ? 'bg-background text-foreground border border-foreground' : 'bg-white text-amber-600'
+              }`}>
                 {(showOnlyVerified ? 1 : 0) + (showOnlyOpen ? 1 : 0) + (4 - selectedCategories.length)}
               </span>
             )}
@@ -760,15 +826,19 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                 initial={{ opacity: 0, y: -10, height: 0 }}
                 animate={{ opacity: 1, y: 0, height: 'auto' }}
                 exit={{ opacity: 0, y: -10, height: 0 }}
-                className="bg-amber-50/98 backdrop-blur-lg rounded-xl shadow-xl overflow-hidden border-2 border-amber-200 p-3"
+                className={`shadow-xl overflow-hidden p-3 ${
+                  minimalStyle 
+                    ? 'bg-background border-2 border-foreground' 
+                    : 'bg-amber-50/98 backdrop-blur-lg rounded-xl border-2 border-amber-200'
+                }`}
               >
                 {/* Verified Only Toggle */}
                 <button
                   onClick={() => setShowOnlyVerified(!showOnlyVerified)}
-                  className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-colors mb-2 ${
-                    showOnlyVerified 
-                      ? 'bg-amber-500 text-white' 
-                      : 'bg-white hover:bg-amber-100 text-amber-800'
+                  className={`w-full px-3 py-2.5 flex items-center gap-2.5 transition-colors mb-2 ${
+                    minimalStyle
+                      ? `border border-foreground/20 ${showOnlyVerified ? 'bg-foreground text-background' : 'bg-background hover:bg-muted text-foreground'}`
+                      : `rounded-lg ${showOnlyVerified ? 'bg-amber-500 text-white' : 'bg-white hover:bg-amber-100 text-amber-800'}`
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
@@ -779,10 +849,10 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                 {/* Open Now Toggle */}
                 <button
                   onClick={() => setShowOnlyOpen(!showOnlyOpen)}
-                  className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-colors mb-2 ${
-                    showOnlyOpen 
-                      ? 'bg-green-500 text-white' 
-                      : 'bg-white hover:bg-amber-100 text-amber-800'
+                  className={`w-full px-3 py-2.5 flex items-center gap-2.5 transition-colors mb-2 ${
+                    minimalStyle
+                      ? `border border-foreground/20 ${showOnlyOpen ? 'bg-foreground text-background' : 'bg-background hover:bg-muted text-foreground'}`
+                      : `rounded-lg ${showOnlyOpen ? 'bg-green-500 text-white' : 'bg-white hover:bg-amber-100 text-amber-800'}`
                   }`}
                 >
                   <Clock className="w-4 h-4" />
@@ -790,21 +860,29 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                   {showOnlyOpen && <Check className="w-4 h-4" />}
                 </button>
 
-                <div className="h-px bg-amber-200 my-2" />
+                <div className={`h-px my-2 ${minimalStyle ? 'bg-foreground/20' : 'bg-amber-200'}`} />
 
                 {/* Category Filters */}
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-xs text-amber-600 font-medium">Kategoriler</p>
+                  <p className={`text-xs font-medium ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>Kategoriler</p>
                   <div className="flex gap-1">
                     <button
                       onClick={() => setSelectedCategories(['wine_shop', 'wine_bar', 'winery', 'restaurant'])}
-                      className="text-xs px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                      className={`text-xs px-2 py-1 transition-colors ${
+                        minimalStyle 
+                          ? 'border border-foreground/30 hover:bg-muted text-foreground' 
+                          : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
+                      }`}
                     >
                       Tümünü Seç
                     </button>
                     <button
                       onClick={() => setSelectedCategories(['wine_shop'])}
-                      className="text-xs px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                      className={`text-xs px-2 py-1 transition-colors ${
+                        minimalStyle 
+                          ? 'border border-foreground/30 hover:bg-muted text-foreground' 
+                          : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
+                      }`}
                     >
                       Temizle
                     </button>
@@ -818,22 +896,26 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                       <button
                         key={category}
                         onClick={() => toggleCategory(category)}
-                        className={`w-full px-3 py-2 rounded-lg flex items-center gap-2.5 transition-colors ${
-                          isSelected 
-                            ? 'bg-white border border-amber-300' 
-                            : 'bg-amber-100/50 opacity-60'
+                        className={`w-full px-3 py-2 flex items-center gap-2.5 transition-colors ${
+                          minimalStyle
+                            ? `border ${isSelected ? 'border-foreground bg-background' : 'border-foreground/20 opacity-60'}`
+                            : `rounded-lg ${isSelected ? 'bg-white border border-amber-300' : 'bg-amber-100/50 opacity-60'}`
                         }`}
                       >
                         <span 
-                          className="w-6 h-6 rounded-full flex items-center justify-center text-sm"
-                          style={{ backgroundColor: isSelected ? config.color : '#ccc' }}
+                          className={`w-6 h-6 flex items-center justify-center text-sm ${minimalStyle ? 'rounded-full border-2 border-foreground' : 'rounded-full'}`}
+                          style={{ backgroundColor: minimalStyle ? (isSelected ? '#000' : '#fff') : (isSelected ? config.color : '#ccc') }}
                         >
-                          {config.icon}
+                          <span style={{ filter: minimalStyle && isSelected ? 'invert(1)' : 'none' }}>{config.icon}</span>
                         </span>
-                        <span className={`text-sm flex-1 text-left ${isSelected ? 'text-amber-900' : 'text-amber-600'}`}>
+                        <span className={`text-sm flex-1 text-left ${
+                          minimalStyle 
+                            ? (isSelected ? 'text-foreground' : 'text-muted-foreground')
+                            : (isSelected ? 'text-amber-900' : 'text-amber-600')
+                        }`}>
                           {config.label}
                         </span>
-                        {isSelected && <Check className="w-4 h-4 text-amber-600" />}
+                        {isSelected && <Check className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />}
                       </button>
                     );
                   })}
@@ -851,10 +933,14 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute top-20 right-4 z-20 bg-amber-50/95 backdrop-blur-sm rounded-full px-4 py-2 shadow-lg flex items-center gap-2 border border-amber-200"
+            className={`absolute top-20 right-4 z-20 px-4 py-2 shadow-lg flex items-center gap-2 ${
+              minimalStyle 
+                ? 'bg-background border-2 border-foreground' 
+                : 'bg-amber-50/95 backdrop-blur-sm rounded-full border border-amber-200'
+            }`}
           >
-            <Loader2 className="w-4 h-4 animate-spin text-amber-600" />
-            <span className="text-sm text-amber-800 font-serif">Discovering venues...</span>
+            <Loader2 className={`w-4 h-4 animate-spin ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
+            <span className={`text-sm ${minimalStyle ? 'font-grotesk text-foreground' : 'font-serif text-amber-800'}`}>Discovering venues...</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -864,8 +950,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
         <motion.button
           onClick={() => currentBounds && fetchVenues(currentBounds)}
           disabled={loading}
-          className="px-6 py-3 rounded-full shadow-lg flex items-center gap-2 font-medium disabled:opacity-50 border-2 border-amber-300"
-          style={{ 
+          className={`px-6 py-3 shadow-lg flex items-center gap-2 font-medium disabled:opacity-50 ${
+            minimalStyle 
+              ? 'border-2 border-foreground bg-foreground text-background hover:bg-foreground/90' 
+              : 'rounded-full border-2 border-amber-300'
+          }`}
+          style={minimalStyle ? { fontFamily: 'Space Grotesk, sans-serif' } : { 
             background: 'linear-gradient(180deg, #d97706, #b45309)',
             color: 'white',
             fontFamily: 'Georgia, serif',
@@ -885,10 +975,14 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="bg-amber-50/95 backdrop-blur-sm rounded-full px-4 py-1.5 shadow-lg text-sm text-amber-800 flex items-center gap-2 border border-amber-200"
-            style={{ fontFamily: 'Georgia, serif' }}
+            className={`px-4 py-1.5 shadow-lg text-sm flex items-center gap-2 ${
+              minimalStyle 
+                ? 'bg-background border-2 border-foreground text-foreground' 
+                : 'bg-amber-50/95 backdrop-blur-sm rounded-full border border-amber-200 text-amber-800'
+            }`}
+            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
           >
-            <Wine className="w-4 h-4 text-amber-600" />
+            <Wine className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
             <span>
               {filteredVenues.length} mekan
               {allVenues.length !== filteredVenues.length && ` (${allVenues.length} toplam)`}
@@ -902,15 +996,23 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
       {/* Google Attribution Badge - Required by Google Terms of Service */}
       <div className="absolute bottom-6 left-4 z-20">
-        <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-amber-200">
+        <div className={`px-3 py-2 shadow-md ${
+          minimalStyle 
+            ? 'bg-background border-2 border-foreground' 
+            : 'bg-white/90 backdrop-blur-sm rounded-lg border border-amber-200'
+        }`}>
           <GoogleAttribution variant="dark" />
         </div>
       </div>
 
       {/* Category Legend */}
       {filteredVenues.length > 0 && (
-        <div className="absolute bottom-24 right-4 z-20 bg-amber-50/95 backdrop-blur-sm rounded-xl shadow-lg border border-amber-200 p-3">
-          <p className="text-xs text-amber-600 font-medium mb-2" style={{ fontFamily: 'Georgia, serif' }}>Kategoriler</p>
+        <div className={`absolute bottom-24 right-4 z-20 shadow-lg p-3 ${
+          minimalStyle 
+            ? 'bg-background border-2 border-foreground' 
+            : 'bg-amber-50/95 backdrop-blur-sm rounded-xl border border-amber-200'
+        }`}>
+          <p className={`text-xs font-medium mb-2 ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`} style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}>Kategoriler</p>
           <div className="space-y-1.5">
             {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
               const config = CATEGORY_CONFIG[category];
@@ -918,13 +1020,17 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
               return (
                 <div key={category} className="flex items-center gap-2">
                   <span 
-                    className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
-                    style={{ backgroundColor: config.color }}
+                    className={`w-5 h-5 flex items-center justify-center text-xs ${minimalStyle ? 'rounded-full border-2 border-foreground' : 'rounded-full'}`}
+                    style={{ backgroundColor: minimalStyle ? '#000' : config.color }}
                   >
-                    {config.icon}
+                    <span style={{ filter: minimalStyle ? 'invert(1)' : 'none' }}>{config.icon}</span>
                   </span>
-                  <span className="text-xs text-amber-800 flex-1">{config.label}</span>
-                  <span className="text-xs font-bold text-amber-600 bg-amber-100 px-1.5 py-0.5 rounded-full min-w-[24px] text-center">
+                  <span className={`text-xs flex-1 ${minimalStyle ? 'text-foreground' : 'text-amber-800'}`}>{config.label}</span>
+                  <span className={`text-xs font-bold px-1.5 py-0.5 min-w-[24px] text-center ${
+                    minimalStyle 
+                      ? 'border border-foreground text-foreground' 
+                      : 'text-amber-600 bg-amber-100 rounded-full'
+                  }`}>
                     {count}
                   </span>
                 </div>
@@ -934,45 +1040,65 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
         </div>
       )}
 
-      {/* Decorative compass rose */}
-      <div className="absolute bottom-4 right-4 z-10 opacity-20 pointer-events-none">
-        <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
-          <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
-          <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
-          <path d="M50 90 L55 55 L50 50 L45 55 Z" fill="#d4a574" />
-          <path d="M10 50 L45 45 L50 50 L45 55 Z" fill="#d4a574" />
-          <path d="M90 50 L55 45 L50 50 L55 55 Z" fill="#8b5a2b" />
-          <text x="50" y="8" textAnchor="middle" fontSize="10" fill="#8b5a2b">N</text>
-        </svg>
-      </div>
+      {/* Decorative compass rose - only for vintage style */}
+      {!minimalStyle && (
+        <div className="absolute bottom-4 right-4 z-10 opacity-20 pointer-events-none">
+          <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
+            <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
+            <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
+            <path d="M50 90 L55 55 L50 50 L45 55 Z" fill="#d4a574" />
+            <path d="M10 50 L45 45 L50 50 L45 55 Z" fill="#d4a574" />
+            <path d="M90 50 L55 45 L50 50 L55 55 Z" fill="#8b5a2b" />
+            <text x="50" y="8" textAnchor="middle" fontSize="10" fill="#8b5a2b">N</text>
+          </svg>
+        </div>
+      )}
 
       {/* Custom styles */}
       <style>{`
-        .vintage-popup .mapboxgl-popup-content {
-          border-radius: 16px;
-          padding: 0;
-          background: transparent;
-          box-shadow: 0 4px 20px rgba(139, 90, 43, 0.3);
-          border: 2px solid #d4c4a8;
-        }
-        .vintage-popup .mapboxgl-popup-tip {
-          border-top-color: #f8f0e3;
-        }
-        .mapboxgl-ctrl-group {
-          background: #f8f0e3 !important;
-          border: 2px solid #d4c4a8 !important;
-          border-radius: 12px !important;
-          overflow: hidden;
-        }
-        .mapboxgl-ctrl-group button {
-          background: #f8f0e3 !important;
-        }
-        .mapboxgl-ctrl-group button:hover {
-          background: #e8dcc8 !important;
-        }
-        .mapboxgl-ctrl-group button + button {
-          border-top: 1px solid #d4c4a8 !important;
-        }
+        ${minimalStyle ? `
+          .mapboxgl-ctrl-group {
+            background: #fff !important;
+            border: 2px solid #000 !important;
+            border-radius: 0 !important;
+            overflow: hidden;
+          }
+          .mapboxgl-ctrl-group button {
+            background: #fff !important;
+          }
+          .mapboxgl-ctrl-group button:hover {
+            background: #f0f0f0 !important;
+          }
+          .mapboxgl-ctrl-group button + button {
+            border-top: 1px solid #000 !important;
+          }
+        ` : `
+          .vintage-popup .mapboxgl-popup-content {
+            border-radius: 16px;
+            padding: 0;
+            background: transparent;
+            box-shadow: 0 4px 20px rgba(139, 90, 43, 0.3);
+            border: 2px solid #d4c4a8;
+          }
+          .vintage-popup .mapboxgl-popup-tip {
+            border-top-color: #f8f0e3;
+          }
+          .mapboxgl-ctrl-group {
+            background: #f8f0e3 !important;
+            border: 2px solid #d4c4a8 !important;
+            border-radius: 12px !important;
+            overflow: hidden;
+          }
+          .mapboxgl-ctrl-group button {
+            background: #f8f0e3 !important;
+          }
+          .mapboxgl-ctrl-group button:hover {
+            background: #e8dcc8 !important;
+          }
+          .mapboxgl-ctrl-group button + button {
+            border-top: 1px solid #d4c4a8 !important;
+          }
+        `}
       `}</style>
 
       {/* Venue Detail Panel */}
