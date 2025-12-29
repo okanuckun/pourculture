@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2 } from 'lucide-react';
+import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { WineVenue, CATEGORY_CONFIG } from './types';
@@ -66,11 +67,22 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
   isOpen,
   onClose,
 }) => {
+  const navigate = useNavigate();
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(false);
   const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
   const [dbVenue, setDbVenue] = useState<DatabaseVenue | null>(null);
   const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
+
+  const handleViewProfile = () => {
+    onClose();
+    if (venue?.source === 'database' && venue.slug) {
+      navigate(`/venue/${venue.slug}`);
+    } else if (venue?.source === 'google' && venue.googlePlaceId) {
+      const placeId = venue.googlePlaceId.replace('google_', '');
+      navigate(`/place/google/${placeId}`);
+    }
+  };
 
   useEffect(() => {
     if (!venue || !isOpen) {
@@ -303,22 +315,31 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   {/* Action Buttons */}
                   <div className="flex flex-wrap gap-3">
                     <Button 
+                      onClick={handleViewProfile}
+                      className="flex-1"
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      View Profile
+                    </Button>
+                    
+                    <Button 
+                      variant="outline"
                       onClick={() => setNavigationDialogOpen(true)}
                       className="flex-1"
                     >
                       <Navigation className="w-4 h-4 mr-2" />
                       Get Directions
                     </Button>
-                    
-                    {'googleMapsUrl' in displayData && displayData.googleMapsUrl && (
-                      <a href={displayData.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="flex-1">
-                        <Button variant="outline" className="w-full">
-                          <ExternalLink className="w-4 h-4 mr-2" />
-                          Google Maps
-                        </Button>
-                      </a>
-                    )}
                   </div>
+                  
+                  {'googleMapsUrl' in displayData && displayData.googleMapsUrl && (
+                    <a href={displayData.googleMapsUrl} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="sm" className="w-full">
+                        <ExternalLink className="w-4 h-4 mr-2" />
+                        Open in Google Maps
+                      </Button>
+                    </a>
+                  )}
 
                   {/* Description/Story */}
                   {'description' in displayData && displayData.description && (
