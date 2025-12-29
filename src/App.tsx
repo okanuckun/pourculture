@@ -28,6 +28,9 @@ import Forum from "./pages/Forum";
 import ForumTopic from "./pages/ForumTopic";
 import WineMapPage from "./pages/WineMapPage";
 import ClaimVenue from "./pages/ClaimVenue";
+import OwnerDashboard from "./pages/OwnerDashboard";
+import EditVenueProfile from "./pages/EditVenueProfile";
+import EditWinemakerProfile from "./pages/EditWinemakerProfile";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -60,6 +63,9 @@ const App = () => (
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/claims" element={<AdminClaims />} />
+      <Route path="/dashboard" element={<OwnerDashboard />} />
+      <Route path="/dashboard/venue/:id/edit" element={<EditVenueProfile />} />
+      <Route path="/dashboard/winemaker/:id/edit" element={<EditWinemakerProfile />} />
       <Route path="/claim-venue" element={<ClaimVenue />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
