@@ -88,15 +88,15 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                   <ChevronDown className="w-3 h-3" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-background border-foreground/20">
-                  <DropdownMenuItem onClick={() => navigate('/submit-venue')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/venue')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit a Venue</span>
                     <span className="text-[10px] text-muted-foreground">Bar, restaurant, wine shop</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit-winemaker')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/winemaker')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit a Winemaker</span>
                     <span className="text-[10px] text-muted-foreground">Natural wine producer</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit-wine-fair')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/event')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit an Event</span>
                     <span className="text-[10px] text-muted-foreground">Wine fair, tasting, festival</span>
                   </DropdownMenuItem>
@@ -196,18 +196,25 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
               <div className="border-t border-foreground/10 pt-2 mt-2">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Submit</div>
                 <Link 
-                  to="/submit-venue" 
+                  to="/submit/venue" 
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-1.5 text-xs hover:text-muted-foreground"
                 >
                   Submit a Venue
                 </Link>
                 <Link 
-                  to="/submit-winemaker" 
+                  to="/submit/winemaker" 
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-1.5 text-xs hover:text-muted-foreground"
                 >
                   Submit a Winemaker
+                </Link>
+                <Link 
+                  to="/submit/event" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Submit an Event
                 </Link>
                 <Link 
                   to="/claim-venue" 
