@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
-import { WineVenueCategory, WineFairMarker } from '@/components/WineMap/types';
-import { ChevronDown, Menu, X, Search, User, Heart } from 'lucide-react';
+import { ChevronDown, Menu, X, User, Heart, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuthSheet } from '@/components/AuthSheet';
@@ -13,48 +11,22 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export type CategoryType = 'overview' | 'bar' | 'wine_shop' | 'restaurant' | 'winemaker' | 'events';
-
-export interface UserCoordinates {
-  lat: number;
-  lng: number;
+interface BrutalistLayoutProps {
+  children: React.ReactNode;
+  title?: string;
+  subtitle?: string;
+  showBackButton?: boolean;
+  backPath?: string;
+  backLabel?: string;
 }
 
-interface BrutalistHeroProps {
-  minimalMapStyle?: boolean;
-  activeCategory: CategoryType;
-  onCategoryChange: (category: CategoryType) => void;
-  userLocation?: string;
-  userCoords?: UserCoordinates | null;
-  wineFairs?: WineFairMarker[];
-}
-
-// Map CategoryType to WineVenueCategory for the map filter
-const categoryToMapFilter = (category: CategoryType): WineVenueCategory[] => {
-  switch (category) {
-    case 'bar':
-      return ['wine_bar'];
-    case 'wine_shop':
-      return ['wine_shop'];
-    case 'restaurant':
-      return ['restaurant'];
-    case 'winemaker':
-      return ['winery'];
-    case 'events':
-      return []; // Hide all venue markers for events view
-    case 'overview':
-    default:
-      return ['wine_shop', 'wine_bar', 'winery', 'restaurant'];
-  }
-};
-
-export const BrutalistHero: React.FC<BrutalistHeroProps> = ({ 
-  minimalMapStyle = true,
-  activeCategory,
-  onCategoryChange,
-  userLocation,
-  userCoords,
-  wineFairs = []
+export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
+  children,
+  title,
+  subtitle,
+  showBackButton = false,
+  backPath = '/',
+  backLabel = 'Back',
 }) => {
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
@@ -73,23 +45,11 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
     return () => subscription.unsubscribe();
   }, []);
 
-  const categories: { label: string; value: CategoryType }[] = [
-    { label: 'OVERVIEW', value: 'overview' },
-    { label: 'WINE BARS', value: 'bar' },
-    { label: 'SHOPS', value: 'wine_shop' },
-    { label: 'RESTAURANTS', value: 'restaurant' },
-    { label: 'WINEMAKERS', value: 'winemaker' },
-    { label: 'EVENTS', value: 'events' },
-  ];
-
-  const mapCategories = categoryToMapFilter(activeCategory);
-  const showEvents = activeCategory === 'events';
-
   return (
-    <div className="bg-background text-foreground">
+    <div className="min-h-screen bg-background text-foreground">
       {/* Main Navbar */}
-      <header className="border-b border-foreground/20">
-        <div className="flex items-center justify-between h-12 px-4">
+      <header className="border-b border-foreground/20 sticky top-0 bg-background z-50">
+        <div className="flex items-center justify-between h-12 px-4 md:px-6">
           {/* Logo */}
           <Link to="/" className="text-sm font-bold tracking-tight">
             POURCULTURE
@@ -97,13 +57,6 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
 
           {/* Right Side Navigation */}
           <div className="flex items-center gap-1 md:gap-2">
-            {/* Location - Desktop */}
-            {userLocation && (
-              <span className="hidden lg:flex items-center gap-1 text-muted-foreground text-[10px] px-2">
-                📍 {userLocation}
-              </span>
-            )}
-
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center">
               {/* Natural Wine Dropdown */}
@@ -210,60 +163,35 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
         {isMobileMenuOpen && (
           <div className="md:hidden border-t border-foreground/20 animate-in slide-in-from-top duration-200">
             <div className="px-4 py-3 space-y-2">
-              <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Explore</div>
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Natural Wine</div>
               <Link 
-                to="/discover?category=restaurant" 
+                to="/about/natural-wine" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-1.5 text-xs hover:text-muted-foreground"
               >
-                Restaurants
+                What is Natural Wine?
               </Link>
               <Link 
-                to="/discover?category=bar" 
+                to="/knowledge" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-1.5 text-xs hover:text-muted-foreground"
               >
-                Wine Bars
+                Knowledge Hub
               </Link>
               <Link 
-                to="/discover?category=wine_shop" 
+                to="/forum" 
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="block py-1.5 text-xs hover:text-muted-foreground"
               >
-                Wine Shops
+                Forum
               </Link>
-              
-              <div className="border-t border-foreground/10 pt-2 mt-2">
-                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Natural Wine</div>
-                <Link 
-                  to="/about/natural-wine" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-1.5 text-xs hover:text-muted-foreground"
-                >
-                  What is Natural Wine?
-                </Link>
-                <Link 
-                  to="/knowledge" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-1.5 text-xs hover:text-muted-foreground"
-                >
-                  Knowledge Hub
-                </Link>
-                <Link 
-                  to="/forum" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-1.5 text-xs hover:text-muted-foreground"
-                >
-                  Forum
-                </Link>
-                <Link 
-                  to="/news" 
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="block py-1.5 text-xs hover:text-muted-foreground"
-                >
-                  News
-                </Link>
-              </div>
+              <Link 
+                to="/news" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-1.5 text-xs hover:text-muted-foreground"
+              >
+                News
+              </Link>
 
               <div className="border-t border-foreground/10 pt-2 mt-2">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Submit</div>
@@ -335,34 +263,76 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
         )}
       </header>
 
-      {/* Map Section - Full Width */}
-      <div className="border-b border-foreground/20 h-[50vh] min-h-[350px]">
-        <HomeWineMap 
-          minimalStyle={minimalMapStyle} 
-          filterCategories={mapCategories}
-          wineFairs={wineFairs}
-          showEvents={showEvents}
-        />
-      </div>
-
-      {/* Category Pills */}
-      <div className="border-b border-foreground/20 py-3 px-4 overflow-x-auto sticky top-0 bg-background z-10">
-        <div className="flex items-center justify-center gap-2">
-          {categories.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => onCategoryChange(cat.value)}
-              className={`px-4 py-1.5 text-[10px] tracking-wider rounded-sm transition-colors whitespace-nowrap ${
-                activeCategory === cat.value
-                  ? 'bg-foreground text-background' 
-                  : 'border border-foreground/20 hover:border-foreground/50'
-              }`}
-            >
-              {cat.label}
-            </button>
-          ))}
+      {/* Page Header */}
+      {(title || showBackButton) && (
+        <div className="border-b border-foreground/20 px-4 md:px-6 py-6 md:py-8">
+          <div className="max-w-6xl mx-auto">
+            {showBackButton && (
+              <Link 
+                to={backPath}
+                className="inline-flex items-center gap-2 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors mb-4"
+              >
+                <ArrowLeft className="w-3 h-3" />
+                {backLabel.toUpperCase()}
+              </Link>
+            )}
+            {title && (
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight">{title}</h1>
+            )}
+            {subtitle && (
+              <p className="text-sm md:text-base text-muted-foreground mt-2 max-w-2xl">{subtitle}</p>
+            )}
+          </div>
         </div>
-      </div>
+      )}
+
+      {/* Main Content */}
+      <main>
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-foreground/20 py-8 px-4 md:px-6 mt-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">EXPLORE</h3>
+              <div className="space-y-2">
+                <Link to="/discover?category=bar" className="block text-xs hover:text-muted-foreground">Wine Bars</Link>
+                <Link to="/discover?category=wine_shop" className="block text-xs hover:text-muted-foreground">Wine Shops</Link>
+                <Link to="/discover?category=restaurant" className="block text-xs hover:text-muted-foreground">Restaurants</Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">LEARN</h3>
+              <div className="space-y-2">
+                <Link to="/about/natural-wine" className="block text-xs hover:text-muted-foreground">What is Natural Wine?</Link>
+                <Link to="/knowledge" className="block text-xs hover:text-muted-foreground">Knowledge Hub</Link>
+                <Link to="/forum" className="block text-xs hover:text-muted-foreground">Forum</Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">SUBMIT</h3>
+              <div className="space-y-2">
+                <Link to="/submit-venue" className="block text-xs hover:text-muted-foreground">Add a Venue</Link>
+                <Link to="/submit-winemaker" className="block text-xs hover:text-muted-foreground">Add a Winemaker</Link>
+                <Link to="/claim-venue" className="block text-xs hover:text-muted-foreground">Claim Your Business</Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">POURCULTURE</h3>
+              <p className="text-xs text-muted-foreground">
+                Discover natural wine venues and winemakers around the world.
+              </p>
+            </div>
+          </div>
+          <div className="border-t border-foreground/10 mt-8 pt-6 text-center">
+            <p className="text-[10px] text-muted-foreground tracking-wider">
+              © {new Date().getFullYear()} POURCULTURE. ALL RIGHTS RESERVED.
+            </p>
+          </div>
+        </div>
+      </footer>
 
       {/* Auth Sheet */}
       <AuthSheet isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
