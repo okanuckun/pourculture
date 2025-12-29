@@ -1,7 +1,17 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
 import { WineVenueCategory, WineFairMarker } from '@/components/WineMap/types';
+import { ChevronDown, Menu, X, Search, User, Heart } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser } from '@supabase/supabase-js';
+import { AuthSheet } from '@/components/AuthSheet';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export type CategoryType = 'overview' | 'bar' | 'wine_shop' | 'restaurant' | 'winemaker' | 'events';
 
@@ -46,6 +56,23 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
   userCoords,
   wineFairs = []
 }) => {
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   const categories: { label: string; value: CategoryType }[] = [
     { label: 'OVERVIEW', value: 'overview' },
     { label: 'WINE BARS', value: 'bar' },
@@ -63,33 +90,271 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
       {/* Main Navbar */}
       <header className="border-b border-foreground/20">
         <div className="flex items-center justify-between h-12 px-4">
-          <Link to="/" className="text-sm font-bold tracking-tight">
-            POURCULTURE
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link to="/" className="text-sm font-bold tracking-tight">
+              POURCULTURE
+            </Link>
 
-          <div className="flex items-center gap-4 text-xs">
+            {/* Desktop Navigation */}
+            <nav className="hidden md:flex items-center gap-1">
+              {/* Explore Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+                  EXPLORE
+                  <ChevronDown className="w-3 h-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-background border-foreground/20">
+                  <DropdownMenuItem onClick={() => navigate('/discover?category=restaurant')} className="text-xs">
+                    Restaurants
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/discover?category=bar')} className="text-xs">
+                    Wine Bars
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/discover?category=wine_shop')} className="text-xs">
+                    Wine Shops
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/discover')} className="text-xs">
+                    All Venues
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Natural Wine Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+                  NATURAL WINE
+                  <ChevronDown className="w-3 h-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-48 bg-background border-foreground/20">
+                  <DropdownMenuItem onClick={() => navigate('/about/natural-wine')} className="text-xs">
+                    What is Natural Wine?
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/knowledge')} className="text-xs">
+                    Knowledge Hub
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/forum')} className="text-xs">
+                    Forum
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/news')} className="text-xs">
+                    News
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              {/* Submit & Claim Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
+                  SUBMIT
+                  <ChevronDown className="w-3 h-3" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-56 bg-background border-foreground/20">
+                  <DropdownMenuItem onClick={() => navigate('/submit-venue')} className="flex flex-col items-start text-xs">
+                    <span className="font-medium">Submit a Venue</span>
+                    <span className="text-[10px] text-muted-foreground">Bar, restaurant, wine shop</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/submit-winemaker')} className="flex flex-col items-start text-xs">
+                    <span className="font-medium">Submit a Winemaker</span>
+                    <span className="text-[10px] text-muted-foreground">Natural wine producer</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/submit-wine-fair')} className="flex flex-col items-start text-xs">
+                    <span className="font-medium">Submit an Event</span>
+                    <span className="text-[10px] text-muted-foreground">Wine fair, tasting, festival</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/claim-venue')} className="flex flex-col items-start text-xs border-t mt-1 pt-2">
+                    <span className="font-medium">Claim Your Business</span>
+                    <span className="text-[10px] text-muted-foreground">Already listed? Claim ownership</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
             {userLocation && (
-              <span className="text-muted-foreground">
+              <span className="hidden md:flex items-center gap-1 text-muted-foreground text-[10px]">
                 📍 {userLocation}
               </span>
             )}
-            <Link to="/submit-venue" className="text-muted-foreground hover:text-foreground transition-colors">
-              SUBMIT
-            </Link>
-            <Link to="/claim-venue" className="text-muted-foreground hover:text-foreground transition-colors">
-              CLAIM
-            </Link>
-            <Link to="/auth" className="hover:text-muted-foreground transition-colors">
-              SIGN IN
-            </Link>
-            <span className="flex items-center gap-1">
-              FAVS
-              <span className="w-5 h-5 rounded-full border border-foreground flex items-center justify-center text-[10px]">
+            
+            {/* User Account */}
+            {user ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider hover:text-muted-foreground transition-colors">
+                  <User className="w-3.5 h-3.5" />
+                  <span className="hidden md:inline">ACCOUNT</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 bg-background border-foreground/20">
+                  <DropdownMenuItem onClick={() => navigate('/dashboard')} className="text-xs">
+                    My Dashboard
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/my-events')} className="text-xs">
+                    My Events
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/claim-venue')} className="text-xs">
+                    Claim a Venue
+                  </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={async () => await supabase.auth.signOut()}
+                    className="text-xs text-destructive focus:text-destructive"
+                  >
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <button 
+                onClick={() => setIsAuthOpen(true)}
+                className="text-[10px] tracking-wider hover:text-muted-foreground transition-colors"
+              >
+                SIGN IN
+              </button>
+            )}
+            
+            {/* Favorites */}
+            <Link to="/favorites" className="flex items-center gap-1 hover:text-muted-foreground transition-colors">
+              <Heart className="w-3.5 h-3.5" />
+              <span className="w-4 h-4 rounded-full border border-foreground flex items-center justify-center text-[9px]">
                 0
               </span>
-            </span>
+            </Link>
+
+            {/* Mobile Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="md:hidden p-1"
+            >
+              {isMobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden border-t border-foreground/20 animate-in slide-in-from-top duration-200">
+            <div className="px-4 py-3 space-y-2">
+              <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Explore</div>
+              <Link 
+                to="/discover?category=restaurant" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-1.5 text-xs hover:text-muted-foreground"
+              >
+                Restaurants
+              </Link>
+              <Link 
+                to="/discover?category=bar" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-1.5 text-xs hover:text-muted-foreground"
+              >
+                Wine Bars
+              </Link>
+              <Link 
+                to="/discover?category=wine_shop" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-1.5 text-xs hover:text-muted-foreground"
+              >
+                Wine Shops
+              </Link>
+              
+              <div className="border-t border-foreground/10 pt-2 mt-2">
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Natural Wine</div>
+                <Link 
+                  to="/about/natural-wine" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  What is Natural Wine?
+                </Link>
+                <Link 
+                  to="/knowledge" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Knowledge Hub
+                </Link>
+                <Link 
+                  to="/forum" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Forum
+                </Link>
+                <Link 
+                  to="/news" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  News
+                </Link>
+              </div>
+
+              <div className="border-t border-foreground/10 pt-2 mt-2">
+                <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Submit</div>
+                <Link 
+                  to="/submit-venue" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Submit a Venue
+                </Link>
+                <Link 
+                  to="/submit-winemaker" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Submit a Winemaker
+                </Link>
+                <Link 
+                  to="/claim-venue" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Claim Your Business
+                </Link>
+              </div>
+
+              {user ? (
+                <div className="border-t border-foreground/10 pt-2 mt-2">
+                  <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Account</div>
+                  <Link 
+                    to="/dashboard" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-1.5 text-xs hover:text-muted-foreground"
+                  >
+                    My Dashboard
+                  </Link>
+                  <Link 
+                    to="/my-events" 
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="block py-1.5 text-xs hover:text-muted-foreground"
+                  >
+                    My Events
+                  </Link>
+                  <button 
+                    onClick={async () => {
+                      await supabase.auth.signOut();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block py-1.5 text-xs text-destructive"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="border-t border-foreground/10 pt-2 mt-2">
+                  <button 
+                    onClick={() => {
+                      setIsAuthOpen(true);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="block py-1.5 text-xs font-medium"
+                  >
+                    Sign In
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
       </header>
 
       {/* Map Section - Full Width */}
@@ -120,6 +385,9 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
           ))}
         </div>
       </div>
+
+      {/* Auth Sheet */}
+      <AuthSheet isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
     </div>
   );
 };
