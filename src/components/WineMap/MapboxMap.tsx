@@ -262,6 +262,18 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
         'star-intensity': 0.15,
       });
       setMapReady(true);
+      
+      // Auto-fetch OSM venues on initial load
+      if (map.current) {
+        const bounds = map.current.getBounds();
+        const initialBounds = {
+          south: bounds.getSouth(),
+          west: bounds.getWest(),
+          north: bounds.getNorth(),
+          east: bounds.getEast(),
+        };
+        setCurrentBounds(initialBounds);
+      }
     });
 
     // Update bounds on move
@@ -467,6 +479,13 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       setLoading(false);
     }
   }, []);
+
+  // Auto-fetch OSM venues when bounds are first set
+  useEffect(() => {
+    if (currentBounds && !hasSearched && mapReady) {
+      fetchVenues(currentBounds);
+    }
+  }, [currentBounds, hasSearched, mapReady, fetchVenues]);
 
   // Handle refresh
   const handleRefresh = () => {
