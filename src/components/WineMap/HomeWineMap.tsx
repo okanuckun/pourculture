@@ -10,6 +10,7 @@ import { fetchWineVenuesFromGoogle } from './googlePlacesApi';
 import { fetchAllDatabaseVenues } from './databaseApi';
 import { VenueDetailPanel } from './VenueDetailPanel';
 import { supabase } from '@/integrations/supabase/client';
+import { GoogleAttribution } from '@/components/GoogleAttribution';
 
 interface HomeWineMapProps {
   className?: string;
@@ -629,8 +630,15 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
 
+      {/* Google Attribution Badge - Required by Google Terms of Service */}
+      <div className="absolute bottom-6 left-4 z-20">
+        <div className="bg-white/90 backdrop-blur-sm rounded-lg px-3 py-2 shadow-md border border-amber-200">
+          <GoogleAttribution variant="dark" />
+        </div>
+      </div>
+
       {/* Decorative compass rose */}
-      <div className="absolute bottom-6 right-4 z-10 opacity-20 pointer-events-none">
+      <div className="absolute bottom-20 right-4 z-10 opacity-20 pointer-events-none">
         <svg width="60" height="60" viewBox="0 0 100 100" fill="none">
           <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
           <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
