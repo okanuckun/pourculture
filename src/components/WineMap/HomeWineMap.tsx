@@ -92,6 +92,84 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     loadDbVenues();
   }, []);
 
+  // Fetch venues - moved up to be used by getUserLocationAndSearch
+  const fetchVenues = useCallback(async (bounds: MapBounds) => {
+    setLoading(true);
+    try {
+      const centerLat = (bounds.north + bounds.south) / 2;
+      const centerLng = (bounds.east + bounds.west) / 2;
+      
+      const latDiff = bounds.north - bounds.south;
+      const lngDiff = bounds.east - bounds.west;
+      const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
+      const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
+      
+      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, true);
+      setGoogleVenues(venues);
+      setHasSearched(true);
+    } catch (error) {
+      console.error('Error fetching venues:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Get user location and auto-search
+  const getUserLocationAndSearch = useCallback(() => {
+    if (!map.current || !mapReady) return;
+    
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          
+          map.current?.flyTo({
+            center: [longitude, latitude],
+            zoom: 13,
+            duration: 2000,
+            essential: true,
+          });
+          
+          // Auto-search after flying to user location
+          map.current?.once('moveend', () => {
+            if (!map.current) return;
+            const bounds = map.current.getBounds();
+            const newBounds = {
+              south: bounds.getSouth(),
+              west: bounds.getWest(),
+              north: bounds.getNorth(),
+              east: bounds.getEast(),
+            };
+            setCurrentBounds(newBounds);
+            fetchVenues(newBounds);
+          });
+          
+          toast.success('Konumunuz tespit edildi', {
+            description: 'Yakındaki mekanlar aranıyor...',
+            duration: 3000,
+          });
+        },
+        (error) => {
+          console.log('Geolocation error:', error.message);
+          // If user denies or error occurs, just search the default area
+          if (currentBounds) {
+            fetchVenues(currentBounds);
+          }
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000, // 5 minutes cache
+        }
+      );
+    } else {
+      // Geolocation not supported, search default area
+      if (currentBounds) {
+        fetchVenues(currentBounds);
+      }
+    }
+  }, [mapReady, currentBounds, fetchVenues]);
+
   // Initialize map with vintage style
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken || map.current) return;
@@ -115,6 +193,17 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       }),
       'bottom-right'
     );
+
+    // Add geolocate control
+    const geolocateControl = new mapboxgl.GeolocateControl({
+      positionOptions: {
+        enableHighAccuracy: true,
+      },
+      trackUserLocation: false,
+      showUserHeading: false,
+      showUserLocation: true,
+    });
+    map.current.addControl(geolocateControl, 'bottom-right');
 
     map.current.on('style.load', () => {
       // Apply vintage color scheme
@@ -162,6 +251,13 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       map.current = null;
     };
   }, [mapboxToken]);
+
+  // Auto-detect location and search on first load
+  useEffect(() => {
+    if (mapReady && !hasSearched) {
+      getUserLocationAndSearch();
+    }
+  }, [mapReady, hasSearched, getUserLocationAndSearch]);
 
   // Combine venues
   const allVenues = useMemo(() => {
@@ -357,28 +453,6 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       markersRef.current.push(marker);
     });
   }, [allVenues, mapReady, handleVenueClick]);
-
-  // Fetch venues
-  const fetchVenues = useCallback(async (bounds: MapBounds) => {
-    setLoading(true);
-    try {
-      const centerLat = (bounds.north + bounds.south) / 2;
-      const centerLng = (bounds.east + bounds.west) / 2;
-      
-      const latDiff = bounds.north - bounds.south;
-      const lngDiff = bounds.east - bounds.west;
-      const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
-      const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
-      
-      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, true);
-      setGoogleVenues(venues);
-      setHasSearched(true);
-    } catch (error) {
-      console.error('Error fetching venues:', error);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
   // Search functionality
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
