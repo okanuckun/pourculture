@@ -122,12 +122,6 @@ const BrutalistHome = () => {
 
     const requestLocation = async () => {
       if ('geolocation' in navigator) {
-        // Show toast asking for location
-        toast.info('Konum İzni', {
-          description: 'Yakınınızdaki mekanları göstermek için konum izni vermenizi rica ediyoruz.',
-          duration: 5000,
-        });
-
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const coords = {
@@ -147,10 +141,6 @@ const BrutalistHome = () => {
                   const data = await response.json();
                   if (data.features && data.features.length > 0) {
                     setUserLocation(data.features[0].text);
-                    toast.success(`Konum: ${data.features[0].text}`, {
-                      description: 'Yakınınızdaki mekanlar gösteriliyor.',
-                      duration: 3000,
-                    });
                   }
                 }
               }
@@ -163,10 +153,6 @@ const BrutalistHome = () => {
           },
           () => {
             console.log('Location permission denied');
-            toast.info('Konum izni verilmedi', {
-              description: 'Tüm mekanlar gösteriliyor.',
-              duration: 3000,
-            });
             // Fetch data without location
             fetchData(null);
           },
