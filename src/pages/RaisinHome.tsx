@@ -98,13 +98,13 @@ const RaisinHome = () => {
             
             <motion.h1 
               className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4"
-              style={{ fontFamily: 'Georgia, serif', color: '#451a03' }}
+              style={{ fontFamily: 'Georgia, serif' }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <span className="text-amber-700">RAW</span>{' '}
-              <span className="text-amber-900">CELLAR</span>
+              <span className="text-amber-700">Pour</span>
+              <span className="text-amber-900">Culture</span>
             </motion.h1>
             
             <motion.p 
