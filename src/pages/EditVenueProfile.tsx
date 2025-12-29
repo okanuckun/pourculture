@@ -9,8 +9,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ArrowLeft, Save, Plus, X, Upload, Camera, Clock, Wine, Calendar, Link as LinkIcon } from 'lucide-react';
+import { ArrowLeft, Save, Plus, X, Clock, Wine, Calendar, Link as LinkIcon, Camera } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PhotoUploader } from '@/components/venue';
 
 interface WineItem {
   name: string;
@@ -53,7 +54,6 @@ const EditVenueProfile: React.FC = () => {
   const [story, setStory] = useState('');
   const [menuUrl, setMenuUrl] = useState('');
   const [photos, setPhotos] = useState<string[]>([]);
-  const [newPhotoUrl, setNewPhotoUrl] = useState('');
   const [wineList, setWineList] = useState<WineItem[]>([]);
   const [events, setEvents] = useState<VenueEvent[]>([]);
   const [openingHours, setOpeningHours] = useState<Record<string, string>>({});
@@ -132,16 +132,7 @@ const EditVenueProfile: React.FC = () => {
     setSaving(false);
   };
 
-  const addPhoto = () => {
-    if (newPhotoUrl.trim()) {
-      setPhotos([...photos, newPhotoUrl.trim()]);
-      setNewPhotoUrl('');
-    }
-  };
-
-  const removePhoto = (index: number) => {
-    setPhotos(photos.filter((_, i) => i !== index));
-  };
+  // Photo handling is now done by PhotoUploader component
 
   const addWine = () => {
     setWineList([...wineList, { name: '', grape: '', region: '', price: '', description: '' }]);
@@ -235,30 +226,12 @@ const EditVenueProfile: React.FC = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
-                {photos.map((photo, index) => (
-                  <div key={index} className="relative aspect-square rounded-lg overflow-hidden group">
-                    <img src={photo} alt={`Photo ${index + 1}`} className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => removePhoto(index)}
-                      className="absolute top-2 right-2 p-1 rounded-full bg-red-500 text-white opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <X className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <div className="flex gap-2">
-                <Input
-                  value={newPhotoUrl}
-                  onChange={(e) => setNewPhotoUrl(e.target.value)}
-                  placeholder="Fotoğraf URL'si ekleyin..."
-                  className="flex-1"
-                />
-                <Button onClick={addPhoto} variant="outline">
-                  <Plus className="w-4 h-4" />
-                </Button>
-              </div>
+              <PhotoUploader
+                photos={photos}
+                onPhotosChange={setPhotos}
+                folder={`venues/${id}`}
+                maxPhotos={10}
+              />
             </CardContent>
           </Card>
 
