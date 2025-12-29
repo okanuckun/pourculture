@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2, User, AlertCircle } from 'lucide-react';
+import { X, MapPin, Clock, Phone, Globe, Star, Navigation, ExternalLink, Loader2, User, AlertCircle, Building2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { WineVenue, CATEGORY_CONFIG } from './types';
@@ -14,6 +14,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { ClaimVenueDialog } from '@/components/ClaimVenueDialog';
 
 interface VenueDetailPanelProps {
   venue: WineVenue | null;
@@ -80,6 +81,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
   const [placeDetails, setPlaceDetails] = useState<PlaceDetails | null>(null);
   const [dbVenue, setDbVenue] = useState<DatabaseVenue | null>(null);
   const [navigationDialogOpen, setNavigationDialogOpen] = useState(false);
+  const [claimDialogOpen, setClaimDialogOpen] = useState(false);
 
   const handleViewProfile = () => {
     onClose();
@@ -354,7 +356,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                       className="flex-1"
                     >
                       <User className="w-4 h-4 mr-2" />
-                      View Profile
+                      Profili Gör
                     </Button>
                     
                     <Button 
@@ -363,9 +365,21 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                       className="flex-1"
                     >
                       <Navigation className="w-4 h-4 mr-2" />
-                      Get Directions
+                      Yol Tarifi
                     </Button>
                   </div>
+                  
+                  {/* Claim Button for unclaimed venues */}
+                  {(venue?.source === 'database' && !('isClaimed' in displayData && displayData.isClaimed)) || venue?.source === 'google' ? (
+                    <Button 
+                      variant="secondary"
+                      onClick={() => setClaimDialogOpen(true)}
+                      className="w-full"
+                    >
+                      <Building2 className="w-4 h-4 mr-2" />
+                      Bu Mekanı Talep Et
+                    </Button>
+                  ) : null}
                   
                   {'googleMapsUrl' in displayData && displayData.googleMapsUrl && (
                     <a href={displayData.googleMapsUrl} target="_blank" rel="noopener noreferrer">
@@ -507,6 +521,16 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
             address={displayData.address || displayData.name}
             latitude={displayData.lat}
             longitude={displayData.lng}
+          />
+
+          {/* Claim Venue Dialog */}
+          <ClaimVenueDialog
+            open={claimDialogOpen}
+            onOpenChange={setClaimDialogOpen}
+            venueId={venue?.source === 'database' ? venue.id : undefined}
+            googlePlaceId={venue?.source === 'google' ? venue.googlePlaceId?.replace('google_', '') : undefined}
+            venueName={displayData.name}
+            venueType="venue"
           />
         </>
       )}
