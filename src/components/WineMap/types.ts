@@ -14,8 +14,9 @@ export interface WineVenue {
   website?: string;
   phone?: string;
   openingHours?: string;
-  source: 'osm' | 'database';
+  source: 'osm' | 'database' | 'google';
   osmId?: number;
+  googlePlaceId?: string;
   isEvent?: boolean;
   slug?: string;
   venueType?: WineVenueType;
