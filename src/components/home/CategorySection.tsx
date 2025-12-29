@@ -83,8 +83,23 @@ const CategorySection: React.FC<CategorySectionProps> = ({
         {/* Right Column - Items Grid */}
         <div className="col-span-12 md:col-span-9 p-4">
           {loading ? (
-            <div className="flex items-center justify-center h-48 text-muted-foreground">
-              Loading...
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {[...Array(8)].map((_, index) => (
+                <div key={index} className="animate-pulse">
+                  {/* Meta Row Skeleton */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="h-2 w-16 bg-muted rounded" />
+                    <div className="h-2 w-12 bg-muted rounded" />
+                  </div>
+                  {/* Name Skeleton */}
+                  <div className="h-4 w-3/4 bg-muted rounded mb-2" />
+                  {/* Image Skeleton */}
+                  <div className="aspect-[4/3] bg-muted rounded overflow-hidden relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-muted via-muted-foreground/5 to-muted animate-[shimmer_2s_infinite]" 
+                         style={{ backgroundSize: '200% 100%' }} />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : items.length === 0 ? (
             <div className="flex items-center justify-center h-48 text-muted-foreground">
