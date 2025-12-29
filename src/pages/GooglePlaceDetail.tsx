@@ -7,6 +7,7 @@ import { MapPin, Clock, Phone, Globe, ArrowLeft, Star, Navigation, ExternalLink,
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapNavigationDialog } from '@/components/MapNavigationDialog';
+import { GoogleAttribution } from '@/components/GoogleAttribution';
 
 interface PlaceDetails {
   id: string;
@@ -317,6 +318,14 @@ const GooglePlaceDetail: React.FC = () => {
             />
           </section>
         )}
+
+        {/* Google Attribution - Required by Google Terms of Service */}
+        <div className="py-6 border-t border-border">
+          <GoogleAttribution className="justify-center" />
+          <p className="text-xs text-muted-foreground text-center mt-2">
+            Place data provided by Google. Reviews and photos are from Google users.
+          </p>
+        </div>
       </main>
 
       {/* Navigation Dialog */}

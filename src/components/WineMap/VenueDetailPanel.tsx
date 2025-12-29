@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { WineVenue, CATEGORY_CONFIG } from './types';
 import { MapNavigationDialog } from '@/components/MapNavigationDialog';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { GoogleAttribution } from '@/components/GoogleAttribution';
 
 interface VenueDetailPanelProps {
   venue: WineVenue | null;
@@ -448,6 +449,16 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                           </div>
                         ))}
                       </div>
+                    </div>
+                  )}
+
+                  {/* Google Attribution - Required for Google Places data */}
+                  {venue.source === 'google' && (
+                    <div className="pt-4 border-t border-border">
+                      <GoogleAttribution />
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        Data provided by Google Maps Platform
+                      </p>
                     </div>
                   )}
                 </div>
