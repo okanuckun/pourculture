@@ -381,6 +381,18 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
         el.style.zIndex = '1';
       });
 
+      // Generate detail page URL for database venues
+      const getDetailUrl = () => {
+        if (venue.source !== 'database' || !venue.slug) return null;
+        switch (venue.venueType) {
+          case 'venue': return `/venue/${venue.slug}`;
+          case 'winemaker': return `/winemaker/${venue.slug}`;
+          case 'wine_fair': return `/wine-fair/${venue.slug}`;
+          default: return null;
+        }
+      };
+      const detailUrl = getDetailUrl();
+
       // Create popup
       const popup = new mapboxgl.Popup({
         offset: 25,
@@ -446,14 +458,22 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
               <a href="tel:${venue.phone}" style="color: #8b5cf6;">${venue.phone}</a>
             </div>
           ` : ''}
-          ${venue.website ? `
-            <a href="${venue.website.startsWith('http') ? venue.website : `https://${venue.website}`}" 
-               target="_blank" 
-               rel="noopener noreferrer"
-               style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8b5cf6; margin-top: 8px;">
-              🔗 Website
-            </a>
-          ` : ''}
+          <div style="display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap;">
+            ${detailUrl ? `
+              <a href="${detailUrl}" 
+                 style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: white; background: linear-gradient(135deg, #8b5cf6, #a855f7); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 500;">
+                👁️ View Details
+              </a>
+            ` : ''}
+            ${venue.website ? `
+              <a href="${venue.website.startsWith('http') ? venue.website : `https://${venue.website}`}" 
+                 target="_blank" 
+                 rel="noopener noreferrer"
+                 style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: #8b5cf6; padding: 6px 12px; border-radius: 8px; border: 1px solid #8b5cf6; text-decoration: none;">
+                🔗 Website
+              </a>
+            ` : ''}
+          </div>
         </div>
       `);
 

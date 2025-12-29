@@ -44,8 +44,10 @@ export const fetchVenuesFromDatabase = async (): Promise<WineVenue[]> => {
       country: venue.country,
       website: venue.website || undefined,
       phone: venue.phone || undefined,
-      openingHours: undefined, // JSON format, would need parsing
+      openingHours: undefined,
       source: 'database' as const,
+      slug: venue.slug,
+      venueType: 'venue' as const,
     }));
   } catch (error) {
     console.error('Error fetching venues:', error);
@@ -70,7 +72,7 @@ export const fetchWineFairsFromDatabase = async (): Promise<WineVenue[]> => {
     return (data || []).map(fair => ({
       id: `db-fair-${fair.id}`,
       name: fair.title,
-      category: 'wine_bar' as WineVenueCategory, // Events shown as wine bar category
+      category: 'wine_bar' as WineVenueCategory,
       lat: Number(fair.latitude),
       lng: Number(fair.longitude),
       address: fair.venue_name || undefined,
@@ -81,6 +83,8 @@ export const fetchWineFairsFromDatabase = async (): Promise<WineVenue[]> => {
       openingHours: fair.start_date ? `Event: ${fair.start_date}${fair.end_date ? ` - ${fair.end_date}` : ''}` : undefined,
       source: 'database' as const,
       isEvent: true,
+      slug: fair.slug,
+      venueType: 'wine_fair' as const,
     }));
   } catch (error) {
     console.error('Error fetching wine fairs:', error);
@@ -115,6 +119,8 @@ export const fetchWinemakersFromDatabase = async (): Promise<WineVenue[]> => {
       phone: undefined,
       openingHours: undefined,
       source: 'database' as const,
+      slug: winemaker.slug,
+      venueType: 'winemaker' as const,
     }));
   } catch (error) {
     console.error('Error fetching winemakers:', error);

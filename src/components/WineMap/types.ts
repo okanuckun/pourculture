@@ -1,5 +1,7 @@
 export type WineVenueCategory = 'wine_shop' | 'wine_bar' | 'winery' | 'restaurant' | 'all';
 
+export type WineVenueType = 'venue' | 'winemaker' | 'wine_fair';
+
 export interface WineVenue {
   id: string;
   name: string;
@@ -15,6 +17,8 @@ export interface WineVenue {
   source: 'osm' | 'database';
   osmId?: number;
   isEvent?: boolean;
+  slug?: string;
+  venueType?: WineVenueType;
 }
 
 export interface OverpassElement {
