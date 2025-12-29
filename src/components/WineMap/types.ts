@@ -14,6 +14,7 @@ export interface WineVenue {
   openingHours?: string;
   source: 'osm' | 'database';
   osmId?: number;
+  isEvent?: boolean;
 }
 
 export interface OverpassElement {

@@ -46,15 +46,25 @@ export const VenueMarker: React.FC<VenueMarkerProps> = ({ venue }) => {
     <Marker position={[venue.lat, venue.lng]} icon={icon}>
       <Popup>
         <div className="min-w-[200px] max-w-[280px] p-1">
-          <div className="flex items-center gap-2 mb-2">
+          <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span 
               className="px-2 py-0.5 rounded-full text-xs font-medium text-white"
               style={{ backgroundColor: config.color }}
             >
               {config.icon} {config.label}
             </span>
+            {venue.source === 'database' && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary">
+                ✓ Verified
+              </span>
+            )}
             {venue.source === 'osm' && (
               <span className="text-[10px] text-gray-400">OSM</span>
+            )}
+            {venue.isEvent && (
+              <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-accent/10 text-accent">
+                🎉 Event
+              </span>
             )}
           </div>
           
