@@ -8,3 +8,9 @@ verify_jwt = false
 
 [functions.search-wine-places]
 verify_jwt = false
+
+[functions.sitemap]
+verify_jwt = false
+
+[functions.robots-txt]
+verify_jwt = false
