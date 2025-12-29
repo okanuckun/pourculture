@@ -8,6 +8,32 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClaimVenueDialog } from '@/components/ClaimVenueDialog';
 import { MapNavigationDialog } from '@/components/MapNavigationDialog';
+import { 
+  PhotoGallery, 
+  SocialLinks, 
+  WineList, 
+  OpeningHours, 
+  VenueReviews, 
+  VenueEvents, 
+  MenuLink 
+} from '@/components/venue';
+
+interface WineItem {
+  name: string;
+  grape?: string;
+  region?: string;
+  price?: string;
+  description?: string;
+}
+
+interface VenueEvent {
+  title: string;
+  date: string;
+  time?: string;
+  description?: string;
+  ticket_url?: string;
+  price?: string;
+}
 
 interface Venue {
   id: string;
@@ -32,6 +58,9 @@ interface Venue {
   story: string | null;
   photos: string[] | null;
   social_links: Record<string, string> | null;
+  wine_list: WineItem[] | null;
+  events: VenueEvent[] | null;
+  menu_url: string | null;
 }
 
 const VenueDetail: React.FC = () => {
@@ -60,7 +89,37 @@ const VenueDetail: React.FC = () => {
       if (error || !data) {
         setNotFound(true);
       } else {
-        setVenue(data as Venue);
+        // Parse JSONB fields safely
+        const venueData: Venue = {
+          id: data.id,
+          name: data.name,
+          slug: data.slug,
+          category: data.category,
+          description: data.description,
+          address: data.address,
+          city: data.city,
+          country: data.country,
+          phone: data.phone,
+          email: data.email,
+          website: data.website,
+          image_url: data.image_url,
+          is_open: data.is_open,
+          is_claimed: data.is_claimed,
+          owner_id: data.owner_id,
+          latitude: data.latitude ? Number(data.latitude) : null,
+          longitude: data.longitude ? Number(data.longitude) : null,
+          google_rating: data.google_rating ? Number(data.google_rating) : null,
+          story: data.story,
+          menu_url: data.menu_url,
+          photos: Array.isArray(data.photos) ? data.photos as string[] : [],
+          social_links: (typeof data.social_links === 'object' && data.social_links !== null && !Array.isArray(data.social_links)) 
+            ? data.social_links as Record<string, string> : {},
+          wine_list: Array.isArray(data.wine_list) ? data.wine_list as unknown as WineItem[] : [],
+          events: Array.isArray(data.events) ? data.events as unknown as VenueEvent[] : [],
+          opening_hours: (typeof data.opening_hours === 'object' && data.opening_hours !== null && !Array.isArray(data.opening_hours)) 
+            ? data.opening_hours as Record<string, string> : {}
+        };
+        setVenue(venueData);
       }
       setLoading(false);
     };
@@ -166,6 +225,13 @@ const VenueDetail: React.FC = () => {
             <span>{venue.city}, {venue.country}</span>
           </div>
           
+          {/* Social Links */}
+          {venue.social_links && Object.keys(venue.social_links).length > 0 && (
+            <div className="mt-4">
+              <SocialLinks links={venue.social_links} />
+            </div>
+          )}
+          
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mt-4">
             <Button 
@@ -197,6 +263,11 @@ const VenueDetail: React.FC = () => {
           </div>
         </div>
         
+        {/* Photo Gallery */}
+        {venue.photos && venue.photos.length > 0 && (
+          <PhotoGallery photos={venue.photos} venueName={venue.name} />
+        )}
+        
         {/* Story Section - for claimed venues */}
         {venue.story && (
           <section className="mb-8">
@@ -211,6 +282,26 @@ const VenueDetail: React.FC = () => {
             <h2 className="text-lg font-semibold text-foreground mb-3">About</h2>
             <p className="text-muted-foreground leading-relaxed">{venue.description}</p>
           </section>
+        )}
+
+        {/* Wine List */}
+        {venue.wine_list && venue.wine_list.length > 0 && (
+          <WineList wines={venue.wine_list} />
+        )}
+
+        {/* Menu Link */}
+        {venue.menu_url && (
+          <MenuLink menuUrl={venue.menu_url} />
+        )}
+
+        {/* Opening Hours */}
+        {venue.opening_hours && Object.keys(venue.opening_hours).length > 0 && (
+          <OpeningHours hours={venue.opening_hours} />
+        )}
+
+        {/* Events */}
+        {venue.events && venue.events.length > 0 && (
+          <VenueEvents events={venue.events} />
         )}
 
         {/* Contact Info */}
@@ -291,6 +382,13 @@ const VenueDetail: React.FC = () => {
             title={`Map showing ${venue.name} location`}
           />
         </section>
+
+        {/* Reviews */}
+        <VenueReviews 
+          venueId={venue.id} 
+          venueType="venue" 
+          userId={user?.id} 
+        />
       </main>
 
       {/* Claim Dialog */}

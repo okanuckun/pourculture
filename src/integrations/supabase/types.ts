@@ -508,6 +508,44 @@ export type Database = {
           },
         ]
       }
+      venue_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+          venue_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+          venue_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+          venue_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_reviews_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           address: string
@@ -752,6 +790,44 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "winemaker_claims_winemaker_id_fkey"
+            columns: ["winemaker_id"]
+            isOneToOne: false
+            referencedRelation: "winemakers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      winemaker_reviews: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          rating: number
+          updated_at: string
+          user_id: string
+          winemaker_id: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating: number
+          updated_at?: string
+          user_id: string
+          winemaker_id: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          rating?: number
+          updated_at?: string
+          user_id?: string
+          winemaker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "winemaker_reviews_winemaker_id_fkey"
             columns: ["winemaker_id"]
             isOneToOne: false
             referencedRelation: "winemakers"
