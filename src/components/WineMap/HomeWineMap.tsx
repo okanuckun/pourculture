@@ -774,7 +774,23 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                 <div className="h-px bg-amber-200 my-2" />
 
                 {/* Category Filters */}
-                <p className="text-xs text-amber-600 mb-2 font-medium">Kategoriler</p>
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs text-amber-600 font-medium">Kategoriler</p>
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => setSelectedCategories(['wine_shop', 'wine_bar', 'winery', 'restaurant'])}
+                      className="text-xs px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                    >
+                      Tümünü Seç
+                    </button>
+                    <button
+                      onClick={() => setSelectedCategories(['wine_shop'])}
+                      className="text-xs px-2 py-1 rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700 transition-colors"
+                    >
+                      Temizle
+                    </button>
+                  </div>
+                </div>
                 <div className="space-y-1.5">
                   {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
                     const config = CATEGORY_CONFIG[category];
