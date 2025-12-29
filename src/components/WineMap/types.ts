@@ -55,7 +55,7 @@ export interface MapBounds {
   east: number;
 }
 
-export const CATEGORY_CONFIG: Record<WineVenueCategory, {
+export const CATEGORY_CONFIG: Record<WineVenueCategory | 'event', {
   label: string;
   color: string;
   icon: string;
@@ -85,4 +85,21 @@ export const CATEGORY_CONFIG: Record<WineVenueCategory, {
     color: '#6B7280',
     icon: '📍',
   },
+  event: {
+    label: 'Events',
+    color: '#EC4899',
+    icon: '🎉',
+  },
 };
+
+export interface WineFairMarker {
+  id: string;
+  title: string;
+  lat: number;
+  lng: number;
+  city: string;
+  country: string;
+  startDate: string;
+  endDate?: string;
+  slug: string;
+}

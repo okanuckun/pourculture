@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
-import { WineVenueCategory } from '@/components/WineMap/types';
+import { WineVenueCategory, WineFairMarker } from '@/components/WineMap/types';
 
 export type CategoryType = 'overview' | 'bar' | 'wine_shop' | 'restaurant' | 'winemaker' | 'events';
 
@@ -16,6 +16,7 @@ interface BrutalistHeroProps {
   onCategoryChange: (category: CategoryType) => void;
   userLocation?: string;
   userCoords?: UserCoordinates | null;
+  wineFairs?: WineFairMarker[];
 }
 
 // Map CategoryType to WineVenueCategory for the map filter
@@ -42,7 +43,8 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
   activeCategory,
   onCategoryChange,
   userLocation,
-  userCoords
+  userCoords,
+  wineFairs = []
 }) => {
   const categories: { label: string; value: CategoryType }[] = [
     { label: 'OVERVIEW', value: 'overview' },
@@ -54,6 +56,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
   ];
 
   const mapCategories = categoryToMapFilter(activeCategory);
+  const showEvents = activeCategory === 'events';
 
   return (
     <div className="bg-background text-foreground">
@@ -94,6 +97,8 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
         <HomeWineMap 
           minimalStyle={minimalMapStyle} 
           filterCategories={mapCategories}
+          wineFairs={wineFairs}
+          showEvents={showEvents}
         />
       </div>
 
