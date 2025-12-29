@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck, Filter, X, ArrowUpDown } from 'lucide-react';
+import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck, Filter, X, ArrowUpDown, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -14,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 
 type SortOption = 'newest' | 'oldest' | 'venues_high' | 'venues_low' | 'days_short' | 'days_long';
 
@@ -193,6 +194,7 @@ const WineRoutes = () => {
   const [selectedRegion, setSelectedRegion] = useState<string>('all');
   const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const navigate = useNavigate();
 
   // Sort function
@@ -241,31 +243,52 @@ const WineRoutes = () => {
   // Filter and sort routes based on selections
   const filteredCuratedRoutes = useMemo(() => {
     const filtered = curatedRoutes.filter(route => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          route.title.toLowerCase().includes(query) ||
+          route.region.toLowerCase().includes(query) ||
+          route.country.toLowerCase().includes(query) ||
+          (route.description?.toLowerCase().includes(query) ?? false);
+        if (!matchesSearch) return false;
+      }
       if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
       if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
       if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
       return true;
     });
     return sortRoutes(filtered);
-  }, [curatedRoutes, selectedCountry, selectedRegion, selectedDifficulty, sortBy]);
+  }, [curatedRoutes, selectedCountry, selectedRegion, selectedDifficulty, sortBy, searchQuery]);
 
   const filteredRoutes = useMemo(() => {
     const filtered = routes.filter(route => {
+      // Search filter
+      if (searchQuery) {
+        const query = searchQuery.toLowerCase();
+        const matchesSearch = 
+          route.title.toLowerCase().includes(query) ||
+          route.region.toLowerCase().includes(query) ||
+          route.country.toLowerCase().includes(query) ||
+          (route.description?.toLowerCase().includes(query) ?? false);
+        if (!matchesSearch) return false;
+      }
       if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
       if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
       if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
       return true;
     });
     return sortRoutes(filtered);
-  }, [routes, selectedCountry, selectedRegion, selectedDifficulty, sortBy]);
+  }, [routes, selectedCountry, selectedRegion, selectedDifficulty, sortBy, searchQuery]);
 
-  const hasActiveFilters = selectedCountry !== 'all' || selectedRegion !== 'all' || selectedDifficulty !== 'all';
+  const hasActiveFilters = selectedCountry !== 'all' || selectedRegion !== 'all' || selectedDifficulty !== 'all' || searchQuery !== '';
 
   const clearFilters = () => {
     setSelectedCountry('all');
     setSelectedRegion('all');
     setSelectedDifficulty('all');
     setSortBy('newest');
+    setSearchQuery('');
   };
 
   // Reset region when country changes
@@ -388,6 +411,28 @@ const WineRoutes = () => {
       />
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Search routes by name, region, or country..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-10 text-sm border-2 border-foreground/30 bg-background focus:border-foreground"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Filters and Create Route Button */}
         <div className="flex flex-col gap-4 mb-8">
           <div className="flex flex-wrap items-center gap-3">
