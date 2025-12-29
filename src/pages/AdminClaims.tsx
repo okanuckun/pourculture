@@ -182,17 +182,55 @@ const AdminClaims: React.FC = () => {
 
       if (claimError) throw claimError;
 
-      // If approved, update the venue/winemaker with owner_id
-      if (actionType === 'approve' && entityId) {
-        const { error: entityError } = await supabase
-          .from(entityTable)
-          .update({
-            owner_id: selectedClaim.user_id,
-            is_claimed: true,
-          })
-          .eq('id', entityId);
+      // If approved
+      if (actionType === 'approve') {
+        if (entityId) {
+          // Existing venue/winemaker - just update owner
+          const { error: entityError } = await supabase
+            .from(entityTable)
+            .update({
+              owner_id: selectedClaim.user_id,
+              is_claimed: true,
+            })
+            .eq('id', entityId);
 
-        if (entityError) throw entityError;
+          if (entityError) throw entityError;
+        } else if (isVenueClaim && selectedClaim.google_place_id) {
+          // Google Place claim without existing venue - create new venue
+          const slug = selectedClaim.business_name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, '-')
+            .replace(/^-|-$/g, '') + '-' + Date.now();
+
+          const { data: newVenue, error: createError } = await supabase
+            .from('venues')
+            .insert({
+              name: selectedClaim.business_name,
+              slug: slug,
+              address: 'Address pending', // User will update
+              city: 'City pending',
+              country: 'Country pending',
+              category: 'bar' as const,
+              google_place_id: selectedClaim.google_place_id,
+              owner_id: selectedClaim.user_id,
+              is_claimed: true,
+              created_by: selectedClaim.user_id,
+              email: selectedClaim.business_email,
+              phone: selectedClaim.business_phone,
+            })
+            .select()
+            .single();
+
+          if (createError) throw createError;
+
+          // Update claim with new venue_id
+          await supabase
+            .from('venue_claims')
+            .update({ venue_id: newVenue.id })
+            .eq('id', selectedClaim.id);
+
+          toast.info('New venue created! Owner should update details.');
+        }
       }
 
       toast.success(`Claim ${actionType === 'approve' ? 'approved' : 'rejected'} successfully`);

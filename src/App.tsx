@@ -27,6 +27,7 @@ import HarvestReportDetail from "./pages/HarvestReportDetail";
 import Forum from "./pages/Forum";
 import ForumTopic from "./pages/ForumTopic";
 import WineMapPage from "./pages/WineMapPage";
+import ClaimVenue from "./pages/ClaimVenue";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -59,6 +60,7 @@ const App = () => (
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/admin/claims" element={<AdminClaims />} />
+      <Route path="/claim-venue" element={<ClaimVenue />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </TooltipProvider>

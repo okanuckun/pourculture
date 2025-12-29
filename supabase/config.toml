@@ -8,6 +8,3 @@ verify_jwt = false
 
 [functions.search-wine-places]
 verify_jwt = false
-
-[functions.import-google-places]
-verify_jwt = false

@@ -48,7 +48,8 @@ export async function fetchWineVenuesFromGoogle(
       lat: place.lat,
       lng: place.lng,
       address: place.address,
-      source: 'osm' as const, // Using 'osm' to differentiate from database
+      source: 'google' as const,
+      googlePlaceId: place.id,
       website: place.website,
       phone: place.phone,
     }));
