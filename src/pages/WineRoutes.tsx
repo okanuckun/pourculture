@@ -1,13 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck } from 'lucide-react';
+import { MapPin, Calendar, Heart, CheckCircle, Plus, Loader2, Star, BadgeCheck, Filter, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
-
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 interface WineRoute {
   id: string;
   title: string;
@@ -179,7 +185,63 @@ const WineRoutes = () => {
   const [wishlist, setWishlist] = useState<UserWishlist[]>([]);
   const [progress, setProgress] = useState<UserProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCountry, setSelectedCountry] = useState<string>('all');
+  const [selectedRegion, setSelectedRegion] = useState<string>('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<string>('all');
   const navigate = useNavigate();
+
+  // Extract unique countries, regions, and difficulties for filters
+  const allRoutes = useMemo(() => [...curatedRoutes, ...routes], [curatedRoutes, routes]);
+  
+  const countries = useMemo(() => {
+    const uniqueCountries = [...new Set(allRoutes.map(r => r.country))].sort();
+    return uniqueCountries;
+  }, [allRoutes]);
+
+  const regions = useMemo(() => {
+    const filteredRoutes = selectedCountry === 'all' 
+      ? allRoutes 
+      : allRoutes.filter(r => r.country === selectedCountry);
+    const uniqueRegions = [...new Set(filteredRoutes.map(r => r.region))].sort();
+    return uniqueRegions;
+  }, [allRoutes, selectedCountry]);
+
+  const difficulties = useMemo(() => {
+    const uniqueDifficulties = [...new Set(allRoutes.map(r => r.difficulty))];
+    return uniqueDifficulties;
+  }, [allRoutes]);
+
+  // Filter routes based on selections
+  const filteredCuratedRoutes = useMemo(() => {
+    return curatedRoutes.filter(route => {
+      if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
+      if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
+      if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
+      return true;
+    });
+  }, [curatedRoutes, selectedCountry, selectedRegion, selectedDifficulty]);
+
+  const filteredRoutes = useMemo(() => {
+    return routes.filter(route => {
+      if (selectedCountry !== 'all' && route.country !== selectedCountry) return false;
+      if (selectedRegion !== 'all' && route.region !== selectedRegion) return false;
+      if (selectedDifficulty !== 'all' && route.difficulty !== selectedDifficulty) return false;
+      return true;
+    });
+  }, [routes, selectedCountry, selectedRegion, selectedDifficulty]);
+
+  const hasActiveFilters = selectedCountry !== 'all' || selectedRegion !== 'all' || selectedDifficulty !== 'all';
+
+  const clearFilters = () => {
+    setSelectedCountry('all');
+    setSelectedRegion('all');
+    setSelectedDifficulty('all');
+  };
+
+  // Reset region when country changes
+  useEffect(() => {
+    setSelectedRegion('all');
+  }, [selectedCountry]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -296,18 +358,72 @@ const WineRoutes = () => {
       />
 
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
-        {/* Create Route Button - only for verified users */}
-        {user && profile?.is_verified && (
-          <div className="flex justify-end mb-6">
-            <button
-              onClick={() => navigate('/wine-routes/create')}
-              className="flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground bg-foreground text-background hover:bg-background hover:text-foreground transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              Create Route
-            </button>
+        {/* Filters and Create Route Button */}
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <Filter className="w-4 h-4" />
+              <span className="text-xs font-medium uppercase tracking-wider">Filters</span>
+            </div>
+            
+            <Select value={selectedCountry} onValueChange={setSelectedCountry}>
+              <SelectTrigger className="w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
+                <SelectValue placeholder="Country" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-2 border-foreground/30">
+                <SelectItem value="all">All Countries</SelectItem>
+                {countries.map(country => (
+                  <SelectItem key={country} value={country}>{country}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger className="w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
+                <SelectValue placeholder="Region" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-2 border-foreground/30">
+                <SelectItem value="all">All Regions</SelectItem>
+                {regions.map(region => (
+                  <SelectItem key={region} value={region}>{region}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedDifficulty} onValueChange={setSelectedDifficulty}>
+              <SelectTrigger className="w-[140px] h-9 text-xs border-2 border-foreground/30 bg-background capitalize">
+                <SelectValue placeholder="Difficulty" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border-2 border-foreground/30">
+                <SelectItem value="all">All Levels</SelectItem>
+                {difficulties.map(diff => (
+                  <SelectItem key={diff} value={diff} className="capitalize">{diff}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {hasActiveFilters && (
+              <button
+                onClick={clearFilters}
+                className="flex items-center gap-1 px-3 py-1.5 text-[10px] font-medium text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-3 h-3" />
+                Clear
+              </button>
+            )}
+
+            {/* Create Route Button - only for verified users */}
+            {user && profile?.is_verified && (
+              <button
+                onClick={() => navigate('/wine-routes/create')}
+                className="ml-auto flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground bg-foreground text-background hover:bg-background hover:text-foreground transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                Create Route
+              </button>
+            )}
           </div>
-        )}
+        </div>
 
         {loading ? (
           <div className="flex items-center justify-center py-16">
@@ -316,18 +432,19 @@ const WineRoutes = () => {
         ) : (
           <>
             {/* Curated Routes Section */}
-            {curatedRoutes.length > 0 && (
+            {filteredCuratedRoutes.length > 0 && (
               <section className="mb-12">
                 <div className="flex items-center gap-3 mb-6">
                   <Star className="w-5 h-5 text-foreground" />
                   <h2 className="text-xl font-bold tracking-tight">CURATED ROUTES</h2>
+                  <span className="text-xs text-muted-foreground">({filteredCuratedRoutes.length})</span>
                 </div>
                 <p className="text-sm text-muted-foreground mb-6 max-w-2xl">
                   Hand-picked wine journeys curated by sommeliers, winemakers, and wine enthusiasts.
                   Complete a route to earn a badge on your profile.
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {curatedRoutes.map((route) => (
+                  {filteredCuratedRoutes.map((route) => (
                     <RouteCard
                       key={route.id}
                       route={route}
@@ -343,13 +460,26 @@ const WineRoutes = () => {
 
             {/* All Routes Section */}
             <section>
-              <h2 className="text-xl font-bold tracking-tight mb-6">ALL ROUTES</h2>
-              {routes.length === 0 && curatedRoutes.length === 0 ? (
+              <div className="flex items-center gap-3 mb-6">
+                <h2 className="text-xl font-bold tracking-tight">ALL ROUTES</h2>
+                <span className="text-xs text-muted-foreground">({filteredRoutes.length})</span>
+              </div>
+              {filteredRoutes.length === 0 && filteredCuratedRoutes.length === 0 ? (
                 <div className="text-center py-16 border-2 border-foreground/30 bg-background">
                   <p className="text-muted-foreground text-sm mb-4">
-                    No wine routes available yet
+                    {hasActiveFilters 
+                      ? 'No routes match your filters' 
+                      : 'No wine routes available yet'}
                   </p>
-                  {user && (
+                  {hasActiveFilters ? (
+                    <button
+                      onClick={clearFilters}
+                      className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
+                    >
+                      <X className="w-4 h-4" />
+                      Clear Filters
+                    </button>
+                  ) : user && (
                     <button
                       onClick={() => navigate('/wine-routes/create')}
                       className="inline-flex items-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 border-foreground hover:bg-foreground hover:text-background transition-colors"
@@ -359,9 +489,9 @@ const WineRoutes = () => {
                     </button>
                   )}
                 </div>
-              ) : (
+              ) : filteredRoutes.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {routes.map((route) => (
+                  {filteredRoutes.map((route) => (
                     <RouteCard
                       key={route.id}
                       route={route}
@@ -372,7 +502,7 @@ const WineRoutes = () => {
                     />
                   ))}
                 </div>
-              )}
+              ) : null}
             </section>
           </>
         )}
