@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
+import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG, WineFairMarker } from './types';
 import { fetchWineVenuesFromGoogle } from './googlePlacesApi';
 import { fetchAllDatabaseVenues } from './databaseApi';
 import { VenueDetailPanel } from './VenueDetailPanel';
@@ -16,12 +16,14 @@ interface HomeWineMapProps {
   className?: string;
   minimalStyle?: boolean;
   filterCategories?: WineVenueCategory[];
+  wineFairs?: WineFairMarker[];
+  showEvents?: boolean;
 }
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lng, lat]
 const TOKEN_FETCH_TIMEOUT = 10000;
 
-export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories }) => {
+export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories, wineFairs = [], showEvents = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -567,7 +569,173 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
       markersRef.current.push(marker);
     });
-  }, [filteredVenues, mapReady, handleVenueClick, minimalStyle]);
+
+    // Add wine fair event markers if showEvents is true
+    if (showEvents && wineFairs.length > 0) {
+      const eventConfig = CATEGORY_CONFIG['event'];
+      
+      wineFairs.forEach(fair => {
+        if (!fair.lat || !fair.lng) return;
+        
+        const el = document.createElement('div');
+        el.className = minimalStyle ? 'minimal-event-marker' : 'vintage-event-marker';
+        
+        if (minimalStyle) {
+          el.innerHTML = `
+            <div class="marker-pin" style="
+              background: #EC4899;
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 14px;
+              box-shadow: none;
+              border: 2px solid #000;
+              cursor: pointer;
+              transition: transform 0.2s ease, background 0.2s ease;
+              position: relative;
+            ">
+              <span>${eventConfig.icon}</span>
+            </div>
+          `;
+        } else {
+          el.innerHTML = `
+            <div class="marker-pin" style="
+              background: linear-gradient(180deg, ${eventConfig.color}, ${eventConfig.color}cc);
+              width: 36px;
+              height: 46px;
+              border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding-top: 2px;
+              font-size: 18px;
+              box-shadow: 0 3px 10px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+              border: 2px solid rgba(255,255,255,0.8);
+              cursor: pointer;
+              transition: transform 0.2s ease;
+              position: relative;
+            ">
+              ${eventConfig.icon}
+              <div style="
+                position: absolute;
+                bottom: -6px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 8px solid ${eventConfig.color}cc;
+              "></div>
+            </div>
+          `;
+        }
+
+        const inner = el.querySelector('.marker-pin') as HTMLDivElement | null;
+        el.addEventListener('mouseenter', () => {
+          if (inner) inner.style.transform = 'scale(1.2) translateY(-5px)';
+          el.style.zIndex = '1000';
+        });
+        el.addEventListener('mouseleave', () => {
+          if (inner) inner.style.transform = 'scale(1)';
+          el.style.zIndex = '1';
+        });
+
+        const formatDate = (dateStr: string) => {
+          const date = new Date(dateStr);
+          return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        };
+
+        const popup = new mapboxgl.Popup({
+          offset: 30,
+          closeButton: true,
+          closeOnClick: true,
+          className: 'event-popup',
+        }).setHTML(`
+          <div style="
+            padding: 12px; 
+            min-width: 200px; 
+            max-width: 280px;
+            background: linear-gradient(180deg, #fdf2f8, #fce7f3);
+            font-family: 'Georgia', serif;
+          ">
+            <div style="
+              display: flex; 
+              gap: 6px; 
+              margin-bottom: 8px;
+              border-bottom: 1px solid #f9a8d4;
+              padding-bottom: 6px;
+            ">
+              <span style="
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 500;
+                color: white;
+                background: ${eventConfig.color};
+                font-family: sans-serif;
+              ">
+                ${eventConfig.icon} Event
+              </span>
+            </div>
+            <h3 style="
+              font-size: 16px; 
+              font-weight: 600; 
+              margin: 0 0 6px 0;
+              color: #1e1e1e;
+            ">${fair.title}</h3>
+            <p style="
+              color: #666; 
+              font-size: 12px; 
+              margin: 4px 0;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            ">
+              📅 ${formatDate(fair.startDate)}${fair.endDate ? ` - ${formatDate(fair.endDate)}` : ''}
+            </p>
+            <p style="
+              color: #666; 
+              font-size: 12px; 
+              margin: 4px 0;
+              display: flex;
+              align-items: center;
+              gap: 4px;
+            ">
+              📍 ${fair.city}, ${fair.country}
+            </p>
+            <a 
+              href="/wine-fair/${fair.slug}"
+              style="
+                display: inline-block;
+                margin-top: 10px;
+                font-size: 12px;
+                color: white; 
+                background: ${eventConfig.color};
+                padding: 8px 14px; 
+                border-radius: 20px; 
+                text-decoration: none;
+                font-weight: 500;
+                font-family: sans-serif;
+              "
+            >
+              View Details
+            </a>
+          </div>
+        `);
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([fair.lng, fair.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
+
+        markersRef.current.push(marker);
+      });
+    }
+  }, [filteredVenues, mapReady, handleVenueClick, minimalStyle, showEvents, wineFairs]);
 
   // Search functionality
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);

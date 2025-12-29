@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrutalistHero, CategoryType, UserCoordinates } from '@/components/grid/BrutalistHero';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
@@ -6,6 +6,7 @@ import CategorySection from '@/components/home/CategorySection';
 import EventsSection from '@/components/home/EventsSection';
 import FooterSection from '@/components/home/FooterSection';
 import { toast } from 'sonner';
+import { WineFairMarker } from '@/components/WineMap/types';
 
 type Venue = Tables<'venues'>;
 type Winemaker = Tables<'winemakers'>;
@@ -316,6 +317,23 @@ const BrutalistHome = () => {
     return null;
   };
 
+  // Convert wineFairs to WineFairMarker format for the map
+  const wineFairMarkers: WineFairMarker[] = useMemo(() => {
+    return wineFairs
+      .filter(fair => fair.latitude && fair.longitude)
+      .map(fair => ({
+        id: fair.id,
+        title: fair.title,
+        lat: Number(fair.latitude),
+        lng: Number(fair.longitude),
+        city: fair.city,
+        country: fair.country,
+        startDate: fair.start_date,
+        endDate: fair.end_date || undefined,
+        slug: fair.slug,
+      }));
+  }, [wineFairs]);
+
   return (
     <div className="min-h-screen bg-background text-foreground font-grotesk">
       {/* Hero Section with Map and Category Tabs */}
@@ -324,6 +342,7 @@ const BrutalistHome = () => {
         onCategoryChange={handleCategoryChange}
         userLocation={userLocation}
         userCoords={userCoords}
+        wineFairs={wineFairMarkers}
       />
 
       {/* Dynamic Content Based on Category */}
