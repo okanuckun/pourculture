@@ -64,15 +64,6 @@ const CUSTOM_STYLE: mapboxgl.Style = {
       },
     },
     {
-      id: 'land',
-      type: 'fill',
-      source: 'mapbox-streets',
-      'source-layer': 'land',
-      paint: {
-        'fill-color': '#1a1a2e',
-      },
-    },
-    {
       id: 'road-simple',
       type: 'line',
       source: 'mapbox-streets',
