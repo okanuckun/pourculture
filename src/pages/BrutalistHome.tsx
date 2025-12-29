@@ -1,64 +1,100 @@
 import React, { useEffect, useState } from 'react';
-import { BrutalistHero } from '@/components/grid/BrutalistHero';
-
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowRight, ArrowUpRight, MapPin, Calendar, Star } from 'lucide-react';
+import { BrutalistHero, CategoryType } from '@/components/grid/BrutalistHero';
 import { supabase } from '@/integrations/supabase/client';
-
-import { format } from 'date-fns';
 import { Tables } from '@/integrations/supabase/types';
+import CategorySection from '@/components/home/CategorySection';
+import EventsSection from '@/components/home/EventsSection';
+import FooterSection from '@/components/home/FooterSection';
 
-interface Stats {
-  totalVenues: number;
-  countries: number;
-  verifiedPercent: number;
-  winemakers: number;
-}
-
+type Venue = Tables<'venues'>;
+type Winemaker = Tables<'winemakers'>;
 type WineFair = Tables<'wine_fairs'>;
 
 const BrutalistHome = () => {
-  const [stats, setStats] = useState<Stats>({
-    totalVenues: 0,
-    countries: 0,
-    verifiedPercent: 0,
-    winemakers: 0,
-  });
-  const [wineFairs, setWineFairs] = useState<WineFair[]>([]);
+  const [activeCategory, setActiveCategory] = useState<CategoryType>('overview');
+  const [userLocation, setUserLocation] = useState<string>('');
   const [loading, setLoading] = useState(true);
 
+  // Data states
+  const [wineBars, setWineBars] = useState<Venue[]>([]);
+  const [wineShops, setWineShops] = useState<Venue[]>([]);
+  const [restaurants, setRestaurants] = useState<Venue[]>([]);
+  const [winemakers, setWinemakers] = useState<Winemaker[]>([]);
+  const [wineFairs, setWineFairs] = useState<WineFair[]>([]);
+
+  // Request location on mount
+  useEffect(() => {
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          // Reverse geocode to get city name
+          try {
+            const response = await fetch(
+              `https://api.mapbox.com/geocoding/v5/mapbox.places/${position.coords.longitude},${position.coords.latitude}.json?types=place&access_token=${import.meta.env.VITE_MAPBOX_TOKEN || ''}`
+            );
+            if (response.ok) {
+              const data = await response.json();
+              if (data.features && data.features.length > 0) {
+                setUserLocation(data.features[0].text);
+              }
+            }
+          } catch (error) {
+            console.log('Could not get location name');
+          }
+        },
+        () => {
+          console.log('Location permission denied');
+        }
+      );
+    }
+  }, []);
+
+  // Fetch all data
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
-        // Fetch stats
-        const [venuesResult, verifiedResult, countriesResult, winemakersResult, wineFairsResult] = await Promise.all([
-          supabase.from('venues').select('*', { count: 'exact', head: true }),
-          supabase.from('venues').select('*', { count: 'exact', head: true }).eq('is_claimed', true),
-          supabase.from('countries').select('*', { count: 'exact', head: true }),
-          supabase.from('winemakers').select('*', { count: 'exact', head: true }),
+        const [barsResult, shopsResult, restaurantsResult, winemakersResult, fairsResult] = await Promise.all([
+          supabase
+            .from('venues')
+            .select('*')
+            .eq('category', 'bar')
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(8),
+          supabase
+            .from('venues')
+            .select('*')
+            .eq('category', 'wine_shop')
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(8),
+          supabase
+            .from('venues')
+            .select('*')
+            .eq('category', 'restaurant')
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(8),
+          supabase
+            .from('winemakers')
+            .select('*')
+            .order('is_featured', { ascending: false })
+            .order('created_at', { ascending: false })
+            .limit(8),
           supabase
             .from('wine_fairs')
             .select('*')
             .gte('start_date', new Date().toISOString().split('T')[0])
             .order('start_date', { ascending: true })
-            .limit(4),
+            .limit(8),
         ]);
 
-        const totalVenues = venuesResult.count || 0;
-        const verified = verifiedResult.count || 0;
-        const verifiedPercent = totalVenues > 0 ? Math.round((verified / totalVenues) * 100) : 0;
-
-        setStats({
-          totalVenues,
-          countries: countriesResult.count || 0,
-          verifiedPercent,
-          winemakers: winemakersResult.count || 0,
-        });
-
-        if (wineFairsResult.data) {
-          setWineFairs(wineFairsResult.data);
-        }
+        if (barsResult.data) setWineBars(barsResult.data);
+        if (shopsResult.data) setWineShops(shopsResult.data);
+        if (restaurantsResult.data) setRestaurants(restaurantsResult.data);
+        if (winemakersResult.data) setWinemakers(winemakersResult.data);
+        if (fairsResult.data) setWineFairs(fairsResult.data);
       } catch (error) {
         console.error('Error fetching data:', error);
       } finally {
@@ -69,220 +105,142 @@ const BrutalistHome = () => {
     fetchData();
   }, []);
 
-  const formatNumber = (num: number): string => {
-    if (num >= 1000) {
-      return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-    }
-    return num.toLocaleString();
+  const handleCategoryChange = (category: CategoryType) => {
+    setActiveCategory(category);
   };
 
-  const statsData = [
-    { label: 'TOTAL VENUES', value: formatNumber(stats.totalVenues), suffix: '+' },
-    { label: 'COUNTRIES', value: String(stats.countries), suffix: '' },
-    { label: 'VERIFIED', value: String(stats.verifiedPercent), suffix: '%' },
-    { label: 'WINEMAKERS', value: formatNumber(stats.winemakers), suffix: '+' },
-  ];
+  // Render content based on active category
+  const renderContent = () => {
+    if (activeCategory === 'overview') {
+      return (
+        <>
+          <CategorySection
+            title="WINE BARS"
+            subtitle="DISCOVER"
+            items={wineBars}
+            type="venue"
+            linkPrefix="/venue"
+            loading={loading}
+            viewAllLink="/discover?category=bar"
+          />
+          <CategorySection
+            title="WINE SHOPS"
+            subtitle="EXPLORE"
+            items={wineShops}
+            type="venue"
+            linkPrefix="/venue"
+            loading={loading}
+            viewAllLink="/discover?category=wine_shop"
+          />
+          <CategorySection
+            title="RESTAURANTS"
+            subtitle="DINE"
+            items={restaurants}
+            type="venue"
+            linkPrefix="/venue"
+            loading={loading}
+            viewAllLink="/discover?category=restaurant"
+          />
+          <CategorySection
+            title="WINEMAKERS"
+            subtitle="MEET"
+            items={winemakers}
+            type="winemaker"
+            linkPrefix="/winemaker"
+            loading={loading}
+            viewAllLink="/winemakers"
+          />
+          <EventsSection
+            events={wineFairs}
+            loading={loading}
+          />
+        </>
+      );
+    }
+
+    if (activeCategory === 'bar') {
+      return (
+        <CategorySection
+          title="WINE BARS"
+          subtitle="ALL"
+          items={wineBars}
+          type="venue"
+          linkPrefix="/venue"
+          loading={loading}
+          viewAllLink="/discover?category=bar"
+        />
+      );
+    }
+
+    if (activeCategory === 'wine_shop') {
+      return (
+        <CategorySection
+          title="WINE SHOPS"
+          subtitle="ALL"
+          items={wineShops}
+          type="venue"
+          linkPrefix="/venue"
+          loading={loading}
+          viewAllLink="/discover?category=wine_shop"
+        />
+      );
+    }
+
+    if (activeCategory === 'restaurant') {
+      return (
+        <CategorySection
+          title="RESTAURANTS"
+          subtitle="ALL"
+          items={restaurants}
+          type="venue"
+          linkPrefix="/venue"
+          loading={loading}
+          viewAllLink="/discover?category=restaurant"
+        />
+      );
+    }
+
+    if (activeCategory === 'winemaker') {
+      return (
+        <CategorySection
+          title="WINEMAKERS"
+          subtitle="ALL"
+          items={winemakers}
+          type="winemaker"
+          linkPrefix="/winemaker"
+          loading={loading}
+          viewAllLink="/winemakers"
+        />
+      );
+    }
+
+    if (activeCategory === 'events') {
+      return (
+        <EventsSection
+          events={wineFairs}
+          loading={loading}
+          showSidebar={true}
+        />
+      );
+    }
+
+    return null;
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground font-grotesk">
-      {/* Hero Section */}
-      <BrutalistHero />
+      {/* Hero Section with Map and Category Tabs */}
+      <BrutalistHero
+        activeCategory={activeCategory}
+        onCategoryChange={handleCategoryChange}
+        userLocation={userLocation}
+      />
 
-      {/* Stats Section */}
-      <section className="border-b border-foreground/20">
-        <div className="grid grid-cols-2 md:grid-cols-4">
-          {statsData.map((stat, index) => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ delay: index * 0.1, duration: 0.5 }}
-              viewport={{ once: true }}
-              className="p-6 md:p-8 border-r border-foreground/20 last:border-r-0"
-            >
-              <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-2">
-                {stat.label}
-              </p>
-              <p className="text-4xl md:text-5xl font-bold tracking-tighter">
-                {loading ? '...' : stat.value}
-                <span className="text-muted-foreground">{stat.suffix}</span>
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </section>
+      {/* Dynamic Content Based on Category */}
+      {renderContent()}
 
-      {/* Events Section */}
-      <section className="border-b border-foreground/20">
-        <div className="grid grid-cols-12">
-          <div className="col-span-12 md:col-span-3 border-r border-foreground/20 p-4">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              UPCOMING
-            </p>
-            <h3 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
-              EVENTS
-            </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed mb-6">
-              Wine fairs, tastings, and natural wine events worldwide.
-            </p>
-            <Link
-              to="/submit-wine-fair"
-              className="inline-flex items-center gap-2 text-xs border border-foreground px-4 py-2 hover:bg-foreground hover:text-background transition-colors"
-            >
-              SUBMIT EVENT
-              <ArrowUpRight className="w-3 h-3" />
-            </Link>
-          </div>
-          
-          <div className="col-span-12 md:col-span-9 divide-y divide-foreground/20">
-            {loading ? (
-              <div className="p-8 text-center text-muted-foreground">Loading events...</div>
-            ) : wineFairs.length === 0 ? (
-              <div className="p-8 text-center text-muted-foreground">
-                No upcoming events. Be the first to submit one!
-              </div>
-            ) : (
-              wineFairs.map((fair, index) => {
-                const startDate = new Date(fair.start_date);
-                const endDate = fair.end_date ? new Date(fair.end_date) : null;
-                const dateStr = endDate 
-                  ? `${format(startDate, 'MMM d')}-${format(endDate, 'd')}` 
-                  : format(startDate, 'MMM d');
-                const year = format(startDate, 'yyyy');
-
-                return (
-                  <Link
-                    key={fair.id}
-                    to={`/wine-fair/${fair.slug}`}
-                  >
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      whileInView={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.1, duration: 0.5 }}
-                      viewport={{ once: true }}
-                      className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer group"
-                    >
-                      <div className="flex items-center gap-8">
-                        <span className="text-3xl md:text-4xl font-bold text-muted-foreground/30 group-hover:text-foreground transition-colors w-16">
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <div>
-                          <h4 className="text-lg md:text-xl font-bold tracking-tight group-hover:underline">
-                            {fair.title.toUpperCase()}
-                          </h4>
-                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                            <span className="flex items-center gap-1">
-                              <Calendar className="w-3 h-3" />
-                              {dateStr.toUpperCase()}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <MapPin className="w-3 h-3" />
-                              {fair.city.toUpperCase()}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-xs text-muted-foreground">{year}</span>
-                        <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                      </div>
-                    </motion.div>
-                  </Link>
-                );
-              })
-            )}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-24 px-4">
-        <div className="max-w-4xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            whileInView={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.8 }}
-            viewport={{ once: true }}
-          >
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              JOIN THE COMMUNITY
-            </p>
-            <h2 className="text-[12vw] md:text-[8vw] font-bold tracking-tighter leading-[0.85] mb-8">
-              DRINK
-              <br />
-              <span className="text-muted-foreground/30">NATURAL</span>
-            </h2>
-            <div className="flex items-center justify-center gap-4">
-              <Link
-                to="/discover"
-                className="inline-flex items-center gap-2 bg-foreground text-background px-6 py-3 text-sm font-medium hover:bg-foreground/90 transition-colors"
-              >
-                START EXPLORING
-                <ArrowUpRight className="w-4 h-4" />
-              </Link>
-              <Link
-                to="/auth"
-                className="inline-flex items-center gap-2 border border-foreground px-6 py-3 text-sm font-medium hover:bg-muted transition-colors"
-              >
-                SIGN UP
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Footer */}
-      <footer className="border-t border-foreground/20">
-        <div className="grid grid-cols-12 divide-x divide-foreground/20">
-          <div className="col-span-12 md:col-span-4 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 bg-foreground rounded-sm" />
-              <span className="text-sm font-bold tracking-tight">POURCULTURE</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} PourCulture. All rights reserved.
-            </p>
-          </div>
-          
-          <div className="col-span-6 md:col-span-4 p-6">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              NAVIGATION
-            </p>
-            <div className="space-y-2">
-              {['Discover', 'Winemakers', 'Events', 'About'].map((link) => (
-                <Link
-                  key={link}
-                  to={`/${link.toLowerCase()}`}
-                  className="block text-sm hover:text-muted-foreground transition-colors"
-                >
-                  {link}
-                </Link>
-              ))}
-            </div>
-          </div>
-          
-          <div className="col-span-6 md:col-span-4 p-6">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              CONNECT
-            </p>
-            <div className="space-y-2 text-sm">
-              <a href="mailto:hello@pourculture.com" className="block hover:text-muted-foreground transition-colors">
-                hello@pourculture.com
-              </a>
-              <a href="https://instagram.com/pourculture" className="block hover:text-muted-foreground transition-colors">
-                @pourculture
-              </a>
-            </div>
-          </div>
-        </div>
-        
-        {/* Large Year */}
-        <div className="border-t border-foreground/20 p-4 text-right overflow-hidden">
-          <span className="text-[20vw] font-bold tracking-tighter text-foreground/5 leading-none">
-            2024
-          </span>
-        </div>
-      </footer>
+      {/* Fixed Footer Section */}
+      <FooterSection />
     </div>
   );
 };
