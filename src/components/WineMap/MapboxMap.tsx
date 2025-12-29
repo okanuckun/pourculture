@@ -15,9 +15,12 @@ interface MapboxMapProps {
   initialCenter?: [number, number];
   initialZoom?: number;
 }
+
+const DEFAULT_CENTER: [number, number] = [2.2137, 46.2276]; // [lng, lat]
+
 export const MapboxMap: React.FC<MapboxMapProps> = ({
   className = '',
-  initialCenter = [2.2137, 46.2276], // [lng, lat] for Mapbox
+  initialCenter = DEFAULT_CENTER,
   initialZoom = 5,
 }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
@@ -75,18 +78,20 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     loadDbVenues();
   }, []);
 
+  const [centerLng, centerLat] = initialCenter;
+
   // Initialize map
   useEffect(() => {
     if (!mapContainer.current || !mapboxToken || map.current) return;
 
     mapboxgl.accessToken = mapboxToken;
-    
+
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       // Use Mapbox's maintained base style for stability.
       // Our custom style was throwing "source-layer does not exist" errors and causing flicker.
       style: 'mapbox://styles/mapbox/dark-v11',
-      center: initialCenter,
+      center: [centerLng, centerLat],
       zoom: initialZoom,
       pitch: 45,
       bearing: -10,
@@ -111,7 +116,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
         'star-intensity': 0.15,
       });
       setMapReady(true);
-      
+
       // Auto-fetch OSM venues on initial load
       if (map.current) {
         const bounds = map.current.getBounds();
@@ -141,7 +146,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken, initialCenter, initialZoom]);
+  }, [mapboxToken, centerLng, centerLat, initialZoom]);
 
   // Combine OSM and database venues
   const allVenues = useMemo(() => {
