@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Navbar } from '@/components/Navbar';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
+import { motion } from 'framer-motion';
 
 interface Event {
   id: string;
@@ -35,33 +36,35 @@ const EventCard = ({
   
   return (
     <div 
-      className="relative cursor-pointer group"
+      className="relative cursor-pointer group border-2 border-foreground/20 hover:border-foreground transition-colors"
       onClick={() => navigate(isCreated ? `/event/${event.id}/edit` : `/event/${event.id}`)}
     >
-      <div className="overflow-hidden mb-3">
+      <div className="overflow-hidden">
         <div 
-          className="aspect-[4/3] bg-gray-300 bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-110"
+          className="aspect-[4/3] bg-muted bg-cover bg-center transition-transform duration-500 ease-out group-hover:scale-105"
           style={{ backgroundImage: `url(${event.background_image_url})` }}
-        ></div>
+        />
       </div>
       <div className="absolute top-4 left-4 flex flex-col gap-0">
-        <div className="bg-white border border-black px-3 h-[23px] flex items-center">
-          <div className="text-[11px] font-medium uppercase leading-none">{event.date}</div>
+        <div className="bg-background border-2 border-foreground px-3 h-6 flex items-center">
+          <div className="text-[10px] font-bold uppercase tracking-wide">{event.date}</div>
         </div>
-        <div className="bg-white border border-t-0 border-black px-3 h-[23px] flex items-center">
-          <div className="text-[11px] font-medium leading-none">{event.time}</div>
+        <div className="bg-background border-2 border-t-0 border-foreground px-3 h-6 flex items-center">
+          <div className="text-[10px] font-medium">{event.time}</div>
         </div>
       </div>
       {isCreated && (
         <button
           onClick={handleDelete}
-          className="absolute top-4 right-4 bg-white border border-black p-2 hover:bg-red-500 hover:text-white hover:border-red-500 transition-colors opacity-0 group-hover:opacity-100"
+          className="absolute top-4 right-4 bg-background border-2 border-foreground p-2 hover:bg-destructive hover:text-white hover:border-destructive transition-colors opacity-0 group-hover:opacity-100"
           aria-label="Delete event"
         >
           <Trash2 className="w-4 h-4" />
         </button>
       )}
-      <h3 className="text-base font-medium">{event.title}</h3>
+      <div className="p-4 border-t-2 border-foreground/20 group-hover:border-foreground transition-colors">
+        <h3 className="font-bold tracking-tight group-hover:underline">{event.title}</h3>
+      </div>
     </div>
   );
 };
@@ -72,13 +75,9 @@ const MyEvents = () => {
   const [registeredEvents, setRegisteredEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'created' | 'registered'>('created');
-  const [slideStyle, setSlideStyle] = useState({ width: 0, transform: 'translateX(0)' });
-  const createdRef = useRef<HTMLButtonElement>(null);
-  const registeredRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Check auth state
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         navigate('/');
@@ -104,32 +103,11 @@ const MyEvents = () => {
     }
   }, [user]);
 
-  useEffect(() => {
-    const updateSlidePosition = () => {
-      if (activeTab === 'created' && createdRef.current) {
-        setSlideStyle({
-          width: createdRef.current.offsetWidth,
-          transform: 'translateX(0)'
-        });
-      } else if (activeTab === 'registered' && registeredRef.current && createdRef.current) {
-        setSlideStyle({
-          width: registeredRef.current.offsetWidth,
-          transform: `translateX(${createdRef.current.offsetWidth}px)`
-        });
-      }
-    };
-
-    updateSlidePosition();
-    window.addEventListener('resize', updateSlidePosition);
-    return () => window.removeEventListener('resize', updateSlidePosition);
-  }, [activeTab, createdEvents.length, registeredEvents.length]);
-
   const fetchMyEvents = async () => {
     if (!user) return;
     
     setLoading(true);
     try {
-      // Fetch created events
       const { data: created, error: createdError } = await supabase
         .from('events')
         .select('id, title, date, time, background_image_url')
@@ -139,7 +117,6 @@ const MyEvents = () => {
       if (createdError) throw createdError;
       setCreatedEvents(created || []);
 
-      // Fetch registered events
       const { data: registrations, error: regError } = await supabase
         .from('event_registrations')
         .select(`
@@ -188,74 +165,73 @@ const MyEvents = () => {
   const displayedEvents = activeTab === 'created' ? createdEvents : registeredEvents;
 
   return (
-    <>
+    <BrutalistLayout
+      title="MY EVENTS"
+      subtitle="Manage your created events and view events you've registered for"
+    >
       <SEOHead 
-        title="My Events"
+        title="My Events | PourCulture"
         description="Manage your created events and view events you've registered for"
       />
-      <link href="https://fonts.googleapis.com/css2?family=Host+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
       
-      <div className="min-h-screen bg-white">
-        <Navbar />
-        
-        <div className="pt-32 pb-20 px-4 md:px-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-medium leading-tight mb-8">
-              My Events
-            </h1>
-
-            {/* Tabs */}
-            <div className="relative flex gap-0 mb-12">
-              {/* Sliding background */}
-              <div 
-                className="absolute top-0 left-0 h-full bg-[#ff6bff] border border-black transition-all duration-300 ease-out pointer-events-none"
-                style={{
-                  width: `${slideStyle.width}px`,
-                  transform: slideStyle.transform
-                }}
-              />
-              
-              <button
-                ref={createdRef}
-                onClick={() => setActiveTab('created')}
-                className="relative z-10 px-6 py-3 text-[11px] font-medium uppercase text-black border border-black transition-colors max-sm:flex-1 bg-transparent"
-              >
-                Created by me ({createdEvents.length})
-              </button>
-              <button
-                ref={registeredRef}
-                onClick={() => setActiveTab('registered')}
-                className="relative z-10 px-6 py-3 text-[11px] font-medium uppercase text-black border border-l-0 border-black transition-colors max-sm:flex-1 bg-transparent"
-              >
-                Registered ({registeredEvents.length})
-              </button>
-            </div>
-
-            {/* Events Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-8">
-              {loading ? (
-                <div className="col-span-full text-center py-12">Loading events...</div>
-              ) : displayedEvents.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  {activeTab === 'created' 
-                    ? 'You haven\'t created any events yet' 
-                    : 'You haven\'t registered for any events yet'}
-                </div>
-              ) : (
-                displayedEvents.map((event) => (
-                  <EventCard 
-                    key={event.id} 
-                    event={event} 
-                    isCreated={activeTab === 'created'}
-                    onDelete={activeTab === 'created' ? handleDeleteEvent : undefined}
-                  />
-                ))
-              )}
-            </div>
-          </div>
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+        {/* Tabs */}
+        <div className="flex gap-0 mb-8">
+          <button
+            onClick={() => setActiveTab('created')}
+            className={`px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 ${
+              activeTab === 'created'
+                ? 'bg-foreground text-background border-foreground'
+                : 'border-foreground/20 hover:border-foreground'
+            }`}
+          >
+            CREATED BY ME ({createdEvents.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('registered')}
+            className={`px-6 py-3 text-[10px] font-bold uppercase tracking-wider transition-colors border-2 border-l-0 ${
+              activeTab === 'registered'
+                ? 'bg-foreground text-background border-foreground'
+                : 'border-foreground/20 hover:border-foreground'
+            }`}
+          >
+            REGISTERED ({registeredEvents.length})
+          </button>
         </div>
+
+        {/* Events Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-6 h-6 animate-spin" />
+          </div>
+        ) : displayedEvents.length === 0 ? (
+          <div className="text-center py-16 border-2 border-foreground/20">
+            <p className="text-muted-foreground">
+              {activeTab === 'created' 
+                ? "You haven't created any events yet" 
+                : "You haven't registered for any events yet"}
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {displayedEvents.map((event, index) => (
+              <motion.div
+                key={event.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.05 }}
+              >
+                <EventCard 
+                  event={event} 
+                  isCreated={activeTab === 'created'}
+                  onDelete={activeTab === 'created' ? handleDeleteEvent : undefined}
+                />
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
-    </>
+    </BrutalistLayout>
   );
 };
 
