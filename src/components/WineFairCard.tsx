@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, MapPin, Ticket, Users } from 'lucide-react';
+import { Calendar, MapPin, Ticket, Users, ArrowUpRight } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 
@@ -38,20 +38,20 @@ export const WineFairCard: React.FC<WineFairCardProps> = ({
     if (endDate) {
       const end = new Date(endDate);
       if (start.getMonth() === end.getMonth()) {
-        return `${format(start, 'EEEE MMMM d')} - ${format(end, 'EEEE d')}`;
+        return `${format(start, 'MMM d')} - ${format(end, 'd, yyyy')}`;
       }
-      return `${format(start, 'EEEE MMMM d')} - ${format(end, 'EEEE MMMM d')}`;
+      return `${format(start, 'MMM d')} - ${format(end, 'MMM d, yyyy')}`;
     }
-    return format(start, 'EEEE MMMM d');
+    return format(start, 'MMMM d, yyyy');
   };
 
   return (
     <div 
       onClick={onClick}
       className={cn(
-        "group relative overflow-hidden rounded-lg bg-card cursor-pointer",
-        "shadow-card hover:shadow-card-hover transition-all duration-300",
-        "hover:-translate-y-1"
+        "group relative overflow-hidden cursor-pointer",
+        "border-2 border-foreground/20 hover:border-foreground",
+        "bg-background transition-all duration-300"
       )}
     >
       {/* Image */}
@@ -63,27 +63,44 @@ export const WineFairCard: React.FC<WineFairCardProps> = ({
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-primary/10 to-accent/10">
-            <span className="text-5xl">🍷</span>
+          <div className="w-full h-full flex items-center justify-center bg-foreground/5">
+            <Calendar className="w-16 h-16 text-foreground/20" />
           </div>
         )}
         
         {/* Pro Only Badge */}
         {isProOnly && (
           <div className="absolute top-3 right-3">
-            <div className="px-2 py-1 rounded-full bg-foreground text-background text-xs font-medium flex items-center gap-1">
+            <div className="px-2 py-1 bg-foreground text-background text-xs font-bold uppercase tracking-wide flex items-center gap-1">
               <Users className="w-3 h-3" />
-              Pro only ✅
+              PRO ONLY
             </div>
           </div>
         )}
+
+        {/* Date Badge */}
+        <div className="absolute bottom-3 left-3">
+          <div className="px-3 py-2 bg-background/95 backdrop-blur-sm border-2 border-foreground">
+            <div className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              {format(new Date(startDate), 'MMM')}
+            </div>
+            <div className="text-2xl font-bold tracking-tight">
+              {format(new Date(startDate), 'd')}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Content */}
-      <div className="p-4">
-        <h3 className="font-semibold text-foreground group-hover:text-accent transition-colors line-clamp-2">
-          {title}
-        </h3>
+      <div className="p-4 border-t-2 border-foreground/20 group-hover:border-foreground transition-colors">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-bold text-foreground uppercase tracking-tight group-hover:underline line-clamp-2 flex-1">
+            {title}
+          </h3>
+          <div className="w-8 h-8 border-2 border-foreground/20 group-hover:border-foreground group-hover:bg-foreground flex items-center justify-center transition-all flex-shrink-0">
+            <ArrowUpRight className="w-4 h-4 group-hover:text-background transition-colors" />
+          </div>
+        </div>
         
         {description && (
           <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
@@ -91,29 +108,9 @@ export const WineFairCard: React.FC<WineFairCardProps> = ({
           </p>
         )}
 
-        <div className="mt-4 space-y-2">
-          {/* Price */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground uppercase">Price</span>
-            <span className="text-sm font-medium text-foreground">{price || '-'}</span>
-          </div>
-
-          {/* Ticket Button */}
-          {ticketUrl && (
-            <a
-              href={ticketUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              className="flex items-center justify-center gap-2 w-full py-2 px-3 bg-accent text-accent-foreground rounded-md text-sm font-medium hover:bg-accent/90 transition-colors"
-            >
-              <Ticket className="w-4 h-4" />
-              🎟 TICKETS
-            </a>
-          )}
-
+        <div className="mt-4 space-y-3">
           {/* Date */}
-          <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t border-border">
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Calendar className="w-4 h-4 flex-shrink-0" />
             <span>{formatDateRange()}</span>
           </div>
@@ -125,7 +122,28 @@ export const WineFairCard: React.FC<WineFairCardProps> = ({
               <span>{city}{country && `, ${country}`}</span>
             </div>
             {distance && (
-              <span className="text-xs text-muted-foreground">{distance}</span>
+              <span className="text-xs text-muted-foreground font-medium">{distance}</span>
+            )}
+          </div>
+
+          {/* Price & Ticket */}
+          <div className="flex items-center justify-between pt-3 border-t-2 border-foreground/10">
+            <div>
+              <span className="text-xs text-muted-foreground uppercase tracking-wide">Price</span>
+              <p className="font-bold">{price || 'TBA'}</p>
+            </div>
+            
+            {ticketUrl && (
+              <a
+                href={ticketUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={(e) => e.stopPropagation()}
+                className="flex items-center gap-2 px-4 py-2 bg-foreground text-background text-sm font-bold uppercase tracking-wide hover:bg-foreground/90 transition-colors"
+              >
+                <Ticket className="w-4 h-4" />
+                TICKETS
+              </a>
             )}
           </div>
         </div>
