@@ -5,11 +5,17 @@ import { WineVenueCategory } from '@/components/WineMap/types';
 
 export type CategoryType = 'overview' | 'bar' | 'wine_shop' | 'restaurant' | 'winemaker' | 'events';
 
+export interface UserCoordinates {
+  lat: number;
+  lng: number;
+}
+
 interface BrutalistHeroProps {
   minimalMapStyle?: boolean;
   activeCategory: CategoryType;
   onCategoryChange: (category: CategoryType) => void;
   userLocation?: string;
+  userCoords?: UserCoordinates | null;
 }
 
 // Map CategoryType to WineVenueCategory for the map filter
@@ -35,7 +41,8 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
   minimalMapStyle = true,
   activeCategory,
   onCategoryChange,
-  userLocation
+  userLocation,
+  userCoords
 }) => {
   const categories: { label: string; value: CategoryType }[] = [
     { label: 'OVERVIEW', value: 'overview' },
