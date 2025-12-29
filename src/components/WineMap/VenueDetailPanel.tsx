@@ -330,11 +330,11 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                             <TooltipTrigger asChild>
                               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground cursor-help">
                                 <AlertCircle className="w-3 h-3" />
-                                Google
+                                Doğrulanmamış
                               </span>
                             </TooltipTrigger>
-                            <TooltipContent side="bottom" className="max-w-[200px] text-center">
-                              <p className="text-xs">Bu mekan Google Places'tan alınmıştır. Mekan sahibi olarak kaydolabilirsiniz.</p>
+                            <TooltipContent side="bottom" className="max-w-[220px] text-center">
+                              <p className="text-xs">Bu mekanın sahibi henüz siteye üye değil. Bilgiler Google'dan alınmaktadır.</p>
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
