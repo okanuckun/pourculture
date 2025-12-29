@@ -154,8 +154,8 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
             fetchVenues(newBounds);
           });
           
-          toast.success('Konumunuz tespit edildi', {
-            description: 'Yakındaki mekanlar aranıyor...',
+          toast.success('Location detected', {
+            description: 'Searching for nearby venues...',
             duration: 3000,
           });
         },
@@ -490,7 +490,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                 background: rgba(245, 158, 11, 0.1);
                 font-family: sans-serif;
               ">
-                ✓ Doğrulanmış
+                ✓ Verified
               </span>
             ` : `
               <span style="
@@ -502,7 +502,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                 background: rgba(107, 114, 128, 0.1);
                 font-family: sans-serif;
               ">
-                Doğrulanmamış
+                Unverified
               </span>
             `}
           </div>
@@ -983,7 +983,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
             whileTap={{ scale: 0.98 }}
           >
             <Filter className="w-4 h-4" />
-            <span className="text-sm">Filtreler</span>
+            <span className="text-sm">Filters</span>
             {(showOnlyVerified || showOnlyOpen || selectedCategories.length < 4) && (
               <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold ${
                 minimalStyle ? 'bg-background text-foreground border border-foreground' : 'bg-white text-amber-600'
@@ -1016,7 +1016,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                   }`}
                 >
                   <ShieldCheck className="w-4 h-4" />
-                  <span className="text-sm font-medium flex-1 text-left">Sadece Doğrulanmış</span>
+                  <span className="text-sm font-medium flex-1 text-left">Verified Only</span>
                   {showOnlyVerified && <Check className="w-4 h-4" />}
                 </button>
 
@@ -1030,7 +1030,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                   }`}
                 >
                   <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium flex-1 text-left">Açık Şimdi</span>
+                  <span className="text-sm font-medium flex-1 text-left">Open Now</span>
                   {showOnlyOpen && <Check className="w-4 h-4" />}
                 </button>
 
@@ -1038,7 +1038,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
                 {/* Category Filters */}
                 <div className="flex items-center justify-between mb-2">
-                  <p className={`text-xs font-medium ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>Kategoriler</p>
+                  <p className={`text-xs font-medium ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>Categories</p>
                   <div className="flex gap-1">
                     <button
                       onClick={() => setSelectedCategories(['wine_shop', 'wine_bar', 'winery', 'restaurant'])}
@@ -1048,7 +1048,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                           : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
                       }`}
                     >
-                      Tümünü Seç
+                      Select All
                     </button>
                     <button
                       onClick={() => setSelectedCategories(['wine_shop'])}
@@ -1058,7 +1058,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
                           : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
                       }`}
                     >
-                      Temizle
+                      Clear
                     </button>
                   </div>
                 </div>
