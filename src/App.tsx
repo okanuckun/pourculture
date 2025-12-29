@@ -17,6 +17,7 @@ import WineFairDetail from "./pages/WineFairDetail";
 import NewsDetail from "./pages/NewsDetail";
 import Auth from "./pages/Auth";
 import Admin from "./pages/Admin";
+import AdminClaims from "./pages/AdminClaims";
 import MyEvents from "./pages/MyEvents";
 import CreateEvent from "./pages/CreateEvent";
 import EditEvent from "./pages/EditEvent";
@@ -57,6 +58,7 @@ const App = () => (
       <Route path="/create-event" element={<CreateEvent />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/admin" element={<Admin />} />
+      <Route path="/admin/claims" element={<AdminClaims />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </TooltipProvider>

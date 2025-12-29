@@ -446,6 +446,68 @@ export type Database = {
         }
         Relationships: []
       }
+      venue_claims: {
+        Row: {
+          business_email: string
+          business_name: string
+          business_phone: string | null
+          created_at: string
+          google_place_id: string | null
+          id: string
+          message: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role_at_venue: string
+          status: string
+          updated_at: string
+          user_id: string
+          venue_id: string | null
+        }
+        Insert: {
+          business_email: string
+          business_name: string
+          business_phone?: string | null
+          created_at?: string
+          google_place_id?: string | null
+          id?: string
+          message?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_at_venue: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          venue_id?: string | null
+        }
+        Update: {
+          business_email?: string
+          business_name?: string
+          business_phone?: string | null
+          created_at?: string
+          google_place_id?: string | null
+          id?: string
+          message?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_at_venue?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          venue_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "venue_claims_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       venues: {
         Row: {
           address: string
@@ -456,18 +518,28 @@ export type Database = {
           created_by: string | null
           description: string | null
           email: string | null
+          events: Json | null
+          google_place_id: string | null
+          google_rating: number | null
           id: string
           image_url: string | null
+          is_claimed: boolean | null
           is_featured: boolean | null
           is_open: boolean | null
           latitude: number | null
           longitude: number | null
+          menu_url: string | null
           name: string
           opening_hours: Json | null
+          owner_id: string | null
           phone: string | null
+          photos: Json | null
           slug: string
+          social_links: Json | null
+          story: string | null
           updated_at: string
           website: string | null
+          wine_list: Json | null
         }
         Insert: {
           address: string
@@ -478,18 +550,28 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           email?: string | null
+          events?: Json | null
+          google_place_id?: string | null
+          google_rating?: number | null
           id?: string
           image_url?: string | null
+          is_claimed?: boolean | null
           is_featured?: boolean | null
           is_open?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          menu_url?: string | null
           name: string
           opening_hours?: Json | null
+          owner_id?: string | null
           phone?: string | null
+          photos?: Json | null
           slug: string
+          social_links?: Json | null
+          story?: string | null
           updated_at?: string
           website?: string | null
+          wine_list?: Json | null
         }
         Update: {
           address?: string
@@ -500,18 +582,28 @@ export type Database = {
           created_by?: string | null
           description?: string | null
           email?: string | null
+          events?: Json | null
+          google_place_id?: string | null
+          google_rating?: number | null
           id?: string
           image_url?: string | null
+          is_claimed?: boolean | null
           is_featured?: boolean | null
           is_open?: boolean | null
           latitude?: number | null
           longitude?: number | null
+          menu_url?: string | null
           name?: string
           opening_hours?: Json | null
+          owner_id?: string | null
           phone?: string | null
+          photos?: Json | null
           slug?: string
+          social_links?: Json | null
+          story?: string | null
           updated_at?: string
           website?: string | null
+          wine_list?: Json | null
         }
         Relationships: []
       }
@@ -608,6 +700,65 @@ export type Database = {
         }
         Relationships: []
       }
+      winemaker_claims: {
+        Row: {
+          business_email: string
+          business_name: string
+          business_phone: string | null
+          created_at: string
+          id: string
+          message: string | null
+          rejection_reason: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          role_at_winemaker: string
+          status: string
+          updated_at: string
+          user_id: string
+          winemaker_id: string | null
+        }
+        Insert: {
+          business_email: string
+          business_name: string
+          business_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_at_winemaker: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          winemaker_id?: string | null
+        }
+        Update: {
+          business_email?: string
+          business_name?: string
+          business_phone?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          rejection_reason?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          role_at_winemaker?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          winemaker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "winemaker_claims_winemaker_id_fkey"
+            columns: ["winemaker_id"]
+            isOneToOne: false
+            referencedRelation: "winemakers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       winemakers: {
         Row: {
           bio: string | null
@@ -617,15 +768,21 @@ export type Database = {
           domain_name: string | null
           id: string
           image_url: string | null
+          is_claimed: boolean | null
           is_featured: boolean | null
           is_new: boolean | null
           latitude: number | null
           longitude: number | null
           name: string
+          owner_id: string | null
+          photos: Json | null
           region: string | null
           slug: string
+          social_links: Json | null
+          story: string | null
           updated_at: string
           website: string | null
+          wine_list: Json | null
         }
         Insert: {
           bio?: string | null
@@ -635,15 +792,21 @@ export type Database = {
           domain_name?: string | null
           id?: string
           image_url?: string | null
+          is_claimed?: boolean | null
           is_featured?: boolean | null
           is_new?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name: string
+          owner_id?: string | null
+          photos?: Json | null
           region?: string | null
           slug: string
+          social_links?: Json | null
+          story?: string | null
           updated_at?: string
           website?: string | null
+          wine_list?: Json | null
         }
         Update: {
           bio?: string | null
@@ -653,15 +816,21 @@ export type Database = {
           domain_name?: string | null
           id?: string
           image_url?: string | null
+          is_claimed?: boolean | null
           is_featured?: boolean | null
           is_new?: boolean | null
           latitude?: number | null
           longitude?: number | null
           name?: string
+          owner_id?: string | null
+          photos?: Json | null
           region?: string | null
           slug?: string
+          social_links?: Json | null
+          story?: string | null
           updated_at?: string
           website?: string | null
+          wine_list?: Json | null
         }
         Relationships: []
       }

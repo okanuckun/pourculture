@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 
 // Input validation schema for events
@@ -655,10 +655,14 @@ const Admin = () => {
         </div>
 
         <Tabs defaultValue="wines" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="wines" className="flex items-center gap-2">
               <Wine className="h-4 w-4" />
               Şaraplar
+            </TabsTrigger>
+            <TabsTrigger value="claims" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />
+              Sahiplik Talepleri
             </TabsTrigger>
             <TabsTrigger value="knowledge" className="flex items-center gap-2">
               <Book className="h-4 w-4" />
@@ -758,6 +762,20 @@ const Admin = () => {
                 )}
               </div>
             )}
+          </TabsContent>
+
+          {/* Claims Tab */}
+          <TabsContent value="claims">
+            <div className="bg-card border border-border rounded-2xl p-6 text-center">
+              <Shield className="h-12 w-12 mx-auto mb-4 text-primary" />
+              <h3 className="text-lg font-semibold mb-2">Sahiplik Talepleri Yönetimi</h3>
+              <p className="text-muted-foreground mb-4">
+                Mekan ve üretici sahiplik taleplerini inceleyin ve yönetin.
+              </p>
+              <Button onClick={() => navigate('/admin/claims')}>
+                Talepleri Görüntüle
+              </Button>
+            </div>
           </TabsContent>
 
           {/* Knowledge Hub Tab */}
