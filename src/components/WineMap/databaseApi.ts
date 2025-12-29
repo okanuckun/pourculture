@@ -49,6 +49,7 @@ export const fetchVenuesFromDatabase = async (): Promise<WineVenue[]> => {
       slug: venue.slug,
       venueType: 'venue' as const,
       isClaimed: venue.is_claimed ?? false,
+      isOpen: venue.is_open ?? undefined,
     }));
   } catch (error) {
     console.error('Error fetching venues:', error);

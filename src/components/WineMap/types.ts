@@ -21,6 +21,7 @@ export interface WineVenue {
   slug?: string;
   venueType?: WineVenueType;
   isClaimed?: boolean;
+  isOpen?: boolean;
 }
 
 export interface OverpassElement {

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck } from 'lucide-react';
+import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG } from './types';
@@ -48,6 +48,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
   // Filter state
   const [showFilters, setShowFilters] = useState(false);
   const [showOnlyVerified, setShowOnlyVerified] = useState(false);
+  const [showOnlyOpen, setShowOnlyOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<WineVenueCategory[]>(['wine_shop', 'wine_bar', 'winery', 'restaurant']);
 
   // Fetch Mapbox token
@@ -287,13 +288,17 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
       if (showOnlyVerified && !venue.isClaimed) {
         return false;
       }
+      // Filter by open status
+      if (showOnlyOpen && venue.isOpen === false) {
+        return false;
+      }
       // Filter by category
       if (!selectedCategories.includes(venue.category)) {
         return false;
       }
       return true;
     });
-  }, [allVenues, showOnlyVerified, selectedCategories]);
+  }, [allVenues, showOnlyVerified, showOnlyOpen, selectedCategories]);
 
   // Toggle category filter
   const toggleCategory = (category: WineVenueCategory) => {
@@ -731,7 +736,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           <motion.button
             onClick={() => setShowFilters(!showFilters)}
             className={`px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2 font-medium border-2 transition-colors ${
-              showFilters || showOnlyVerified || selectedCategories.length < 4
+              showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4
                 ? 'bg-amber-600 text-white border-amber-500'
                 : 'bg-amber-50/95 text-amber-800 border-amber-200'
             }`}
@@ -741,9 +746,9 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           >
             <Filter className="w-4 h-4" />
             <span className="text-sm">Filtreler</span>
-            {(showOnlyVerified || selectedCategories.length < 4) && (
+            {(showOnlyVerified || showOnlyOpen || selectedCategories.length < 4) && (
               <span className="w-5 h-5 rounded-full bg-white text-amber-600 text-xs flex items-center justify-center font-bold">
-                {(showOnlyVerified ? 1 : 0) + (4 - selectedCategories.length)}
+                {(showOnlyVerified ? 1 : 0) + (showOnlyOpen ? 1 : 0) + (4 - selectedCategories.length)}
               </span>
             )}
           </motion.button>
@@ -769,6 +774,20 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
                   <ShieldCheck className="w-4 h-4" />
                   <span className="text-sm font-medium flex-1 text-left">Sadece Doğrulanmış</span>
                   {showOnlyVerified && <Check className="w-4 h-4" />}
+                </button>
+
+                {/* Open Now Toggle */}
+                <button
+                  onClick={() => setShowOnlyOpen(!showOnlyOpen)}
+                  className={`w-full px-3 py-2.5 rounded-lg flex items-center gap-2.5 transition-colors mb-2 ${
+                    showOnlyOpen 
+                      ? 'bg-green-500 text-white' 
+                      : 'bg-white hover:bg-amber-100 text-amber-800'
+                  }`}
+                >
+                  <Clock className="w-4 h-4" />
+                  <span className="text-sm font-medium flex-1 text-left">Açık Şimdi</span>
+                  {showOnlyOpen && <Check className="w-4 h-4" />}
                 </button>
 
                 <div className="h-px bg-amber-200 my-2" />
