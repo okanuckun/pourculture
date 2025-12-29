@@ -6,12 +6,17 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, ArrowUpRight, MapPin, Calendar, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
+import { format } from 'date-fns';
+import { Tables } from '@/integrations/supabase/types';
+
 interface Stats {
   totalVenues: number;
   countries: number;
   verifiedPercent: number;
   winemakers: number;
 }
+
+type WineFair = Tables<'wine_fairs'>;
 
 const BrutalistHome = () => {
   const [stats, setStats] = useState<Stats>({
@@ -20,50 +25,48 @@ const BrutalistHome = () => {
     verifiedPercent: 0,
     winemakers: 0,
   });
+  const [wineFairs, setWineFairs] = useState<WineFair[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
-        // Fetch total venues count
-        const { count: venuesCount } = await supabase
-          .from('venues')
-          .select('*', { count: 'exact', head: true });
+        // Fetch stats
+        const [venuesResult, verifiedResult, countriesResult, winemakersResult, wineFairsResult] = await Promise.all([
+          supabase.from('venues').select('*', { count: 'exact', head: true }),
+          supabase.from('venues').select('*', { count: 'exact', head: true }).eq('is_claimed', true),
+          supabase.from('countries').select('*', { count: 'exact', head: true }),
+          supabase.from('winemakers').select('*', { count: 'exact', head: true }),
+          supabase
+            .from('wine_fairs')
+            .select('*')
+            .gte('start_date', new Date().toISOString().split('T')[0])
+            .order('start_date', { ascending: true })
+            .limit(4),
+        ]);
 
-        // Fetch verified venues count
-        const { count: verifiedCount } = await supabase
-          .from('venues')
-          .select('*', { count: 'exact', head: true })
-          .eq('is_claimed', true);
-
-        // Fetch distinct countries count
-        const { count: countriesCount } = await supabase
-          .from('countries')
-          .select('*', { count: 'exact', head: true });
-
-        // Fetch winemakers count
-        const { count: winemakersCount } = await supabase
-          .from('winemakers')
-          .select('*', { count: 'exact', head: true });
-
-        const totalVenues = venuesCount || 0;
-        const verified = verifiedCount || 0;
+        const totalVenues = venuesResult.count || 0;
+        const verified = verifiedResult.count || 0;
         const verifiedPercent = totalVenues > 0 ? Math.round((verified / totalVenues) * 100) : 0;
 
         setStats({
           totalVenues,
-          countries: countriesCount || 0,
+          countries: countriesResult.count || 0,
           verifiedPercent,
-          winemakers: winemakersCount || 0,
+          winemakers: winemakersResult.count || 0,
         });
+
+        if (wineFairsResult.data) {
+          setWineFairs(wineFairsResult.data);
+        }
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching data:', error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchStats();
+    fetchData();
   }, []);
 
   const formatNumber = (num: number): string => {
@@ -119,52 +122,75 @@ const BrutalistHome = () => {
             <h3 className="text-4xl md:text-5xl font-bold tracking-tighter mb-4">
               EVENTS
             </h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-xs text-muted-foreground leading-relaxed mb-6">
               Wine fairs, tastings, and natural wine events worldwide.
             </p>
+            <Link
+              to="/submit-wine-fair"
+              className="inline-flex items-center gap-2 text-xs border border-foreground px-4 py-2 hover:bg-foreground hover:text-background transition-colors"
+            >
+              SUBMIT EVENT
+              <ArrowUpRight className="w-3 h-3" />
+            </Link>
           </div>
           
           <div className="col-span-12 md:col-span-9 divide-y divide-foreground/20">
-            {[
-              { name: 'RAW WINE FAIR', date: 'MAR 15-16', location: 'BERLIN', year: '2024' },
-              { name: 'LA DIVE BOUTEILLE', date: 'FEB 5-6', location: 'LOIRE', year: '2024' },
-              { name: 'REAL WINE FAIR', date: 'MAY 12-13', location: 'LONDON', year: '2024' },
-              { name: 'VINI VERI', date: 'APR 8-10', location: 'VERONA', year: '2024' },
-            ].map((event, index) => (
-              <motion.div
-                key={event.name}
-                initial={{ opacity: 0, x: -20 }}
-                whileInView={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.5 }}
-                viewport={{ once: true }}
-                className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer group"
-              >
-                <div className="flex items-center gap-8">
-                  <span className="text-3xl md:text-4xl font-bold text-muted-foreground/30 group-hover:text-foreground transition-colors w-16">
-                    {String(index + 1).padStart(2, '0')}
-                  </span>
-                  <div>
-                    <h4 className="text-lg md:text-xl font-bold tracking-tight group-hover:underline">
-                      {event.name}
-                    </h4>
-                    <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {event.date}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {event.location}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-xs text-muted-foreground">{event.year}</span>
-                  <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              </motion.div>
-            ))}
+            {loading ? (
+              <div className="p-8 text-center text-muted-foreground">Loading events...</div>
+            ) : wineFairs.length === 0 ? (
+              <div className="p-8 text-center text-muted-foreground">
+                No upcoming events. Be the first to submit one!
+              </div>
+            ) : (
+              wineFairs.map((fair, index) => {
+                const startDate = new Date(fair.start_date);
+                const endDate = fair.end_date ? new Date(fair.end_date) : null;
+                const dateStr = endDate 
+                  ? `${format(startDate, 'MMM d')}-${format(endDate, 'd')}` 
+                  : format(startDate, 'MMM d');
+                const year = format(startDate, 'yyyy');
+
+                return (
+                  <Link
+                    key={fair.id}
+                    to={`/wine-fair/${fair.slug}`}
+                  >
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      whileInView={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1, duration: 0.5 }}
+                      viewport={{ once: true }}
+                      className="flex items-center justify-between p-4 hover:bg-muted/30 transition-colors cursor-pointer group"
+                    >
+                      <div className="flex items-center gap-8">
+                        <span className="text-3xl md:text-4xl font-bold text-muted-foreground/30 group-hover:text-foreground transition-colors w-16">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                        <div>
+                          <h4 className="text-lg md:text-xl font-bold tracking-tight group-hover:underline">
+                            {fair.title.toUpperCase()}
+                          </h4>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground mt-1">
+                            <span className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              {dateStr.toUpperCase()}
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {fair.city.toUpperCase()}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-xs text-muted-foreground">{year}</span>
+                        <ArrowRight className="w-5 h-5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </motion.div>
+                  </Link>
+                );
+              })
+            )}
           </div>
         </div>
       </section>
