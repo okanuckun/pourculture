@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2 } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -279,42 +279,52 @@ const UserProfile = () => {
           </div>
         </div>
 
-        {/* Completed Routes */}
+        {/* Completed Routes Badges */}
         {completedRoutes.length > 0 && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
-              <Trophy className="w-5 h-5 text-foreground" />
+              <Trophy className="w-5 h-5 text-amber-500" />
               <h2 className="text-lg font-bold tracking-tight">COMPLETED ROUTES</h2>
+              <span className="text-sm text-muted-foreground">({completedRoutes.length} badges earned)</span>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            
+            {/* Badge Grid */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mb-6">
               {completedRoutes.map((item, index) => (
                 <motion.div
                   key={item.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.1, type: 'spring', stiffness: 200 }}
                 >
                   <Link
                     to={`/wine-routes/${item.route.slug}`}
-                    className="block border-2 border-green-500/50 hover:border-green-500 p-4 transition-colors bg-green-500/5"
+                    className="group block text-center"
                   >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          {item.route.is_curated && (
-                            <span className="text-[9px] font-bold uppercase tracking-wider text-blue-500">Curated</span>
-                          )}
-                          <CheckCircle className="w-4 h-4 text-green-500" />
+                    {/* Badge Circle */}
+                    <div className={`relative w-20 h-20 mx-auto mb-2 rounded-full flex items-center justify-center transition-transform group-hover:scale-110 ${
+                      item.route.is_curated 
+                        ? 'bg-gradient-to-br from-amber-400 to-amber-600' 
+                        : 'bg-gradient-to-br from-green-400 to-green-600'
+                    }`}>
+                      <Award className="w-10 h-10 text-white" />
+                      {item.route.is_curated && (
+                        <div className="absolute -top-1 -right-1 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                          <Star className="w-3.5 h-3.5 text-white fill-white" />
                         </div>
-                        <h3 className="font-bold hover:underline">{item.route.title}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {item.route.region}, {item.route.country}
-                        </p>
-                      </div>
-                      <div className="text-[10px] text-muted-foreground">
-                        {new Date(item.completed_at).toLocaleDateString()}
-                      </div>
+                      )}
                     </div>
+                    
+                    {/* Badge Info */}
+                    <h3 className="font-bold text-sm leading-tight group-hover:underline line-clamp-2">
+                      {item.route.title}
+                    </h3>
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {item.route.region}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground">
+                      {new Date(item.completed_at).toLocaleDateString()}
+                    </p>
                   </Link>
                 </motion.div>
               ))}
