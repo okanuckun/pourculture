@@ -1,6 +1,12 @@
 import React from 'react';
-import { MapPin, Clock, ExternalLink, Star } from 'lucide-react';
+import { MapPin, Clock, ExternalLink, Star, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 export interface VenueCardProps {
   id: string;
@@ -13,6 +19,7 @@ export interface VenueCardProps {
   openingHours?: string;
   isClaimed?: boolean;
   googleRating?: number | null;
+  source?: 'database' | 'google';
   onClick?: () => void;
 }
 
@@ -26,6 +33,7 @@ export const VenueCard: React.FC<VenueCardProps> = ({
   openingHours,
   isClaimed = false,
   googleRating,
+  source = 'database',
   onClick,
 }) => {
   return (
@@ -68,12 +76,31 @@ export const VenueCard: React.FC<VenueCardProps> = ({
             </span>
           </div>
           
-          {/* Verified Badge */}
-          {isClaimed && (
+          {/* Verified/Unverified Badge */}
+          {isClaimed ? (
             <div className="px-2 py-1 rounded-full text-xs font-medium bg-amber-500/90 text-white flex items-center gap-1">
               <Star className="w-3 h-3 fill-current" />
-              Verified
+              Doğrulanmış
             </div>
+          ) : (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="px-2 py-1 rounded-full text-xs font-medium bg-muted/90 backdrop-blur-sm text-muted-foreground flex items-center gap-1 cursor-help">
+                    <AlertCircle className="w-3 h-3" />
+                    Doğrulanmamış
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-[200px] text-center">
+                  <p className="text-xs">
+                    {source === 'google' 
+                      ? 'Bu mekanın sahibi henüz siteye üye değil. Bilgiler Google\'dan alınmaktadır.'
+                      : 'Bu mekanın sahibi henüz sitemize üye değil veya mekanını talep etmedi.'
+                    }
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
 
