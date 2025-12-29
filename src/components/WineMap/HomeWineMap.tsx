@@ -290,6 +290,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
 
     allVenues.forEach(venue => {
       const config = CATEGORY_CONFIG[venue.category];
+      const isVerified = venue.isClaimed === true;
       
       const el = document.createElement('div');
       el.className = 'vintage-wine-marker';
@@ -306,13 +307,31 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
           font-size: 16px;
           box-shadow: 
             0 3px 10px rgba(0,0,0,0.3),
-            inset 0 1px 0 rgba(255,255,255,0.3);
-          border: 2px solid rgba(255,255,255,0.8);
+            inset 0 1px 0 rgba(255,255,255,0.3)${isVerified ? ', 0 0 0 3px #f59e0b' : ''};
+          border: 2px solid ${isVerified ? '#f59e0b' : 'rgba(255,255,255,0.8)'};
           cursor: pointer;
           transition: transform 0.2s ease;
           position: relative;
         ">
           ${config.icon}
+          ${isVerified ? `
+            <div style="
+              position: absolute;
+              top: -6px;
+              right: -6px;
+              width: 16px;
+              height: 16px;
+              background: #f59e0b;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 10px;
+              color: white;
+              border: 2px solid white;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            ">✓</div>
+          ` : ''}
           <div style="
             position: absolute;
             bottom: -6px;
@@ -375,19 +394,31 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
             ">
               ${config.icon} ${config.label}
             </span>
-            ${venue.source === 'database' ? `
+            ${isVerified ? `
               <span style="
                 padding: 3px 10px;
                 border-radius: 20px;
                 font-size: 11px;
                 font-weight: 500;
-                color: #8b5cf6;
-                background: rgba(139, 92, 246, 0.1);
+                color: #f59e0b;
+                background: rgba(245, 158, 11, 0.1);
                 font-family: sans-serif;
               ">
-                ✓ Verified
+                ✓ Doğrulanmış
               </span>
-            ` : ''}
+            ` : `
+              <span style="
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 500;
+                color: #6b7280;
+                background: rgba(107, 114, 128, 0.1);
+                font-family: sans-serif;
+              ">
+                Doğrulanmamış
+              </span>
+            `}
           </div>
           <h3 style="
             font-weight: 700; 

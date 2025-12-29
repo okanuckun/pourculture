@@ -20,6 +20,7 @@ export interface WineVenue {
   isEvent?: boolean;
   slug?: string;
   venueType?: WineVenueType;
+  isClaimed?: boolean;
 }
 
 export interface OverpassElement {

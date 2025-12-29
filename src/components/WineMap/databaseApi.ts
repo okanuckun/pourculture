@@ -48,6 +48,7 @@ export const fetchVenuesFromDatabase = async (): Promise<WineVenue[]> => {
       source: 'database' as const,
       slug: venue.slug,
       venueType: 'venue' as const,
+      isClaimed: venue.is_claimed ?? false,
     }));
   } catch (error) {
     console.error('Error fetching venues:', error);
@@ -121,6 +122,7 @@ export const fetchWinemakersFromDatabase = async (): Promise<WineVenue[]> => {
       source: 'database' as const,
       slug: winemaker.slug,
       venueType: 'winemaker' as const,
+      isClaimed: winemaker.is_claimed ?? false,
     }));
   } catch (error) {
     console.error('Error fetching winemakers:', error);
