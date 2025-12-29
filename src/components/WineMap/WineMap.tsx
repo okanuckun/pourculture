@@ -294,8 +294,12 @@ export const WineMap: React.FC<WineMapProps> = ({
           background: transparent !important;
           border: none !important;
         }
+        .custom-wine-marker > div {
+          transform-origin: center center;
+        }
         .custom-wine-marker > div:hover {
           transform: scale(1.15);
+          z-index: 1000 !important;
         }
         .leaflet-popup-content-wrapper {
           border-radius: 12px;
