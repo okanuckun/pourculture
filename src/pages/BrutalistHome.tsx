@@ -198,6 +198,7 @@ const BrutalistHome = () => {
           <CategorySection
             title="WINE BARS"
             subtitle={locationSubtitle}
+            description="Discover the best natural wine bars where passion meets craft. Each venue curated for authentic experiences."
             items={wineBars}
             type="venue"
             linkPrefix="/venue"
@@ -207,6 +208,7 @@ const BrutalistHome = () => {
           <CategorySection
             title="WINE SHOPS"
             subtitle={userLocation ? `NEAR ${userLocation.toUpperCase()}` : 'EXPLORE'}
+            description="Find your next bottle at carefully selected shops specializing in natural, organic and biodynamic wines."
             items={wineShops}
             type="venue"
             linkPrefix="/venue"
@@ -216,6 +218,7 @@ const BrutalistHome = () => {
           <CategorySection
             title="RESTAURANTS"
             subtitle={userLocation ? `NEAR ${userLocation.toUpperCase()}` : 'DINE'}
+            description="Exceptional dining experiences paired with thoughtfully curated natural wine selections."
             items={restaurants}
             type="venue"
             linkPrefix="/venue"
@@ -225,6 +228,7 @@ const BrutalistHome = () => {
           <CategorySection
             title="WINEMAKERS"
             subtitle={userLocation ? `NEAR ${userLocation.toUpperCase()}` : 'MEET'}
+            description="Meet the artisans behind your favorite bottles. Independent producers crafting wines with soul."
             items={winemakers}
             type="winemaker"
             linkPrefix="/winemaker"
@@ -244,6 +248,7 @@ const BrutalistHome = () => {
         <CategorySection
           title="WINE BARS"
           subtitle={locationSubtitle}
+          description="Discover the best natural wine bars where passion meets craft. Each venue curated for authentic experiences."
           items={wineBars}
           type="venue"
           linkPrefix="/venue"
@@ -258,6 +263,7 @@ const BrutalistHome = () => {
         <CategorySection
           title="WINE SHOPS"
           subtitle={locationSubtitle}
+          description="Find your next bottle at carefully selected shops specializing in natural, organic and biodynamic wines."
           items={wineShops}
           type="venue"
           linkPrefix="/venue"
@@ -272,6 +278,7 @@ const BrutalistHome = () => {
         <CategorySection
           title="RESTAURANTS"
           subtitle={locationSubtitle}
+          description="Exceptional dining experiences paired with thoughtfully curated natural wine selections."
           items={restaurants}
           type="venue"
           linkPrefix="/venue"
@@ -286,6 +293,7 @@ const BrutalistHome = () => {
         <CategorySection
           title="WINEMAKERS"
           subtitle={locationSubtitle}
+          description="Meet the artisans behind your favorite bottles. Independent producers crafting wines with soul."
           items={winemakers}
           type="winemaker"
           linkPrefix="/winemaker"
