@@ -3,9 +3,10 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { RaisinNavbar } from '@/components/RaisinNavbar';
 import { SEOHead } from '@/components/SEOHead';
-import { MapPin, Clock, Phone, Globe, Mail, ArrowLeft } from 'lucide-react';
+import { MapPin, Clock, Phone, Globe, Mail, ArrowLeft, Shield, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ClaimVenueDialog } from '@/components/ClaimVenueDialog';
 
 interface Venue {
   id: string;
@@ -21,6 +22,8 @@ interface Venue {
   website: string | null;
   image_url: string | null;
   is_open: boolean | null;
+  is_claimed: boolean | null;
+  owner_id: string | null;
   opening_hours: Record<string, string> | null;
   latitude: number | null;
   longitude: number | null;
@@ -31,6 +34,12 @@ const VenueDetail: React.FC = () => {
   const [venue, setVenue] = useState<Venue | null>(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
+  const [claimDialogOpen, setClaimDialogOpen] = useState(false);
+  const [user, setUser] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+  }, []);
 
   useEffect(() => {
     const fetchVenue = async () => {
@@ -123,7 +132,7 @@ const VenueDetail: React.FC = () => {
 
         {/* Header */}
         <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
+          <div className="flex items-center gap-3 mb-2 flex-wrap">
             <span className={`px-3 py-1 rounded-full text-sm font-medium ${
               venue.is_open 
                 ? 'bg-status-open/10 text-status-open' 
@@ -132,12 +141,38 @@ const VenueDetail: React.FC = () => {
               {venue.is_open ? 'Open' : 'Closed'}
             </span>
             <span className="text-muted-foreground capitalize">{categoryLabel}</span>
+            {venue.is_claimed && (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-medium bg-primary/10 text-primary">
+                <CheckCircle className="w-3 h-3" />
+                Verified Owner
+              </span>
+            )}
           </div>
           <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">{venue.name}</h1>
           <div className="flex items-center gap-1 text-muted-foreground">
             <MapPin className="w-4 h-4" />
             <span>{venue.city}, {venue.country}</span>
           </div>
+          
+          {/* Claim Button */}
+          {!venue.is_claimed && user && (
+            <Button 
+              onClick={() => setClaimDialogOpen(true)}
+              variant="outline"
+              className="mt-4"
+            >
+              <Shield className="w-4 h-4 mr-2" />
+              Claim This Venue
+            </Button>
+          )}
+          {!venue.is_claimed && !user && (
+            <Link to="/auth">
+              <Button variant="outline" className="mt-4">
+                <Shield className="w-4 h-4 mr-2" />
+                Log in to Claim
+              </Button>
+            </Link>
+          )}
         </div>
 
         {/* Description */}
@@ -225,6 +260,15 @@ const VenueDetail: React.FC = () => {
           />
         </section>
       </main>
+
+      {/* Claim Dialog */}
+      <ClaimVenueDialog
+        open={claimDialogOpen}
+        onOpenChange={setClaimDialogOpen}
+        venueId={venue.id}
+        venueName={venue.name}
+        venueType="venue"
+      />
     </div>
   );
 };
