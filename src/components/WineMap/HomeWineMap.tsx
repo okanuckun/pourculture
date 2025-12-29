@@ -451,9 +451,19 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '' }) => {
     setShowSearchResults(false);
     setSearchQuery('');
     
-    setTimeout(() => {
-      if (currentBounds) fetchVenues(currentBounds);
-    }, 2500);
+    // Auto-search venues after flying to location
+    map.current.once('moveend', () => {
+      if (!map.current) return;
+      const bounds = map.current.getBounds();
+      const newBounds = {
+        south: bounds.getSouth(),
+        west: bounds.getWest(),
+        north: bounds.getNorth(),
+        east: bounds.getEast(),
+      };
+      setCurrentBounds(newBounds);
+      fetchVenues(newBounds);
+    });
   };
 
   // Render loading state
