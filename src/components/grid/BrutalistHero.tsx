@@ -2,8 +2,13 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { ArrowDown, ArrowRight } from 'lucide-react';
+import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
 
-export const BrutalistHero: React.FC = () => {
+interface BrutalistHeroProps {
+  minimalMapStyle?: boolean;
+}
+
+export const BrutalistHero: React.FC<BrutalistHeroProps> = ({ minimalMapStyle = true }) => {
   const categories = [
     { label: 'OVERVIEW', active: true },
     { label: 'WINE BARS', active: false },
@@ -52,7 +57,10 @@ export const BrutalistHero: React.FC = () => {
         </div>
       </header>
 
-
+      {/* Map Section - Full Width */}
+      <div className="border-b border-foreground/20">
+        <HomeWineMap minimalStyle={minimalMapStyle} />
+      </div>
       {/* Category Pills */}
       <div className="border-b border-foreground/20 py-3 px-4 overflow-x-auto">
         <div className="flex items-center justify-center gap-2">
