@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
-import { Book, FileText, Download, Grape, ChevronRight, Search, ExternalLink, Loader2, Heart } from 'lucide-react';
+import { Book, FileText, Download, Grape, Search, ExternalLink, Loader2, Heart, ChevronRight } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
@@ -46,26 +46,24 @@ interface HarvestReport {
   highlights: string[];
 }
 
-// Fallback data when database is empty
 const fallbackGlossary: GlossaryTerm[] = [
-  { id: '1', term: 'Biodynamic', definition: 'A holistic approach to farming that treats the vineyard as a self-sustaining ecosystem, following lunar cycles and using natural preparations.' },
-  { id: '2', term: 'Natural Wine', definition: 'Wine made from organically or biodynamically grown grapes, fermented with native yeasts, and produced with minimal intervention and additives.' },
-  { id: '3', term: 'Orange Wine', definition: 'White wine made with extended skin contact, giving it an amber/orange color and tannic structure similar to red wine.' },
-  { id: '4', term: 'Pét-Nat', definition: 'Pétillant Naturel - a naturally sparkling wine bottled before primary fermentation completes, creating gentle bubbles.' },
-  { id: '5', term: 'Terroir', definition: 'The complete natural environment where wine is produced, including soil, climate, and local traditions.' },
+  { id: '1', term: 'Biodynamic', definition: 'A holistic approach to farming that treats the vineyard as a self-sustaining ecosystem.' },
+  { id: '2', term: 'Natural Wine', definition: 'Wine made with minimal intervention and additives.' },
+  { id: '3', term: 'Orange Wine', definition: 'White wine made with extended skin contact.' },
+  { id: '4', term: 'Pét-Nat', definition: 'Pétillant Naturel - a naturally sparkling wine.' },
+  { id: '5', term: 'Terroir', definition: 'The complete natural environment where wine is produced.' },
 ];
 
 const fallbackGuides: Guide[] = [
-  { id: '1', title: 'How to Taste Natural Wine', description: "A beginner's guide to understanding and appreciating natural wine flavors, aromas, and textures.", read_time: '5 min read', category: 'Beginner' },
-  { id: '2', title: 'Storing Natural Wine at Home', description: 'Tips for properly storing natural wines without sulfites to maximize their lifespan and quality.', read_time: '4 min read', category: 'Beginner' },
+  { id: '1', title: 'How to Taste Natural Wine', description: "A beginner's guide to understanding natural wine.", read_time: '5 min read', category: 'Beginner' },
 ];
 
 const fallbackPdfs: PdfResource[] = [
-  { id: '1', title: 'Natural Wine 101', description: 'Everything you need to know about natural wine in one comprehensive booklet.', pages: 24, file_size: '2.4 MB', file_url: null },
+  { id: '1', title: 'Natural Wine 101', description: 'Everything you need to know about natural wine.', pages: 24, file_size: '2.4 MB', file_url: null },
 ];
 
 const fallbackReports: HarvestReport[] = [
-  { id: '1', year: 2024, region: 'Loire Valley, France', summary: 'A challenging vintage with late spring frosts and summer heat waves, resulting in concentrated, powerful wines.', highlights: ['Early harvest', 'Low yields', 'Exceptional Chenin Blanc'] },
+  { id: '1', year: 2024, region: 'Loire Valley, France', summary: 'A challenging vintage with excellent results.', highlights: ['Early harvest', 'Low yields'] },
 ];
 
 const categories = ['All', 'Beginner', 'Intermediate', 'Advanced'];
@@ -109,20 +107,14 @@ const KnowledgeHub = () => {
     setLoading(false);
   };
 
-  // Combined search term (global or local glossary search)
   const effectiveGlossarySearch = globalSearch || glossarySearch;
-  
-  // Get available letters from glossary terms
-  const availableLetters = new Set(
-    glossaryTerms.map(item => item.term.charAt(0).toUpperCase())
-  );
+  const availableLetters = new Set(glossaryTerms.map(item => item.term.charAt(0).toUpperCase()));
   
   const filteredTerms = glossaryTerms.filter(item => {
     const matchesSearch = !effectiveGlossarySearch || 
       item.term.toLowerCase().includes(effectiveGlossarySearch.toLowerCase()) ||
       item.definition.toLowerCase().includes(effectiveGlossarySearch.toLowerCase());
-    const matchesLetter = selectedLetter === 'All' || 
-      item.term.charAt(0).toUpperCase() === selectedLetter;
+    const matchesLetter = selectedLetter === 'All' || item.term.charAt(0).toUpperCase() === selectedLetter;
     const matchesFavorite = !showFavoritesOnly || isFavorite('glossary', item.id);
     return matchesSearch && matchesLetter && matchesFavorite;
   });
@@ -153,521 +145,289 @@ const KnowledgeHub = () => {
     return matchesSearch && matchesFavorite;
   });
 
-  const totalResults = filteredTerms.length + filteredGuides.length + filteredPdfs.length + filteredReports.length;
   const totalFavorites = favorites.length;
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.1 }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
 
   if (loading) {
     return (
-      <>
-        <SEOHead
-          title="Open Knowledge Hub | Natural Wine Library"
-          description="Free educational resources about natural wine. Explore our glossary, guides, PDF booklets, and harvest reports."
-        />
-        <RaisinNavbar />
-        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </main>
-      </>
+      <BrutalistLayout>
+        <SEOHead title="Knowledge Hub | Natural Wine Library" description="Free educational resources about natural wine." />
+        <div className="min-h-[60vh] flex items-center justify-center">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </div>
+      </BrutalistLayout>
     );
   }
 
   return (
-    <>
+    <BrutalistLayout
+      title="KNOWLEDGE HUB"
+      subtitle="Not a blog; a library. Free, shareable resources about natural wine culture."
+    >
       <SEOHead
-        title="Open Knowledge Hub | Natural Wine Library"
+        title="Knowledge Hub | Natural Wine Library"
         description="Free educational resources about natural wine. Explore our glossary, guides, PDF booklets, and harvest reports."
       />
-      <RaisinNavbar />
       
-      <main className="min-h-screen bg-background pt-20">
-        {/* Hero Section */}
-        <section className="relative py-16 md:py-24 overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5" />
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6 relative">
-            <motion.div
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              className="text-center max-w-3xl mx-auto"
+      <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
+        {/* Search & Filters */}
+        <div className="border-b border-foreground/20 pb-6 mb-8">
+          <div className="relative max-w-xl mb-6">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="Search across all resources..."
+              value={globalSearch}
+              onChange={(e) => setGlobalSearch(e.target.value)}
+              className="pl-10 h-10 text-sm border-2 border-foreground/20 focus:border-foreground"
+            />
+          </div>
+
+          {/* Section Navigation */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {[
+              { id: 'glossary', icon: Book, label: 'GLOSSARY', count: filteredTerms.length },
+              { id: 'guides', icon: FileText, label: 'GUIDES', count: filteredGuides.length },
+              { id: 'pdfs', icon: Download, label: 'PDF BOOKLETS', count: filteredPdfs.length },
+              { id: 'harvest', icon: Grape, label: 'HARVEST REPORTS', count: filteredReports.length },
+            ].map((item) => (
+              <button
+                key={item.id}
+                onClick={() => {
+                  setActiveSection(item.id);
+                  document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className={`flex items-center gap-2 px-3 py-2 text-[10px] tracking-wider transition-colors border-2 ${
+                  activeSection === item.id
+                    ? 'bg-foreground text-background border-foreground'
+                    : 'border-foreground/20 hover:border-foreground'
+                }`}
+              >
+                <item.icon className="w-3 h-3" />
+                <span>{item.label}</span>
+                <span className="text-[9px] opacity-60">({item.count})</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Favorites Toggle */}
+          {userId && (
+            <button
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+              className={`flex items-center gap-2 px-3 py-2 text-[10px] tracking-wider transition-colors border-2 ${
+                showFavoritesOnly
+                  ? 'bg-foreground text-background border-foreground'
+                  : 'border-foreground/20 hover:border-foreground'
+              }`}
             >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-6">
-                <Book className="w-4 h-4 text-primary" />
-                <span className="text-sm font-medium text-primary">Open Knowledge Hub</span>
-              </div>
-              
-              <h1 className="font-display text-4xl md:text-6xl font-bold text-foreground mb-6 tracking-tight">
-                Not a blog; a library.
-              </h1>
-              
-              <p className="text-lg md:text-xl text-muted-foreground mb-8 leading-relaxed">
-                Free, shareable resources about natural wine culture. From glossaries to harvest reports, 
-                everything you need to deepen your understanding.
-              </p>
-
-              {/* Global Search */}
-              <div className="relative max-w-xl mx-auto mb-4">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                <Input
-                  placeholder="Search across all resources..."
-                  value={globalSearch}
-                  onChange={(e) => setGlobalSearch(e.target.value)}
-                  className="pl-12 h-12 text-base rounded-full border-2 focus:border-primary"
-                />
-                {globalSearch && (
-                  <span className="absolute right-4 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
-                    {totalResults} results
-                  </span>
-                )}
-              </div>
-
-              <p className="text-sm italic text-muted-foreground/80">
-                "If natural wine is a culture, this is its library."
-              </p>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* Quick Navigation + Category Filter */}
-        <section className="py-8 border-y border-border bg-muted/30">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <div className="flex flex-col gap-4">
-              {/* Section Navigation */}
-              <div className="flex flex-wrap justify-center gap-4">
-                {[
-                  { id: 'glossary', icon: Book, label: 'Glossary', count: filteredTerms.length },
-                  { id: 'guides', icon: FileText, label: 'Guides', count: filteredGuides.length },
-                  { id: 'pdfs', icon: Download, label: 'PDF Booklets', count: filteredPdfs.length },
-                  { id: 'harvest', icon: Grape, label: 'Harvest Reports', count: filteredReports.length },
-                ].map((item) => (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      setActiveSection(item.id);
-                      document.getElementById(item.id)?.scrollIntoView({ behavior: 'smooth' });
-                    }}
-                    className={`flex items-center gap-2 px-5 py-2.5 rounded-full transition-all ${
-                      activeSection === item.id
-                        ? 'bg-primary text-primary-foreground'
-                        : 'bg-card hover:bg-primary/10 text-foreground'
-                    }`}
-                  >
-                    <item.icon className="w-4 h-4" />
-                    <span className="font-medium">{item.label}</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      activeSection === item.id
-                        ? 'bg-primary-foreground/20 text-primary-foreground'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {item.count}
-                    </span>
-                  </button>
-                ))}
-              </div>
-
-              {/* Favorites Toggle + Category Filter */}
-              <div className="flex flex-wrap justify-center items-center gap-4">
-                {/* Favorites Toggle */}
-                {userId && (
-                  <button
-                    onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all ${
-                      showFavoritesOnly
-                        ? 'bg-red-500 text-white'
-                        : 'bg-card hover:bg-red-500/10 text-foreground border border-border'
-                    }`}
-                  >
-                    <Heart className={`w-4 h-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                    <span className="font-medium">My Favorites</span>
-                    <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                      showFavoritesOnly
-                        ? 'bg-white/20 text-white'
-                        : 'bg-muted text-muted-foreground'
-                    }`}>
-                      {totalFavorites}
-                    </span>
-                  </button>
-                )}
-
-                {/* Category Filter for Guides */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-sm text-muted-foreground">Filter guides:</span>
-                  {categories.map((category) => (
-                    <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`px-3 py-1.5 text-sm rounded-full transition-all ${
-                        selectedCategory === category
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-card hover:bg-muted text-foreground border border-border'
-                      }`}
-                    >
-                      {category}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
+              <Heart className={`w-3 h-3 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+              <span>MY FAVORITES ({totalFavorites})</span>
+            </button>
+          )}
+        </div>
 
         {/* Glossary Section */}
-        <section id="glossary" className="py-16 md:py-24">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <motion.div variants={itemVariants} className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Book className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-display text-3xl font-bold text-foreground">Glossary</h2>
-                  <p className="text-muted-foreground">Essential natural wine terminology</p>
-                </div>
-              </motion.div>
+        <section id="glossary" className="mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Book className="w-5 h-5" />
+              <h2 className="text-xl font-bold tracking-tight">GLOSSARY</h2>
+            </div>
 
-              <motion.div variants={itemVariants} className="mb-6 space-y-4">
-                {/* Search Input */}
-                <div className="relative max-w-md">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-                  <Input
-                    placeholder="Search terms..."
-                    value={glossarySearch}
-                    onChange={(e) => setGlossarySearch(e.target.value)}
-                    className="pl-10"
-                    disabled={!!globalSearch}
-                  />
-                </div>
-                {globalSearch && (
-                  <p className="text-sm text-muted-foreground">
-                    Filtering by global search: "{globalSearch}"
-                  </p>
-                )}
-                
-                {/* Alphabetic Filter */}
-                <div className="flex flex-wrap gap-1">
-                  {alphabet.map((letter) => {
-                    const isAvailable = letter === 'All' || availableLetters.has(letter);
-                    return (
-                      <button
-                        key={letter}
-                        onClick={() => isAvailable && setSelectedLetter(letter)}
-                        disabled={!isAvailable}
-                        className={`w-8 h-8 text-sm font-medium rounded-md transition-all ${
-                          selectedLetter === letter
-                            ? 'bg-primary text-primary-foreground'
-                            : isAvailable
-                            ? 'bg-card hover:bg-muted text-foreground border border-border'
-                            : 'bg-muted/30 text-muted-foreground/40 cursor-not-allowed'
-                        }`}
-                      >
-                        {letter === 'All' ? '∀' : letter}
-                      </button>
-                    );
-                  })}
-                </div>
-                
-                {selectedLetter !== 'All' && (
-                  <p className="text-sm text-muted-foreground">
-                    Showing terms starting with "{selectedLetter}" ({filteredTerms.length} results)
-                  </p>
-                )}
-              </motion.div>
+            {/* Alphabetic Filter */}
+            <div className="flex flex-wrap gap-1 mb-6">
+              {alphabet.map((letter) => {
+                const isAvailable = letter === 'All' || availableLetters.has(letter);
+                return (
+                  <button
+                    key={letter}
+                    onClick={() => isAvailable && setSelectedLetter(letter)}
+                    disabled={!isAvailable}
+                    className={`w-7 h-7 text-[10px] font-medium transition-colors border ${
+                      selectedLetter === letter
+                        ? 'bg-foreground text-background border-foreground'
+                        : isAvailable
+                        ? 'border-foreground/20 hover:border-foreground'
+                        : 'border-foreground/10 text-muted-foreground/40 cursor-not-allowed'
+                    }`}
+                  >
+                    {letter === 'All' ? '∀' : letter}
+                  </button>
+                );
+              })}
+            </div>
 
-              <motion.div variants={itemVariants}>
-                <Accordion type="single" collapsible className="space-y-2">
-                  {filteredTerms.map((item) => (
-                    <AccordionItem
-                      key={item.term}
-                      value={item.term}
-                      className="bg-card border border-border rounded-lg px-4 data-[state=open]:bg-muted/30"
-                    >
-                      <AccordionTrigger className="hover:no-underline py-4">
-                        <div className="flex items-center gap-3 w-full">
-                          <span className="font-display text-lg font-semibold text-foreground">
-                            {item.term}
-                          </span>
-                          <FavoriteButton
-                            isFavorite={isFavorite('glossary', item.id)}
-                            onClick={() => toggleFavorite('glossary', item.id)}
-                            size="sm"
-                          />
-                        </div>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-4 text-muted-foreground leading-relaxed">
-                        {item.definition}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </motion.div>
-            </motion.div>
-          </div>
+            <Accordion type="single" collapsible className="space-y-2">
+              {filteredTerms.map((item) => (
+                <AccordionItem
+                  key={item.id}
+                  value={item.term}
+                  className="border-2 border-foreground/20 px-4"
+                >
+                  <AccordionTrigger className="text-sm font-medium hover:no-underline py-3">
+                    <span>{item.term}</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="text-sm text-muted-foreground pb-4">
+                    {item.definition}
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
+          </motion.div>
         </section>
 
         {/* Guides Section */}
-        <section id="guides" className="py-16 md:py-24 bg-muted/20">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <motion.div variants={itemVariants} className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <FileText className="w-6 h-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <h2 className="font-display text-3xl font-bold text-foreground">Short Guides</h2>
-                  <p className="text-muted-foreground">Quick reads to level up your wine knowledge</p>
-                </div>
-              </motion.div>
+        <section id="guides" className="mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <FileText className="w-5 h-5" />
+              <h2 className="text-xl font-bold tracking-tight">GUIDES</h2>
+            </div>
 
-              {filteredGuides.length === 0 ? (
-                <div className="col-span-full text-center py-12">
-                  <p className="text-muted-foreground">No guides found matching your criteria.</p>
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredGuides.map((guide) => (
-                    <motion.article
-                      key={guide.id}
-                      variants={itemVariants}
-                      className="group bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all h-full relative"
-                    >
-                      <FavoriteButton
-                        isFavorite={isFavorite('guide', guide.id)}
-                        onClick={() => toggleFavorite('guide', guide.id)}
-                        size="sm"
-                        className="absolute top-4 right-4"
-                      />
-                      <Link to={`/guide/${guide.id}`} className="block">
-                        <div className="flex items-center gap-2 mb-3">
-                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            guide.category === 'Beginner' 
-                              ? 'bg-green-500/10 text-green-600' 
-                              : guide.category === 'Advanced'
-                              ? 'bg-red-500/10 text-red-600'
-                              : 'bg-orange-500/10 text-orange-600'
-                          }`}>
-                            {guide.category}
-                          </span>
-                          <span className="text-xs text-muted-foreground">{guide.read_time}</span>
-                        </div>
-                        
-                        <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors pr-8">
-                          {guide.title}
-                        </h3>
-                        
-                        <p className="text-muted-foreground text-sm leading-relaxed mb-4">
-                          {guide.description}
-                        </p>
-                        
-                        <div className="flex items-center gap-1 text-primary text-sm font-medium">
-                          Read guide
-                          <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                      </Link>
-                    </motion.article>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </div>
+            {/* Category Filter */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              {categories.map((category) => (
+                <button
+                  key={category}
+                  onClick={() => setSelectedCategory(category)}
+                  className={`px-3 py-1.5 text-[10px] tracking-wider transition-colors border ${
+                    selectedCategory === category
+                      ? 'bg-foreground text-background border-foreground'
+                      : 'border-foreground/20 hover:border-foreground'
+                  }`}
+                >
+                  {category.toUpperCase()}
+                </button>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {filteredGuides.map((guide) => (
+                <Link
+                  key={guide.id}
+                  to={`/knowledge/guide/${guide.id}`}
+                  className="group border-2 border-foreground/20 p-4 hover:border-foreground transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-[10px] tracking-wider text-muted-foreground">{guide.category.toUpperCase()}</span>
+                    <span className="text-[10px] text-muted-foreground">{guide.read_time}</span>
+                  </div>
+                  <h3 className="font-bold mb-2 group-hover:underline">{guide.title}</h3>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{guide.description}</p>
+                  <div className="flex items-center gap-1 mt-3 text-[10px] tracking-wider">
+                    READ MORE <ChevronRight className="w-3 h-3" />
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </motion.div>
         </section>
 
         {/* PDF Booklets Section */}
-        <section id="pdfs" className="py-16 md:py-24">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <motion.div variants={itemVariants} className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                  <Download className="w-6 h-6 text-primary" />
-                </div>
-                <div>
-                  <h2 className="font-display text-3xl font-bold text-foreground">PDF Mini Booklets</h2>
-                  <p className="text-muted-foreground">Download and share freely</p>
-                </div>
-              </motion.div>
+        <section id="pdfs" className="mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Download className="w-5 h-5" />
+              <h2 className="text-xl font-bold tracking-tight">PDF BOOKLETS</h2>
+            </div>
 
-              {filteredPdfs.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No PDF resources found matching your search.</p>
-                </div>
-              ) : (
-                <div className="grid md:grid-cols-2 gap-6">
-                  {filteredPdfs.map((pdf) => (
-                    <motion.div
-                      key={pdf.id}
-                      variants={itemVariants}
-                      className="group flex items-start gap-4 bg-card border border-border rounded-xl p-6 hover:shadow-lg hover:border-primary/30 transition-all relative"
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {filteredPdfs.map((pdf) => (
+                <div
+                  key={pdf.id}
+                  className="border-2 border-foreground/20 p-4"
+                >
+                  <h3 className="font-bold mb-2">{pdf.title}</h3>
+                  <p className="text-sm text-muted-foreground mb-3 line-clamp-2">{pdf.description}</p>
+                  <div className="flex items-center gap-4 text-[10px] text-muted-foreground mb-4">
+                    {pdf.pages && <span>{pdf.pages} pages</span>}
+                    {pdf.file_size && <span>{pdf.file_size}</span>}
+                  </div>
+                  {pdf.file_url ? (
+                    <a
+                      href={pdf.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 px-3 py-2 bg-foreground text-background text-[10px] tracking-wider hover:bg-foreground/90 transition-colors"
                     >
-                      <FavoriteButton
-                        isFavorite={isFavorite('pdf', pdf.id)}
-                        onClick={() => toggleFavorite('pdf', pdf.id)}
-                        size="sm"
-                        className="absolute top-4 right-4"
-                      />
-                      <div className="w-16 h-20 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                        <FileText className="w-8 h-8 text-primary" />
-                      </div>
-                      
-                      <div className="flex-1 pr-12">
-                        <h3 className="font-display text-xl font-semibold text-foreground mb-1 group-hover:text-primary transition-colors">
-                          {pdf.title}
-                        </h3>
-                        <p className="text-muted-foreground text-sm mb-3">
-                          {pdf.description}
-                        </p>
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          {pdf.pages && <span>{pdf.pages} pages</span>}
-                          {pdf.file_size && <span>{pdf.file_size}</span>}
-                          {pdf.file_url && (
-                            <a 
-                              href={pdf.file_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-1 text-primary hover:underline"
-                            >
-                              <Download className="w-3 h-3" />
-                              Download
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
+                      <Download className="w-3 h-3" />
+                      DOWNLOAD PDF
+                    </a>
+                  ) : (
+                    <span className="text-[10px] text-muted-foreground">Coming soon</span>
+                  )}
                 </div>
-              )}
-
-              <motion.p 
-                variants={itemVariants}
-                className="text-center text-sm text-muted-foreground mt-8"
-              >
-                All resources are Creative Commons licensed. Share freely with attribution.
-              </motion.p>
-            </motion.div>
-          </div>
+              ))}
+            </div>
+          </motion.div>
         </section>
 
         {/* Harvest Reports Section */}
-        <section id="harvest" className="py-16 md:py-24 bg-muted/20">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <motion.div
-              variants={containerVariants}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true }}
-            >
-              <motion.div variants={itemVariants} className="flex items-center gap-3 mb-8">
-                <div className="w-12 h-12 rounded-xl bg-accent/10 flex items-center justify-center">
-                  <Grape className="w-6 h-6 text-accent-foreground" />
-                </div>
-                <div>
-                  <h2 className="font-display text-3xl font-bold text-foreground">Harvest Reports</h2>
-                  <p className="text-muted-foreground">Vintage insights from wine regions</p>
-                </div>
-              </motion.div>
+        <section id="harvest" className="mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <div className="flex items-center gap-3 mb-6">
+              <Grape className="w-5 h-5" />
+              <h2 className="text-xl font-bold tracking-tight">HARVEST REPORTS</h2>
+            </div>
 
-              {filteredReports.length === 0 ? (
-                <div className="text-center py-12">
-                  <p className="text-muted-foreground">No harvest reports found matching your search.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {filteredReports.map((report) => (
-                    <motion.article
-                      key={report.id}
-                      variants={itemVariants}
-                      className="bg-card border border-border rounded-xl p-6 md:p-8 hover:shadow-lg hover:border-primary/30 transition-all group relative"
-                    >
-                      <FavoriteButton
-                        isFavorite={isFavorite('harvest_report', report.id)}
-                        onClick={() => toggleFavorite('harvest_report', report.id)}
-                        size="sm"
-                        className="absolute top-4 right-4"
-                      />
-                      <Link to={`/harvest/${report.id}`} className="block">
-                        <div className="flex flex-col md:flex-row md:items-start gap-4 md:gap-8">
-                          <div className="flex-shrink-0">
-                            <div className="w-20 h-20 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
-                              <span className="font-display text-2xl font-bold text-primary">{report.year}</span>
-                            </div>
-                          </div>
-                          
-                          <div className="flex-1 pr-8">
-                            <h3 className="font-display text-xl font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
-                              {report.region}
-                            </h3>
-                            <p className="text-muted-foreground leading-relaxed mb-4">
-                              {report.summary}
-                            </p>
-                            <div className="flex flex-wrap gap-2">
-                              {report.highlights.map((highlight) => (
-                                <span
-                                  key={highlight}
-                                  className="px-3 py-1 text-xs font-medium bg-muted rounded-full text-muted-foreground"
-                                >
-                                  {highlight}
-                                </span>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                            Full report
-                            <ChevronRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                          </div>
-                        </div>
-                      </Link>
-                    </motion.article>
-                  ))}
-                </div>
-              )}
-            </motion.div>
-          </div>
+            <div className="space-y-4">
+              {filteredReports.map((report) => (
+                <Link
+                  key={report.id}
+                  to={`/knowledge/harvest/${report.id}`}
+                  className="group block border-2 border-foreground/20 p-4 hover:border-foreground transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <span className="text-2xl font-bold">{report.year}</span>
+                    <span className="text-[10px] tracking-wider text-muted-foreground">{report.region.toUpperCase()}</span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mb-3">{report.summary}</p>
+                  {report.highlights && report.highlights.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {report.highlights.slice(0, 3).map((highlight, idx) => (
+                        <span key={idx} className="text-[10px] px-2 py-1 border border-foreground/20">
+                          {highlight}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </Link>
+              ))}
+            </div>
+          </motion.div>
         </section>
 
         {/* CTA Section */}
-        <section className="py-16 md:py-24">
-          <div className="max-w-[1400px] mx-auto px-4 md:px-6">
-            <div className="bg-gradient-to-br from-primary/10 via-card to-accent/10 rounded-2xl p-8 md:p-12 text-center border border-border">
-              <h2 className="font-display text-2xl md:text-3xl font-bold text-foreground mb-4">
-                Contribute to the Library
-              </h2>
-              <p className="text-muted-foreground max-w-xl mx-auto mb-6">
-                Are you a winemaker, sommelier, or wine educator? Share your knowledge and help grow this free resource.
-              </p>
-              <button className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:bg-primary/90 transition-colors">
-                Submit Content
-              </button>
-            </div>
-          </div>
+        <section className="border-2 border-foreground p-8 text-center">
+          <h2 className="text-2xl font-bold mb-4">CONTRIBUTE</h2>
+          <p className="text-sm text-muted-foreground mb-6 max-w-xl mx-auto">
+            Have knowledge to share? We welcome contributions from wine professionals, 
+            educators, and enthusiasts.
+          </p>
+          <a
+            href="mailto:contribute@pourculture.com"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background text-xs tracking-wider hover:bg-foreground/90 transition-colors"
+          >
+            <ExternalLink className="w-3 h-3" />
+            GET IN TOUCH
+          </a>
         </section>
-      </main>
-    </>
+      </div>
+    </BrutalistLayout>
   );
 };
 

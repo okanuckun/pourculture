@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ArrowLeft, MapPin, Calendar, ExternalLink, Ticket, Wine } from 'lucide-react';
+import { MapPin, Calendar, ExternalLink, Ticket, Wine } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
 import { format, parseISO } from 'date-fns';
+import { motion } from 'framer-motion';
 
 interface WineFair {
   id: string;
@@ -64,55 +65,52 @@ const WineFairDetail: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <RaisinNavbar />
-        <div className="max-w-4xl mx-auto px-4 py-8">
-          <Skeleton className="h-8 w-32 mb-6" />
-          <Skeleton className="h-96 w-full rounded-2xl mb-6" />
+      <BrutalistLayout>
+        <SEOHead title="Loading Wine Fair..." description="Loading wine fair details..." />
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
+          <Skeleton className="h-6 w-32 mb-6" />
+          <Skeleton className="h-96 w-full mb-6" />
           <Skeleton className="h-10 w-3/4 mb-4" />
-          <Skeleton className="h-6 w-1/2 mb-8" />
-          <Skeleton className="h-32 w-full" />
+          <Skeleton className="h-6 w-1/2" />
         </div>
-      </div>
+      </BrutalistLayout>
     );
   }
 
   if (!wineFair) {
     return (
-      <div className="min-h-screen bg-background">
-        <RaisinNavbar />
-        <div className="max-w-4xl mx-auto px-4 py-8 text-center">
+      <BrutalistLayout>
+        <SEOHead title="Wine Fair Not Found" description="The wine fair you're looking for doesn't exist." />
+        <div className="max-w-4xl mx-auto px-4 md:px-6 py-16 text-center">
           <Wine className="w-16 h-16 mx-auto text-muted-foreground mb-4" />
-          <h1 className="text-2xl font-bold text-foreground mb-2">Wine Fair Not Found</h1>
-          <p className="text-muted-foreground mb-6">The wine fair you're looking for doesn't exist.</p>
-          <Button asChild>
+          <h1 className="text-2xl font-bold mb-2">WINE FAIR NOT FOUND</h1>
+          <p className="text-muted-foreground mb-6 text-sm">The wine fair you're looking for doesn't exist.</p>
+          <Button asChild className="border-2 border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background">
             <Link to="/explore/wine-fairs">Browse Wine Fairs</Link>
           </Button>
         </div>
-      </div>
+      </BrutalistLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <BrutalistLayout
+      showBackButton
+      backPath="/explore/wine-fairs"
+      backLabel="Wine Fairs"
+    >
       <SEOHead 
         title={`${wineFair.title} - Natural Wine Fair`}
         description={wineFair.description || `${wineFair.title} in ${wineFair.city}, ${wineFair.country}. ${formatDateRange(wineFair.start_date, wineFair.end_date)}.`}
       />
-      <RaisinNavbar />
       
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        {/* Back Button */}
-        <Link 
-          to="/explore/wine-fairs"
-          className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-6"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Wine Fairs
-        </Link>
-
+      <div className="max-w-4xl mx-auto px-4 md:px-6 py-8">
         {/* Poster Image */}
-        <div className="relative aspect-[3/4] md:aspect-[16/9] rounded-2xl overflow-hidden bg-muted mb-8">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative aspect-[3/4] md:aspect-[16/9] border-2 border-foreground overflow-hidden mb-8"
+        >
           {wineFair.poster_url ? (
             <img 
               src={wineFair.poster_url} 
@@ -120,46 +118,50 @@ const WineFairDetail: React.FC = () => {
               className="w-full h-full object-cover"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-wine-red/10 to-primary/10">
+            <div className="w-full h-full flex items-center justify-center bg-muted">
               <span className="text-8xl">🍷</span>
             </div>
           )}
           
-          {/* Pro Only Badge */}
           {wineFair.is_pro_only && (
             <div className="absolute top-4 left-4">
-              <span className="px-3 py-1 rounded-full bg-primary text-primary-foreground text-sm font-medium">
-                Pro Only
+              <span className="px-3 py-1 bg-foreground text-background text-[10px] tracking-wider font-medium">
+                PRO ONLY
               </span>
             </div>
           )}
-        </div>
+        </motion.div>
 
         {/* Content */}
-        <div className="space-y-6">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="space-y-6"
+        >
           {/* Header */}
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-2">
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold tracking-tight mb-2">
               {wineFair.title}
             </h1>
             {wineFair.venue_name && (
-              <p className="text-xl text-muted-foreground">
+              <p className="text-lg text-muted-foreground">
                 {wineFair.venue_name}
               </p>
             )}
           </div>
 
           {/* Date & Location */}
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <Calendar className="w-5 h-5 flex-shrink-0" />
-              <span className="text-lg">
+          <div className="flex flex-col gap-3 border-l-2 border-foreground pl-4">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm tracking-wide">
                 {formatDateRange(wineFair.start_date, wineFair.end_date)}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="w-5 h-5 flex-shrink-0" />
-              <span className="text-lg">
+            <div className="flex items-center gap-3">
+              <MapPin className="w-4 h-4 flex-shrink-0" />
+              <span className="text-sm tracking-wide">
                 {wineFair.city}, {wineFair.country}
               </span>
             </div>
@@ -167,41 +169,39 @@ const WineFairDetail: React.FC = () => {
 
           {/* Price & Tickets */}
           {(wineFair.price || wineFair.ticket_url) && (
-            <div className="flex flex-wrap items-center gap-4 p-4 bg-muted/50 rounded-xl">
+            <div className="flex flex-wrap items-center gap-4 p-4 border-2 border-foreground/20">
               {wineFair.price && (
                 <div className="flex items-center gap-2">
-                  <Ticket className="w-5 h-5 text-primary" />
-                  <span className="font-medium text-foreground">{wineFair.price}</span>
+                  <Ticket className="w-4 h-4" />
+                  <span className="font-medium text-sm">{wineFair.price}</span>
                 </div>
               )}
               {wineFair.ticket_url && (
-                <Button asChild>
-                  <a 
-                    href={wineFair.ticket_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2"
-                  >
-                    <ExternalLink className="w-4 h-4" />
-                    Get Tickets
-                  </a>
-                </Button>
+                <a 
+                  href={wineFair.ticket_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-foreground text-background text-xs tracking-wider font-medium hover:bg-foreground/90 transition-colors"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  GET TICKETS
+                </a>
               )}
             </div>
           )}
 
           {/* Description */}
           {wineFair.description && (
-            <div className="prose prose-lg max-w-none">
-              <h2 className="text-xl font-semibold text-foreground mb-3">About</h2>
-              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+            <div className="border-t border-foreground/20 pt-6">
+              <h2 className="text-[10px] tracking-wider text-muted-foreground mb-4">ABOUT</h2>
+              <p className="text-sm leading-relaxed whitespace-pre-line">
                 {wineFair.description}
               </p>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </BrutalistLayout>
   );
 };
 
