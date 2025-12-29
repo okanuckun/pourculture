@@ -30,6 +30,7 @@ import ClaimVenue from "./pages/ClaimVenue";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import EditVenueProfile from "./pages/EditVenueProfile";
 import EditWinemakerProfile from "./pages/EditWinemakerProfile";
+import GooglePlaceDetail from "./pages/GooglePlaceDetail";
 import NotFound from "./pages/NotFound";
 
 const App = () => (
@@ -65,6 +66,7 @@ const App = () => (
       <Route path="/dashboard/venue/:id/edit" element={<EditVenueProfile />} />
       <Route path="/dashboard/winemaker/:id/edit" element={<EditWinemakerProfile />} />
       <Route path="/claim-venue" element={<ClaimVenue />} />
+      <Route path="/place/google/:placeId" element={<GooglePlaceDetail />} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   </TooltipProvider>

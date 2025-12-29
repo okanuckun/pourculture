@@ -1,0 +1,131 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+};
+
+interface PlaceDetails {
+  place_id: string;
+  name: string;
+  formatted_address?: string;
+  formatted_phone_number?: string;
+  international_phone_number?: string;
+  website?: string;
+  rating?: number;
+  user_ratings_total?: number;
+  price_level?: number;
+  opening_hours?: {
+    open_now?: boolean;
+    weekday_text?: string[];
+  };
+  photos?: Array<{
+    photo_reference: string;
+    height: number;
+    width: number;
+  }>;
+  geometry?: {
+    location: {
+      lat: number;
+      lng: number;
+    };
+  };
+  types?: string[];
+  url?: string;
+  reviews?: Array<{
+    author_name: string;
+    rating: number;
+    text: string;
+    time: number;
+  }>;
+}
+
+serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response(null, { headers: corsHeaders });
+  }
+
+  try {
+    const { placeId } = await req.json();
+    
+    if (!placeId) {
+      return new Response(
+        JSON.stringify({ error: 'placeId is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    if (!apiKey) {
+      console.error('GOOGLE_PLACES_API_KEY not configured');
+      return new Response(
+        JSON.stringify({ error: 'API key not configured' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log(`Fetching place details for: ${placeId}`);
+
+    const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
+    url.searchParams.set('place_id', placeId);
+    url.searchParams.set('fields', 'place_id,name,formatted_address,formatted_phone_number,international_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,url,reviews');
+    url.searchParams.set('key', apiKey);
+
+    const response = await fetch(url.toString());
+    const data = await response.json();
+
+    if (data.status !== 'OK') {
+      console.error('Google Places API error:', data.status, data.error_message);
+      return new Response(
+        JSON.stringify({ error: data.error_message || `API returned status: ${data.status}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const place = data.result as PlaceDetails;
+
+    // Convert photo references to usable URLs
+    const photoUrls = place.photos?.slice(0, 5).map(photo => 
+      `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photo.photo_reference}&key=${apiKey}`
+    ) || [];
+
+    const result = {
+      id: place.place_id,
+      name: place.name,
+      address: place.formatted_address,
+      phone: place.formatted_phone_number || place.international_phone_number,
+      website: place.website,
+      rating: place.rating,
+      reviewCount: place.user_ratings_total,
+      priceLevel: place.price_level,
+      isOpen: place.opening_hours?.open_now,
+      openingHours: place.opening_hours?.weekday_text,
+      photos: photoUrls,
+      lat: place.geometry?.location.lat,
+      lng: place.geometry?.location.lng,
+      types: place.types,
+      googleMapsUrl: place.url,
+      reviews: place.reviews?.slice(0, 3).map(r => ({
+        author: r.author_name,
+        rating: r.rating,
+        text: r.text,
+        date: new Date(r.time * 1000).toLocaleDateString()
+      }))
+    };
+
+    console.log(`Successfully fetched details for: ${place.name}`);
+
+    return new Response(
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+
+  } catch (error) {
+    console.error('Error in get-place-details:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    return new Response(
+      JSON.stringify({ error: errorMessage }),
+      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
+});
