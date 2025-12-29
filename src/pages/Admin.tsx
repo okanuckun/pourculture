@@ -9,7 +9,7 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 
 // Input validation schema for events
@@ -102,6 +102,11 @@ const Admin = () => {
   const [newWine, setNewWine] = useState<Omit<WineItem, 'id'>>(emptyWine);
   const [savingWine, setSavingWine] = useState(false);
   const [uploadingWineImage, setUploadingWineImage] = useState(false);
+  
+  // Submissions state
+  const [submissions, setSubmissions] = useState<any[]>([]);
+  const [submissionsLoading, setSubmissionsLoading] = useState(false);
+  
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -133,6 +138,7 @@ const Admin = () => {
     setLoading(false);
     fetchEvents();
     fetchWines();
+    fetchSubmissions();
   };
 
   const fetchEvents = async () => {
@@ -154,6 +160,107 @@ const Admin = () => {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
       setWines(data || []);
+    }
+  };
+
+  const fetchSubmissions = async () => {
+    setSubmissionsLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('submissions')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      setSubmissions(data || []);
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } finally {
+      setSubmissionsLoading(false);
+    }
+  };
+
+  const handleApproveSubmission = async (submission: any) => {
+    try {
+      const data = submission.data;
+      
+      if (submission.submission_type === 'venue') {
+        const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const { error } = await supabase.from('venues').insert({
+          name: data.name,
+          slug,
+          category: data.category,
+          address: data.address,
+          city: data.city,
+          country: data.country,
+          description: data.description,
+          phone: data.phone,
+          website: data.website,
+          email: data.email,
+          image_url: data.imageUrl,
+          created_by: submission.user_id
+        });
+        if (error) throw error;
+      } else if (submission.submission_type === 'winemaker') {
+        const slug = data.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const { error } = await supabase.from('winemakers').insert({
+          name: data.name,
+          slug,
+          region: data.region,
+          country: data.country,
+          bio: data.bio,
+          website: data.website,
+          created_by: submission.user_id
+        });
+        if (error) throw error;
+      } else if (submission.submission_type === 'event') {
+        const slug = data.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        const { error } = await supabase.from('wine_fairs').insert({
+          title: data.title,
+          slug,
+          city: data.city,
+          country: data.country,
+          description: data.description,
+          start_date: data.startDate,
+          end_date: data.endDate,
+          venue_name: data.venueName,
+          created_by: submission.user_id
+        });
+        if (error) throw error;
+      }
+
+      // Update submission status
+      const { error: updateError } = await supabase
+        .from('submissions')
+        .update({ status: 'approved', reviewed_at: new Date().toISOString() })
+        .eq('id', submission.id);
+      
+      if (updateError) throw updateError;
+
+      toast({ title: 'Approved!', description: 'Submission has been approved and published.' });
+      fetchSubmissions();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleRejectSubmission = async (submissionId: string) => {
+    const reason = prompt('Reason for rejection (optional):');
+    try {
+      const { error } = await supabase
+        .from('submissions')
+        .update({ 
+          status: 'rejected', 
+          admin_notes: reason,
+          reviewed_at: new Date().toISOString() 
+        })
+        .eq('id', submissionId);
+      
+      if (error) throw error;
+
+      toast({ title: 'Rejected', description: 'Submission has been rejected.' });
+      fetchSubmissions();
+    } catch (error: any) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -650,8 +757,12 @@ const Admin = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="wines" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+        <Tabs defaultValue="submissions" className="w-full">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
+            <TabsTrigger value="submissions" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Başvurular
+            </TabsTrigger>
             <TabsTrigger value="wines" className="flex items-center gap-2">
               <Wine className="h-4 w-4" />
               Şaraplar
@@ -669,6 +780,102 @@ const Admin = () => {
               Etkinlikler
             </TabsTrigger>
           </TabsList>
+
+          {/* Submissions Tab */}
+          <TabsContent value="submissions" className="space-y-6">
+            <h2 className="text-xl font-semibold text-foreground">Kullanıcı Başvuruları</h2>
+            
+            {submissionsLoading ? (
+              <div className="flex justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              </div>
+            ) : submissions.length === 0 ? (
+              <div className="text-center py-12 text-muted-foreground">
+                Henüz başvuru yok.
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {submissions.map((submission) => (
+                  <div 
+                    key={submission.id} 
+                    className={`bg-card border rounded-xl p-6 ${
+                      submission.status === 'pending' ? 'border-amber-300' : 
+                      submission.status === 'approved' ? 'border-green-300' : 'border-red-300'
+                    }`}
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            submission.submission_type === 'venue' ? 'bg-blue-100 text-blue-700' :
+                            submission.submission_type === 'winemaker' ? 'bg-purple-100 text-purple-700' :
+                            'bg-orange-100 text-orange-700'
+                          }`}>
+                            {submission.submission_type === 'venue' ? 'Mekan' : 
+                             submission.submission_type === 'winemaker' ? 'Üretici' : 'Etkinlik'}
+                          </span>
+                          <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                            submission.status === 'pending' ? 'bg-amber-100 text-amber-700' :
+                            submission.status === 'approved' ? 'bg-green-100 text-green-700' :
+                            'bg-red-100 text-red-700'
+                          }`}>
+                            {submission.status === 'pending' ? 'Beklemede' : 
+                             submission.status === 'approved' ? 'Onaylandı' : 'Reddedildi'}
+                          </span>
+                        </div>
+                        
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {submission.data?.name || submission.data?.title || 'İsimsiz'}
+                        </h3>
+                        
+                        <div className="mt-2 text-sm text-muted-foreground space-y-1">
+                          {submission.data?.city && submission.data?.country && (
+                            <p>📍 {submission.data.city}, {submission.data.country}</p>
+                          )}
+                          {submission.data?.category && (
+                            <p>🏷️ Kategori: {submission.data.category}</p>
+                          )}
+                          {submission.data?.description && (
+                            <p className="line-clamp-2">📝 {submission.data.description}</p>
+                          )}
+                          {submission.data?.submitterName && (
+                            <p>👤 Gönderen: {submission.data.submitterName} ({submission.data.submitterRole || 'Belirtilmedi'})</p>
+                          )}
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground mt-3">
+                          {new Date(submission.created_at).toLocaleDateString('tr-TR', { 
+                            day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' 
+                          })}
+                        </p>
+                      </div>
+                      
+                      {submission.status === 'pending' && (
+                        <div className="flex gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => handleApproveSubmission(submission)}
+                            className="bg-green-600 hover:bg-green-700"
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Onayla
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleRejectSubmission(submission.id)}
+                          >
+                            <XCircle className="h-4 w-4 mr-1" />
+                            Reddet
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
           {/* Wines Tab */}
           <TabsContent value="wines" className="space-y-6">
