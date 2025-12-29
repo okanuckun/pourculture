@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
-import GridHomepage from "./pages/GridHomepage";
+import BrutalistHome from "./pages/BrutalistHome";
 import Index from "./pages/Index";
 import Discover from "./pages/Discover";
 import ExploreCategory from "./pages/ExploreCategory";
@@ -38,7 +38,7 @@ const App = () => (
     <Toaster />
     <Sonner />
     <Routes>
-      <Route path="/" element={<GridHomepage />} />
+      <Route path="/" element={<BrutalistHome />} />
       <Route path="/discover" element={<Discover />} />
       <Route path="/explore/:category" element={<ExploreCategory />} />
       <Route path="/news" element={<News />} />
