@@ -7,10 +7,10 @@ import { WinemakerCard } from '@/components/WinemakerCard';
 import { WineFairCard } from '@/components/WineFairCard';
 import { NewsCard } from '@/components/NewsCard';
 import { SEOHead } from '@/components/SEOHead';
-import { HandDrawnWorldMap, CountryInfoPanel } from '@/components/HandDrawnWorldMap';
+import { HomeWineMap } from '@/components/WineMap';
 import { WineQuiz } from '@/components/WineQuiz';
 import { supabase } from '@/integrations/supabase/client';
-import { ArrowRight, Wine, Sparkles, Globe, Heart } from 'lucide-react';
+import { ArrowRight, Wine, Sparkles, Globe, Heart, MapPin } from 'lucide-react';
 
 const RaisinHome = () => {
   const navigate = useNavigate();
@@ -18,7 +18,6 @@ const RaisinHome = () => {
   const [winemakers, setWinemakers] = useState<any[]>([]);
   const [wineFairs, setWineFairs] = useState<any[]>([]);
   const [news, setNews] = useState<any[]>([]);
-  const [selectedCountry, setSelectedCountry] = useState<any>(null);
 
   useEffect(() => {
     fetchData();
@@ -47,31 +46,30 @@ const RaisinHome = () => {
       />
       <RaisinNavbar />
 
-      {/* Hero Section with Interactive Map */}
+      {/* Hero Section with Interactive Wine Map */}
       <section className="relative min-h-screen pt-16 flex flex-col">
-        {/* Animated Background */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute -top-1/2 -left-1/2 w-full h-full bg-gradient-to-br from-primary/5 via-transparent to-accent/5 rotate-12 transform-gpu" />
-          <div className="absolute -bottom-1/2 -right-1/2 w-full h-full bg-gradient-to-tl from-wine-red/5 via-transparent to-primary/5 -rotate-12 transform-gpu" />
-          
-          {/* Floating decorative elements */}
+        {/* Vintage Background */}
+        <div className="absolute inset-0 overflow-hidden" style={{
+          background: 'linear-gradient(180deg, #f8f0e3 0%, #e8dcc8 50%, #d4c4a8 100%)',
+        }}>
+          {/* Decorative wine elements */}
           <motion.div 
-            className="absolute top-20 left-10 text-4xl"
-            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+            className="absolute top-24 left-8 text-4xl opacity-40"
+            animate={{ y: [0, -10, 0], rotate: [0, 5, 0] }}
             transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
           >
             🍷
           </motion.div>
           <motion.div 
-            className="absolute top-40 right-20 text-3xl"
-            animate={{ y: [0, 15, 0], rotate: [0, -5, 0] }}
+            className="absolute top-32 right-12 text-3xl opacity-40"
+            animate={{ y: [0, 10, 0], rotate: [0, -5, 0] }}
             transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
           >
             🍇
           </motion.div>
           <motion.div 
-            className="absolute bottom-40 left-20 text-2xl"
-            animate={{ y: [0, -10, 0] }}
+            className="absolute bottom-32 left-16 text-2xl opacity-40"
+            animate={{ y: [0, -8, 0] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
           >
             🌿
@@ -87,84 +85,73 @@ const RaisinHome = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6 }}
             >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent/10 text-accent text-sm font-medium mb-4">
-                <Sparkles className="w-4 h-4" />
-                Discover Natural Wines Worldwide
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-4 border-2 border-amber-400"
+                style={{ 
+                  background: 'linear-gradient(180deg, #fef3c7, #fde68a)',
+                  color: '#92400e',
+                  fontFamily: 'Georgia, serif',
+                }}>
+                <MapPin className="w-4 h-4" />
+                Explore Natural Wine Venues Worldwide
               </span>
             </motion.div>
             
             <motion.h1 
-              className="text-4xl md:text-6xl lg:text-7xl font-display font-bold text-foreground mb-4"
+              className="text-4xl md:text-6xl lg:text-7xl font-bold mb-4"
+              style={{ fontFamily: 'Georgia, serif', color: '#451a03' }}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
             >
-              <span className="text-gradient-wine">pour</span>
-              <span className="text-foreground">culture</span>
+              <span className="text-amber-700">RAW</span>{' '}
+              <span className="text-amber-900">CELLAR</span>
             </motion.h1>
             
             <motion.p 
-              className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-2"
+              className="text-lg md:text-xl max-w-2xl mx-auto mb-2"
+              style={{ fontFamily: 'Georgia, serif', color: '#78350f' }}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
-              Tap on any country to explore its wine culture
+              Discover wine bars, shops & winemakers on the vintage map
             </motion.p>
-            
-            <motion.div
-              className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.4 }}
-            >
-              <Globe className="w-4 h-4" />
-              <span>Interactive World Wine Map</span>
-            </motion.div>
           </div>
 
-          {/* Interactive Map */}
-          <div className="flex-1 relative px-4 pb-8 min-h-[400px] md:min-h-[500px]">
+          {/* Interactive Vintage Map */}
+          <div className="flex-1 relative px-4 pb-4 min-h-[450px] md:min-h-[550px]">
             <motion.div 
               className="h-full w-full max-w-6xl mx-auto relative"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <HandDrawnWorldMap 
-                selectedCountry={selectedCountry?.id || null}
-                onCountrySelect={setSelectedCountry}
-              />
+              {/* Map frame decoration */}
+              <div className="absolute -inset-2 rounded-3xl border-4 border-amber-300/50 pointer-events-none z-10" />
+              <div className="absolute -inset-4 rounded-3xl border-2 border-amber-200/30 pointer-events-none z-10" />
               
-              <AnimatePresence>
-                {selectedCountry && (
-                  <CountryInfoPanel
-                    country={selectedCountry}
-                    onClose={() => setSelectedCountry(null)}
-                    onExplore={(slug) => navigate(`/explore/${slug}`)}
-                  />
-                )}
-              </AnimatePresence>
+              <HomeWineMap className="h-full rounded-2xl shadow-2xl" />
             </motion.div>
           </div>
 
           {/* Scroll indicator */}
           <motion.div 
-            className="flex justify-center pb-8"
+            className="flex justify-center pb-6"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 1 }}
           >
             <motion.div
-              className="flex flex-col items-center gap-2 text-muted-foreground cursor-pointer"
+              className="flex flex-col items-center gap-2 cursor-pointer"
+              style={{ color: '#92400e' }}
               animate={{ y: [0, 8, 0] }}
               transition={{ duration: 2, repeat: Infinity }}
               onClick={() => window.scrollTo({ top: window.innerHeight, behavior: 'smooth' })}
             >
-              <span className="text-xs uppercase tracking-wider">Scroll to explore</span>
-              <div className="w-6 h-10 rounded-full border-2 border-muted-foreground/30 flex justify-center pt-2">
+              <span className="text-xs uppercase tracking-wider font-serif">Scroll to explore more</span>
+              <div className="w-6 h-10 rounded-full border-2 border-amber-600/50 flex justify-center pt-2">
                 <motion.div 
-                  className="w-1.5 h-3 rounded-full bg-accent"
+                  className="w-1.5 h-3 rounded-full bg-amber-600"
                   animate={{ y: [0, 12, 0] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />

@@ -1,5 +1,6 @@
 export { WineMap, default } from './WineMap';
 export { MapboxMap } from './MapboxMap';
+export { HomeWineMap } from './HomeWineMap';
 export { VenueMarker } from './VenueMarker';
 export { CategoryFilter } from './CategoryFilter';
 export type { WineVenue, WineVenueCategory, WineVenueType, MapBounds } from './types';
