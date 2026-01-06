@@ -1155,8 +1155,8 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
           >
             <Wine className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
             <span>
-              {filteredVenues.length} mekan
-              {allVenues.length !== filteredVenues.length && ` (${allVenues.length} toplam)`}
+              {filteredVenues.length} venues
+              {allVenues.length !== filteredVenues.length && ` (${allVenues.length} total)`}
             </span>
           </motion.div>
         )}
@@ -1176,40 +1176,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         </div>
       </div>
 
-      {/* Category Legend */}
-      {filteredVenues.length > 0 && (
-        <div className={`absolute bottom-24 right-4 z-20 shadow-lg p-3 ${
-          minimalStyle 
-            ? 'bg-background border-2 border-foreground' 
-            : 'bg-amber-50/95 backdrop-blur-sm rounded-xl border border-amber-200'
-        }`}>
-          <p className={`text-xs font-medium mb-2 ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`} style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}>Kategoriler</p>
-          <div className="space-y-1.5">
-            {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
-              const config = CATEGORY_CONFIG[category];
-              const count = filteredVenues.filter(v => v.category === category).length;
-              return (
-                <div key={category} className="flex items-center gap-2">
-                  <span 
-                    className={`w-5 h-5 flex items-center justify-center text-xs ${minimalStyle ? 'rounded-full border-2 border-foreground' : 'rounded-full'}`}
-                    style={{ backgroundColor: minimalStyle ? '#000' : config.color }}
-                  >
-                    <span style={{ filter: minimalStyle ? 'invert(1)' : 'none' }}>{config.icon}</span>
-                  </span>
-                  <span className={`text-xs flex-1 ${minimalStyle ? 'text-foreground' : 'text-amber-800'}`}>{config.label}</span>
-                  <span className={`text-xs font-bold px-1.5 py-0.5 min-w-[24px] text-center ${
-                    minimalStyle 
-                      ? 'border border-foreground text-foreground' 
-                      : 'text-amber-600 bg-amber-100 rounded-full'
-                  }`}>
-                    {count}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      {/* Category legend removed for cleaner UI */}
 
       {/* Decorative compass rose - only for vintage style */}
       {!minimalStyle && (
