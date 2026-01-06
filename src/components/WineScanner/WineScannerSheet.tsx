@@ -142,8 +142,8 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
       }
     } catch (error: any) {
       console.error('Error analyzing wine:', error);
-      toast.error('Şarap analiz edilemedi. Lütfen tekrar deneyin.');
-      setWineInfo({ found: false, error: 'Analiz başarısız oldu' });
+      toast.error('Failed to analyze wine. Please try again.');
+      setWineInfo({ found: false, error: 'Analysis failed' });
     } finally {
       setIsAnalyzing(false);
     }
@@ -151,7 +151,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
 
   const saveToFavorites = async () => {
     if (!user) {
-      toast.error('Favorilere kaydetmek için giriş yapmalısınız');
+      toast.error('Please sign in to save favorites');
       onOpenChange(false);
       navigate('/auth');
       return;
@@ -166,7 +166,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
         .from('wine_scan_history')
         .insert({
           user_id: user.id,
-          wine_name: wineInfo.wineName || 'Bilinmeyen Şarap',
+          wine_name: wineInfo.wineName || 'Unknown Wine',
           winery: wineInfo.winery,
           region: wineInfo.region,
           country: wineInfo.country,
@@ -190,10 +190,10 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
       if (error) throw error;
 
       setCurrentSavedId(data.id);
-      toast.success('Şarap favorilere kaydedildi! 🍷');
+      toast.success('Wine saved to favorites! 🍷');
     } catch (error: any) {
       console.error('Error saving wine:', error);
-      toast.error('Şarap kaydedilemedi');
+      toast.error('Failed to save wine');
     } finally {
       setIsSaving(false);
     }
@@ -212,10 +212,10 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
         setCurrentSavedId(null);
       }
       setSavedWines(prev => prev.filter(w => w.id !== id));
-      toast.success('Şarap favorilerden kaldırıldı');
+      toast.success('Wine removed from favorites');
     } catch (error: any) {
       console.error('Error removing wine:', error);
-      toast.error('Şarap kaldırılamadı');
+      toast.error('Failed to remove wine');
     }
   };
 
@@ -251,7 +251,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center gap-2">
               <Wine className="h-5 w-5 text-primary" />
-              {showHistory ? 'Tarama Geçmişi' : 'Şarap Tarayıcı'}
+              {showHistory ? 'Scan History' : 'Wine Scanner'}
             </SheetTitle>
             <div className="flex items-center gap-2">
               {user && !showHistory && (
@@ -282,11 +282,11 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                       <Wine className="h-10 w-10 text-muted-foreground" />
                     </div>
                     <p className="text-muted-foreground text-center">
-                      Henüz kayıtlı şarap yok.<br />Şarap tarayarak başlayın!
+                      No saved wines yet.<br />Start by scanning a wine!
                     </p>
                     <Button onClick={() => setShowHistory(false)} className="gap-2">
                       <Camera className="h-4 w-4" />
-                      Şarap Tara
+                      Scan Wine
                     </Button>
                   </div>
                 ) : (
@@ -342,13 +342,13 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
                       <Wine className="h-16 w-16 text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold text-center">Şarap Şişesini Tara</h3>
+                    <h3 className="text-lg font-semibold text-center">Scan Wine Label</h3>
                     <p className="text-sm text-muted-foreground text-center max-w-xs">
-                      Şarap şişesinin etiketini fotoğraflayın ve AI anında bilgilerini size sunsun.
+                      Take a photo of the wine label and let AI identify it for you.
                     </p>
                     <Button onClick={handleCapture} size="lg" className="gap-2">
                       <Camera className="h-5 w-5" />
-                      Fotoğraf Çek
+                      Take Photo
                     </Button>
                   </div>
                 )}
@@ -358,7 +358,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                   <div className="relative">
                     <img 
                       src={capturedImage} 
-                      alt="Çekilen fotoğraf" 
+                      alt="Captured photo" 
                       className="w-full max-h-48 object-contain rounded-lg"
                     />
                     {!isAnalyzing && (
@@ -369,7 +369,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         className="absolute top-2 right-2 gap-1"
                       >
                         <RotateCcw className="h-4 w-4" />
-                        Yeniden Çek
+                        Retake
                       </Button>
                     )}
                   </div>
@@ -379,7 +379,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                 {isAnalyzing && (
                   <div className="flex flex-col items-center py-8 space-y-4">
                     <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Şarap analiz ediliyor...</p>
+                    <p className="text-sm text-muted-foreground">Analyzing wine...</p>
                   </div>
                 )}
 

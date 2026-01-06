@@ -58,8 +58,8 @@ const EditWinemakerProfile: React.FC = () => {
 
     if (error || !data) {
       toast({
-        title: "Erişim reddedildi",
-        description: "Bu profili düzenleme yetkiniz yok.",
+        title: "Access denied",
+        description: "You do not have permission to edit this profile.",
         variant: "destructive"
       });
       navigate(-1);
@@ -148,7 +148,7 @@ const EditWinemakerProfile: React.FC = () => {
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Geri
+              Back
             </button>
             <h1 className="text-2xl font-bold text-foreground">{winemaker?.name}</h1>
           </div>
@@ -162,13 +162,13 @@ const EditWinemakerProfile: React.FC = () => {
           {/* Story */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Hikayemiz</CardTitle>
+              <CardTitle className="text-lg">Our Story</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
-                placeholder="Şarap üretiminizin hikayesini anlatın..."
+                placeholder="Tell the story of your winemaking journey..."
                 rows={5}
               />
             </CardContent>
@@ -179,7 +179,7 @@ const EditWinemakerProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Camera className="w-5 h-5" />
-                Fotoğraflar
+                Photos
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -197,7 +197,7 @@ const EditWinemakerProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Wine className="w-5 h-5" />
-                Şaraplarımız
+                Our Wines
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -212,11 +212,11 @@ const EditWinemakerProfile: React.FC = () => {
                     </button>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <Label className="text-xs">Şarap Adı *</Label>
+                        <Label className="text-xs">Wine Name *</Label>
                         <Input
                           value={wine.name}
                           onChange={(e) => updateWine(index, 'name', e.target.value)}
-                          placeholder="Şarap adı"
+                          placeholder="Wine name"
                         />
                       </div>
                       <div>
@@ -249,14 +249,14 @@ const EditWinemakerProfile: React.FC = () => {
                       <Input
                         value={wine.description || ''}
                         onChange={(e) => updateWine(index, 'description', e.target.value)}
-                        placeholder="Tadım notları"
+                        placeholder="Tasting notes"
                       />
                     </div>
                   </div>
                 ))}
                 <Button onClick={addWine} variant="outline" className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
-                  Şarap Ekle
+                  Add Wine
                 </Button>
               </div>
             </CardContent>
@@ -267,7 +267,7 @@ const EditWinemakerProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <LinkIcon className="w-5 h-5" />
-                Sosyal Medya
+                Social Media
               </CardTitle>
             </CardHeader>
             <CardContent>

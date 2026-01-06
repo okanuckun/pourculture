@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Camera, Wine } from 'lucide-react';
+import { Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { WineScannerSheet } from './WineScannerSheet';
@@ -19,36 +19,14 @@ export const WineScanButton: React.FC = () => {
           transition={{ delay: 0.5, type: 'spring', stiffness: 200 }}
           className="fixed bottom-24 right-4 z-50"
         >
-          <motion.div
-            animate={{ 
-              boxShadow: [
-                '0 0 0 0 hsl(var(--primary) / 0.4)',
-                '0 0 0 12px hsl(var(--primary) / 0)',
-                '0 0 0 0 hsl(var(--primary) / 0)'
-              ]
-            }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 1 }}
+          <Button
+            onClick={() => setIsOpen(true)}
+            className="h-14 px-4 rounded-full shadow-xl bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105 border-2 border-foreground gap-2"
+            aria-label="Wine Scanner"
           >
-            <Button
-              onClick={() => setIsOpen(true)}
-              className="h-16 w-16 rounded-full shadow-xl bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-110 border-2 border-foreground"
-              size="icon"
-              aria-label="Şarap Tara"
-            >
-              <div className="relative">
-                <Wine className="h-7 w-7" />
-                <Camera className="h-3.5 w-3.5 absolute -bottom-1 -right-1 bg-background text-foreground rounded-full p-0.5" />
-              </div>
-            </Button>
-          </motion.div>
-          <motion.span 
-            initial={{ opacity: 0, y: 5 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1 }}
-            className="absolute -left-2 top-1/2 -translate-y-1/2 -translate-x-full whitespace-nowrap bg-foreground text-background text-[10px] font-bold uppercase tracking-wider px-2 py-1"
-          >
-            Şarap Tara
-          </motion.span>
+            <Camera className="h-5 w-5" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">Scan</span>
+          </Button>
         </motion.div>
       ) : (
         /* Desktop: Fixed bottom-right button with label */
@@ -61,13 +39,10 @@ export const WineScanButton: React.FC = () => {
           <Button
             onClick={() => setIsOpen(true)}
             className="h-12 px-5 rounded-none shadow-xl bg-primary hover:bg-primary/90 transition-all duration-300 hover:scale-105 border-2 border-foreground gap-2 group"
-            aria-label="Şarap Tara"
+            aria-label="Wine Scanner"
           >
-            <div className="relative">
-              <Wine className="h-5 w-5 group-hover:rotate-12 transition-transform" />
-            </div>
-            <span className="text-xs font-bold uppercase tracking-wider">Şarap Tara</span>
-            <Camera className="h-4 w-4" />
+            <Camera className="h-5 w-5 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-bold uppercase tracking-wider">Wine Scanner</span>
           </Button>
         </motion.div>
       )}
