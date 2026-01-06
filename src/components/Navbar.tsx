@@ -54,6 +54,13 @@ export const Navbar: React.FC = () => {
             <span className="relative z-10">DISCOVER</span>
             <span className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></span>
           </Link>
+          <Link 
+            to="/people" 
+            className="relative overflow-hidden bg-background text-foreground h-[34px] px-3 flex items-center text-[11px] font-medium uppercase border-l-0 border-2 border-foreground leading-none group"
+          >
+            <span className="relative z-10">PEOPLE</span>
+            <span className="absolute inset-0 bg-primary translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out"></span>
+          </Link>
           <button 
             onClick={() => {
               if (user) {
@@ -127,6 +134,14 @@ export const Navbar: React.FC = () => {
                 style={{ animationDelay: '0.1s', animationFillMode: 'both' }}
               >
                 DISCOVER
+              </Link>
+              <Link 
+                to="/people" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="flex-1 flex items-center justify-center text-foreground text-[17px] font-medium uppercase border-b-2 border-foreground tracking-[-0.34px] animate-fade-in"
+                style={{ animationDelay: '0.15s', animationFillMode: 'both' }}
+              >
+                PEOPLE
               </Link>
               <button 
                 onClick={() => {

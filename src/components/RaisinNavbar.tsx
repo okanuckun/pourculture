@@ -98,6 +98,9 @@ export const RaisinNavbar: React.FC = () => {
                   <DropdownMenuItem onClick={() => navigate('/knowledge')}>
                     Knowledge Hub
                   </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/people')}>
+                    People & Books
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/forum')}>
                     Forum
                   </DropdownMenuItem>
@@ -227,9 +230,16 @@ export const RaisinNavbar: React.FC = () => {
               >
                 News
               </Link>
+              <Link 
+                to="/people" 
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="block py-2 text-sm font-medium text-foreground"
+              >
+                People & Books
+              </Link>
               {user ? (
                 <>
-                  <Link 
+                  <Link
                     to={`/profile/${user.id}`} 
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="flex items-center gap-2 py-2 text-sm font-medium text-primary"
