@@ -118,9 +118,6 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                     <span className="hidden lg:inline">ACCOUNT</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48 bg-background border-foreground/20">
-                    <DropdownMenuItem onClick={() => navigate('/dashboard')} className="text-xs">
-                      My Dashboard
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate(`/profile/${user?.id}`)} className="text-xs">
                       My Profile
                     </DropdownMenuItem>
@@ -236,11 +233,11 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                 <div className="border-t border-foreground/10 pt-2 mt-2">
                   <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Account</div>
                   <Link 
-                    to="/dashboard" 
+                    to={`/profile/${user?.id}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className="block py-1.5 text-xs hover:text-muted-foreground"
                   >
-                    My Dashboard
+                    My Profile
                   </Link>
                   <Link 
                     to="/my-events" 
