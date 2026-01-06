@@ -110,12 +110,6 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Favorites */}
-              <Link to="/favorites" className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
-                <Heart className="w-3.5 h-3.5" />
-                <span className="hidden lg:inline">FAVS</span>
-              </Link>
-
               {/* User Account */}
               {user ? (
                 <DropdownMenu>
