@@ -9,9 +9,10 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle, LogOut, Users } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle, LogOut, Users, UserCheck } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 import { UserVerificationAdmin } from '@/components/admin/UserVerificationAdmin';
+import { PeopleAdmin } from '@/components/admin/PeopleAdmin';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 
@@ -766,7 +767,7 @@ const Admin = () => {
         </motion.div>
 
         <Tabs defaultValue="submissions" className="w-full">
-          <TabsList className="grid w-full grid-cols-6 mb-6 bg-background border-2 border-foreground p-1">
+          <TabsList className="grid w-full grid-cols-7 mb-6 bg-background border-2 border-foreground p-1">
             <TabsTrigger value="submissions" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <FileText className="h-4 w-4" />
               Submissions
@@ -782,6 +783,10 @@ const Admin = () => {
             <TabsTrigger value="users" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Users className="h-4 w-4" />
               Users
+            </TabsTrigger>
+            <TabsTrigger value="people" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
+              <UserCheck className="h-4 w-4" />
+              People
             </TabsTrigger>
             <TabsTrigger value="knowledge" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Book className="h-4 w-4" />
@@ -1004,6 +1009,11 @@ const Admin = () => {
           {/* Users Tab */}
           <TabsContent value="users">
             <UserVerificationAdmin />
+          </TabsContent>
+
+          {/* People Tab */}
+          <TabsContent value="people">
+            <PeopleAdmin />
           </TabsContent>
 
           {/* Knowledge Hub Tab */}
