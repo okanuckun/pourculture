@@ -28,6 +28,7 @@ import HarvestReportDetail from "./pages/HarvestReportDetail";
 import Forum from "./pages/Forum";
 import ForumTopic from "./pages/ForumTopic";
 import ClaimVenue from "./pages/ClaimVenue";
+import People from "./pages/People";
 
 import EditVenueProfile from "./pages/EditVenueProfile";
 import EditWinemakerProfile from "./pages/EditWinemakerProfile";
@@ -59,6 +60,7 @@ const App = () => (
       <Route path="/profile/:userId" element={<UserProfile />} />
       <Route path="/profile/edit" element={<EditProfile />} />
       <Route path="/knowledge" element={<KnowledgeHub />} />
+      <Route path="/people" element={<People />} />
       <Route path="/forum" element={<Forum />} />
       <Route path="/forum/:id" element={<ForumTopic />} />
       <Route path="/guide/:id" element={<GuideDetail />} />
