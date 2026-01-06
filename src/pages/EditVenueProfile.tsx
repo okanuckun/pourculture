@@ -81,8 +81,8 @@ const EditVenueProfile: React.FC = () => {
 
     if (error || !data) {
       toast({
-        title: "Erişim reddedildi",
-        description: "Bu mekanı düzenleme yetkiniz yok.",
+        title: "Access denied",
+        description: "You do not have permission to edit this venue.",
         variant: "destructive"
       });
       navigate(-1);
@@ -191,7 +191,7 @@ const EditVenueProfile: React.FC = () => {
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Geri
+              Back
             </button>
             <h1 className="text-2xl font-bold text-foreground">{venue?.name}</h1>
           </div>

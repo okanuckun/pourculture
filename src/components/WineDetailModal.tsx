@@ -123,7 +123,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           {/* Quick Summary */}
           {wine.quick_summary && (
             <div className="border-2 border-foreground/20 p-3">
-              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Özet</h4>
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Summary</h4>
               <p className="text-sm">{wine.quick_summary}</p>
             </div>
           )}
@@ -131,7 +131,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           {/* Detailed Description */}
           {wine.detailed_description && (
             <div>
-              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Detaylı Açıklama</h4>
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Description</h4>
               <p className="text-sm text-muted-foreground">{wine.detailed_description}</p>
             </div>
           )}
@@ -139,7 +139,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           {/* Tasting Notes */}
           {tastingNotes && (
             <div className="border-2 border-foreground/20 p-3 space-y-2">
-              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground">Tadım Notları</h4>
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground">Tasting Notes</h4>
               {tastingNotes.aroma && tastingNotes.aroma.length > 0 && (
                 <div>
                   <span className="text-xs font-medium">Aroma: </span>
@@ -148,13 +148,13 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
               )}
               {tastingNotes.palate && tastingNotes.palate.length > 0 && (
                 <div>
-                  <span className="text-xs font-medium">Damak: </span>
+                  <span className="text-xs font-medium">Palate: </span>
                   <span className="text-xs text-muted-foreground">{tastingNotes.palate.join(', ')}</span>
                 </div>
               )}
               {tastingNotes.finish && (
                 <div>
-                  <span className="text-xs font-medium">Bitiş: </span>
+                  <span className="text-xs font-medium">Finish: </span>
                   <span className="text-xs text-muted-foreground">{tastingNotes.finish}</span>
                 </div>
               )}
@@ -166,7 +166,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
             <div>
               <div className="flex items-center gap-1 mb-2">
                 <UtensilsCrossed className="w-4 h-4 text-muted-foreground" />
-                <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground">Yemek Eşleştirmesi</h4>
+                <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground">Food Pairing</h4>
               </div>
               <div className="flex flex-wrap gap-1.5">
                 {wine.food_pairing.map((food, index) => (
@@ -183,7 +183,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
 
           {/* Scan Date */}
           <div className="text-[10px] text-muted-foreground pt-2 border-t border-foreground/10">
-            Tarama Tarihi: {new Date(wine.created_at).toLocaleDateString('tr-TR', {
+            Scanned: {new Date(wine.created_at).toLocaleDateString('en-US', {
               year: 'numeric',
               month: 'long',
               day: 'numeric'

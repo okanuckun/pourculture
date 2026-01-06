@@ -444,9 +444,9 @@ const UserProfile = () => {
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Wine className="w-5 h-5 text-rose-500" />
-              <h2 className="text-lg font-bold tracking-tight">FAVORİ ŞARAPLARIM</h2>
+              <h2 className="text-lg font-bold tracking-tight">MY FAVORITE WINES</h2>
               {favoriteWines.length > 0 && (
-                <span className="text-sm text-muted-foreground">({favoriteWines.length} şarap)</span>
+                <span className="text-sm text-muted-foreground">({favoriteWines.length} wines)</span>
               )}
             </div>
             
@@ -455,13 +455,13 @@ const UserProfile = () => {
                 <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 rounded-full flex items-center justify-center">
                   <Wine className="w-8 h-8 text-rose-400" />
                 </div>
-                <h3 className="font-bold text-sm mb-2">Henüz favori şarabınız yok</h3>
+                <h3 className="font-bold text-sm mb-2">No favorite wines yet</h3>
                 <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
-                  Şarap Tarayıcı ile şarap etiketlerini tarayın ve beğendiklerinizi favorilerinize ekleyin.
+                  Use the Wine Scanner to scan wine labels and add your favorites.
                 </p>
                 <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium">
                   <Camera className="w-4 h-4" />
-                  Sağ alttaki "Şarap Tara" butonunu kullanın
+                  Use the Wine Scanner button
                 </div>
               </div>
             ) : (
@@ -564,13 +564,13 @@ const UserProfile = () => {
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Store className="w-5 h-5" />
-              <h2 className="text-lg font-bold tracking-tight">İŞLETMELERİM</h2>
+              <h2 className="text-lg font-bold tracking-tight">MY BUSINESSES</h2>
             </div>
 
             {/* Owned Venues */}
             {ownedVenues.length > 0 && (
               <div className="mb-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Mekanlar ({ownedVenues.length})</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Venues ({ownedVenues.length})</h3>
                 <div className="space-y-3">
                   {ownedVenues.map((venue, index) => (
                     <motion.div
@@ -600,7 +600,7 @@ const UserProfile = () => {
                           <Link to={`/profile/venue/${venue.id}/edit`}>
                             <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
                               <Edit className="w-4 h-4 mr-1" />
-                              DÜZENLE
+                              EDIT
                             </Button>
                           </Link>
                           <Link to={`/venue/${venue.slug}`} target="_blank">
@@ -619,7 +619,7 @@ const UserProfile = () => {
             {/* Owned Winemakers */}
             {ownedWinemakers.length > 0 && (
               <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Şarap Üreticileri ({ownedWinemakers.length})</h3>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Winemakers ({ownedWinemakers.length})</h3>
                 <div className="space-y-3">
                   {ownedWinemakers.map((winemaker, index) => (
                     <motion.div
@@ -648,7 +648,7 @@ const UserProfile = () => {
                           <Link to={`/profile/winemaker/${winemaker.id}/edit`}>
                             <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
                               <Edit className="w-4 h-4 mr-1" />
-                              DÜZENLE
+                              EDIT
                             </Button>
                           </Link>
                           <Link to={`/winemaker/${winemaker.slug}`} target="_blank">
@@ -673,21 +673,21 @@ const UserProfile = () => {
               <div className="w-16 h-16 mx-auto mb-4 border-2 border-foreground/20 flex items-center justify-center">
                 <Store className="w-8 h-8" />
               </div>
-              <h3 className="font-bold text-sm mb-2">İşletmeniz mi var?</h3>
+              <h3 className="font-bold text-sm mb-2">Own a business?</h3>
               <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
-                Mekanınızı veya şarap üreticisi profilinizi talep ederek yönetmeye başlayın.
+                Claim your venue or register as a winemaker to start managing your profile.
               </p>
               <div className="flex flex-wrap gap-3 justify-center">
                 <Link to="/claim-venue">
                   <Button className="bg-foreground text-background hover:bg-foreground/90">
                     <Plus className="w-4 h-4 mr-2" />
-                    MEKAN TALEP ET
+                    CLAIM VENUE
                   </Button>
                 </Link>
                 <Link to="/submit/winemaker">
                   <Button variant="outline" className="border-2 border-foreground hover:bg-foreground hover:text-background">
                     <Wine className="w-4 h-4 mr-2" />
-                    ÜRETİCİ KAYDET
+                    REGISTER WINEMAKER
                   </Button>
                 </Link>
               </div>
