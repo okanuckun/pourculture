@@ -6,6 +6,7 @@ import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Tr
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
+import { WineDetailModal } from '@/components/WineDetailModal';
 
 interface Profile {
   id: string;
@@ -54,6 +55,17 @@ interface FavoriteWine {
   wine_type: string | null;
   vintage: string | null;
   image_url: string | null;
+  quick_summary: string | null;
+  detailed_description: string | null;
+  serving_temperature: string | null;
+  aging_potential: string | null;
+  food_pairing: string[] | null;
+  rating: number | null;
+  tasting_notes: {
+    aroma?: string[];
+    palate?: string[];
+    finish?: string;
+  } | null;
   created_at: string;
 }
 
@@ -65,6 +77,8 @@ const UserProfile = () => {
   const [createdRoutes, setCreatedRoutes] = useState<CreatedRoute[]>([]);
   const [favoriteWines, setFavoriteWines] = useState<FavoriteWine[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedWine, setSelectedWine] = useState<FavoriteWine | null>(null);
+  const [wineModalOpen, setWineModalOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -151,7 +165,7 @@ const UserProfile = () => {
       if (currentUser?.id === userId) {
         const { data: winesData } = await supabase
           .from('wine_scan_history')
-          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, created_at')
+          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, created_at')
           .eq('user_id', userId)
           .eq('is_favorite', true)
           .order('created_at', { ascending: false })
@@ -377,7 +391,11 @@ const UserProfile = () => {
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ delay: index * 0.05 }}
-                  className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors"
+                  className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors cursor-pointer"
+                  onClick={() => {
+                    setSelectedWine(wine);
+                    setWineModalOpen(true);
+                  }}
                 >
                   {wine.image_url ? (
                     <div className="aspect-square mb-2 bg-muted overflow-hidden">
@@ -417,6 +435,13 @@ const UserProfile = () => {
                 </motion.div>
               ))}
             </div>
+
+            {/* Wine Detail Modal */}
+            <WineDetailModal
+              wine={selectedWine}
+              open={wineModalOpen}
+              onOpenChange={setWineModalOpen}
+            />
           </section>
         )}
 
