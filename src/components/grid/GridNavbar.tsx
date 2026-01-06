@@ -25,11 +25,11 @@ export const GridNavbar: React.FC<GridNavbarProps> = ({
       <div className="bg-background/95 backdrop-blur-sm">
         <div className="flex items-center justify-between h-14 px-6">
           {/* Logo */}
-          <Link to="/" className="flex items-center">
+          <Link to="/" className="flex items-baseline">
             <span className="text-sm font-medium tracking-tight uppercase">
               POURCULTURE
             </span>
-            <span className="w-2 h-2 rounded-full bg-[#EF553A] ml-0.5 mb-1"></span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EF553A] ml-0.5 inline-block flex-shrink-0"></span>
           </Link>
 
           {/* Navigation Links */}
