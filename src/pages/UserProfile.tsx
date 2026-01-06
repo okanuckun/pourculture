@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -397,66 +397,84 @@ const UserProfile = () => {
           </section>
         )}
 
-        {/* Favorite Wines (only visible on own profile) */}
-        {isOwnProfile && favoriteWines.length > 0 && (
+        {/* Favorite Wines (only visible on own profile - always show section) */}
+        {isOwnProfile && (
           <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Wine className="w-5 h-5 text-rose-500" />
               <h2 className="text-lg font-bold tracking-tight">FAVORİ ŞARAPLARIM</h2>
-              <span className="text-sm text-muted-foreground">({favoriteWines.length} şarap)</span>
+              {favoriteWines.length > 0 && (
+                <span className="text-sm text-muted-foreground">({favoriteWines.length} şarap)</span>
+              )}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {favoriteWines.map((wine, index) => (
-                <motion.div
-                  key={wine.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors cursor-pointer"
-                  onClick={() => {
-                    setSelectedWine(wine);
-                    setWineModalOpen(true);
-                  }}
-                >
-                  {wine.image_url ? (
-                    <div className="aspect-square mb-2 bg-muted overflow-hidden">
-                      <img 
-                        src={wine.image_url} 
-                        alt={wine.wine_name} 
-                        className="w-full h-full object-cover"
-                      />
+            {favoriteWines.length === 0 ? (
+              <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
+                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 rounded-full flex items-center justify-center">
+                  <Wine className="w-8 h-8 text-rose-400" />
+                </div>
+                <h3 className="font-bold text-sm mb-2">Henüz favori şarabınız yok</h3>
+                <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
+                  Şarap Tarayıcı ile şarap etiketlerini tarayın ve beğendiklerinizi favorilerinize ekleyin.
+                </p>
+                <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium">
+                  <Camera className="w-4 h-4" />
+                  Sağ alttaki "Şarap Tara" butonunu kullanın
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                {favoriteWines.map((wine, index) => (
+                  <motion.div
+                    key={wine.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: index * 0.05 }}
+                    className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors cursor-pointer"
+                    onClick={() => {
+                      setSelectedWine(wine);
+                      setWineModalOpen(true);
+                    }}
+                  >
+                    {wine.image_url ? (
+                      <div className="aspect-square mb-2 bg-muted overflow-hidden">
+                        <img 
+                          src={wine.image_url} 
+                          alt={wine.wine_name} 
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    ) : (
+                      <div className="aspect-square mb-2 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 flex items-center justify-center">
+                        <Wine className="w-8 h-8 text-rose-400" />
+                      </div>
+                    )}
+                    <h3 className="font-bold text-sm leading-tight line-clamp-2">{wine.wine_name}</h3>
+                    {wine.winery && (
+                      <p className="text-[11px] text-muted-foreground line-clamp-1">{wine.winery}</p>
+                    )}
+                    <div className="flex items-center gap-1 mt-1">
+                      {wine.grape_variety && (
+                        <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
+                          <Grape className="w-3 h-3" />
+                          {wine.grape_variety}
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    <div className="aspect-square mb-2 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 flex items-center justify-center">
-                      <Wine className="w-8 h-8 text-rose-400" />
-                    </div>
-                  )}
-                  <h3 className="font-bold text-sm leading-tight line-clamp-2">{wine.wine_name}</h3>
-                  {wine.winery && (
-                    <p className="text-[11px] text-muted-foreground line-clamp-1">{wine.winery}</p>
-                  )}
-                  <div className="flex items-center gap-1 mt-1">
-                    {wine.grape_variety && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
-                        <Grape className="w-3 h-3" />
-                        {wine.grape_variety}
+                    {wine.region && (
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {wine.region}{wine.country ? `, ${wine.country}` : ''}
+                      </p>
+                    )}
+                    {wine.vintage && (
+                      <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-[9px] font-medium">
+                        {wine.vintage}
                       </span>
                     )}
-                  </div>
-                  {wine.region && (
-                    <p className="text-[10px] text-muted-foreground mt-1">
-                      {wine.region}{wine.country ? `, ${wine.country}` : ''}
-                    </p>
-                  )}
-                  {wine.vintage && (
-                    <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-[9px] font-medium">
-                      {wine.vintage}
-                    </span>
-                  )}
-                </motion.div>
-              ))}
-            </div>
+                  </motion.div>
+                ))}
+              </div>
+            )}
 
             {/* Wine Detail Modal */}
             <WineDetailModal
