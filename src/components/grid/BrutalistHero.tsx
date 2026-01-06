@@ -91,8 +91,9 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
       <header className="border-b border-foreground/20">
         <div className="flex items-center justify-between h-12 px-4">
           {/* Logo */}
-          <Link to="/" className="text-sm font-bold tracking-tight">
+          <Link to="/" className="flex items-baseline text-sm font-bold tracking-tight">
             POURCULTURE
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EF553A] ml-0.5 inline-block flex-shrink-0"></span>
           </Link>
 
           {/* Right Side Navigation */}
