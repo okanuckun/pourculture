@@ -106,6 +106,54 @@ export type Database = {
         }
         Relationships: []
       }
+      featured_people: {
+        Row: {
+          bio: string
+          category: string
+          created_at: string
+          display_order: number | null
+          id: string
+          image_url: string | null
+          instagram: string | null
+          is_featured: boolean | null
+          name: string
+          title: string
+          twitter: string | null
+          updated_at: string
+          website: string | null
+        }
+        Insert: {
+          bio: string
+          category?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          is_featured?: boolean | null
+          name: string
+          title: string
+          twitter?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Update: {
+          bio?: string
+          category?: string
+          created_at?: string
+          display_order?: number | null
+          id?: string
+          image_url?: string | null
+          instagram?: string | null
+          is_featured?: boolean | null
+          name?: string
+          title?: string
+          twitter?: string | null
+          updated_at?: string
+          website?: string | null
+        }
+        Relationships: []
+      }
       forum_comments: {
         Row: {
           content: string
@@ -443,6 +491,48 @@ export type Database = {
           updated_at?: string
           user_id?: string
           website?: string | null
+        }
+        Relationships: []
+      }
+      recommended_books: {
+        Row: {
+          amazon_link: string | null
+          author: string
+          cover_url: string | null
+          created_at: string
+          description: string
+          display_order: number | null
+          id: string
+          is_featured: boolean | null
+          title: string
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          amazon_link?: string | null
+          author: string
+          cover_url?: string | null
+          created_at?: string
+          description: string
+          display_order?: number | null
+          id?: string
+          is_featured?: boolean | null
+          title: string
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          amazon_link?: string | null
+          author?: string
+          cover_url?: string | null
+          created_at?: string
+          description?: string
+          display_order?: number | null
+          id?: string
+          is_featured?: boolean | null
+          title?: string
+          updated_at?: string
+          year?: number | null
         }
         Relationships: []
       }
