@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, History } from 'lucide-react';
+import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, History, Share2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -408,20 +408,40 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                       </div>
                     </div>
 
-                    {/* Save to Favorites Button */}
-                    <Button
-                      onClick={currentSavedId ? () => removeFromFavorites(currentSavedId) : saveToFavorites}
-                      disabled={isSaving}
-                      variant={currentSavedId ? "secondary" : "default"}
-                      className="w-full gap-2"
-                    >
-                      {isSaving ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Heart className={`h-4 w-4 ${currentSavedId ? 'fill-current' : ''}`} />
-                      )}
-                      {currentSavedId ? 'Favorilerden Kaldır' : 'Favorilere Kaydet'}
-                    </Button>
+                    {/* Action Buttons */}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={currentSavedId ? () => removeFromFavorites(currentSavedId) : saveToFavorites}
+                        disabled={isSaving}
+                        variant={currentSavedId ? "secondary" : "default"}
+                        className="flex-1 gap-2"
+                      >
+                        {isSaving ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Heart className={`h-4 w-4 ${currentSavedId ? 'fill-current' : ''}`} />
+                        )}
+                        {currentSavedId ? 'Kaldır' : 'Kaydet'}
+                      </Button>
+                      <Button
+                        onClick={async () => {
+                          const shareText = `🍷 ${wineInfo.wineName}${wineInfo.winery ? ` - ${wineInfo.winery}` : ''}\n${wineInfo.region ? `📍 ${wineInfo.region}, ${wineInfo.country}` : ''}\n${wineInfo.grapeVariety ? `🍇 ${wineInfo.grapeVariety}` : ''}\n${wineInfo.quickSummary ? `\n${wineInfo.quickSummary}` : ''}\n\nPour Culture ile keşfedildi`;
+                          if (navigator.share) {
+                            try {
+                              await navigator.share({ title: wineInfo.wineName, text: shareText });
+                            } catch (e) { /* user cancelled */ }
+                          } else {
+                            navigator.clipboard.writeText(shareText);
+                            toast.success('Panoya kopyalandı!');
+                          }
+                        }}
+                        variant="outline"
+                        className="gap-2"
+                      >
+                        <Share2 className="h-4 w-4" />
+                        Paylaş
+                      </Button>
+                    </div>
 
                     {/* Quick Summary */}
                     {wineInfo.quickSummary && (
