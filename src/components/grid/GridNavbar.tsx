@@ -18,6 +18,7 @@ export const GridNavbar: React.FC<GridNavbarProps> = ({
     { label: 'Intro', path: '/' },
     { label: 'Map', path: '/discover' },
     { label: 'Winemakers', path: '/explore/winemakers' },
+    { label: 'People', path: '/people' },
   ];
 
   return (
