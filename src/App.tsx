@@ -5,7 +5,6 @@ import { Routes, Route } from "react-router-dom";
 import BrutalistHome from "./pages/BrutalistHome";
 import Index from "./pages/Index";
 import { WineScanButton } from "@/components/WineScanner";
-import { SommelierChat } from "@/components/SommelierChat";
 import Discover from "./pages/Discover";
 import ExploreCategory from "./pages/ExploreCategory";
 import News from "./pages/News";
@@ -47,7 +46,6 @@ const App = () => (
     <Toaster />
     <Sonner />
     <WineScanButton />
-    <SommelierChat />
     <Routes>
       <Route path="/" element={<BrutalistHome />} />
       <Route path="/discover" element={<Discover />} />
