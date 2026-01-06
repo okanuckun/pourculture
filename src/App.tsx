@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import BrutalistHome from "./pages/BrutalistHome";
 import Index from "./pages/Index";
+import { WineScanButton } from "@/components/WineScanner";
 import Discover from "./pages/Discover";
 import ExploreCategory from "./pages/ExploreCategory";
 import News from "./pages/News";
@@ -44,6 +45,7 @@ const App = () => (
   <TooltipProvider>
     <Toaster />
     <Sonner />
+    <WineScanButton />
     <Routes>
       <Route path="/" element={<BrutalistHome />} />
       <Route path="/discover" element={<Discover />} />
