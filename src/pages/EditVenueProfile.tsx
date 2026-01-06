@@ -85,7 +85,7 @@ const EditVenueProfile: React.FC = () => {
         description: "Bu mekanı düzenleme yetkiniz yok.",
         variant: "destructive"
       });
-      navigate('/dashboard');
+      navigate(-1);
       return;
     }
 
@@ -186,13 +186,13 @@ const EditVenueProfile: React.FC = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <Link 
-              to="/dashboard" 
+            <button 
+              onClick={() => navigate(-1)}
               className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-2"
             >
               <ArrowLeft className="w-4 h-4" />
-              Dashboard
-            </Link>
+              Geri
+            </button>
             <h1 className="text-2xl font-bold text-foreground">{venue?.name}</h1>
           </div>
           <Button onClick={handleSave} disabled={saving}>

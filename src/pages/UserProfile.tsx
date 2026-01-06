@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 import { WineDetailModal } from '@/components/WineDetailModal';
+import { Button } from '@/components/ui/button';
 
 interface Profile {
   id: string;
@@ -69,6 +70,25 @@ interface FavoriteWine {
   created_at: string;
 }
 
+interface OwnedVenue {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  city: string;
+  country: string;
+  image_url: string | null;
+}
+
+interface OwnedWinemaker {
+  id: string;
+  name: string;
+  slug: string;
+  region: string | null;
+  country: string;
+  image_url: string | null;
+}
+
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -76,6 +96,8 @@ const UserProfile = () => {
   const [completedRoutes, setCompletedRoutes] = useState<CompletedRoute[]>([]);
   const [createdRoutes, setCreatedRoutes] = useState<CreatedRoute[]>([]);
   const [favoriteWines, setFavoriteWines] = useState<FavoriteWine[]>([]);
+  const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
+  const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWine, setSelectedWine] = useState<FavoriteWine | null>(null);
   const [wineModalOpen, setWineModalOpen] = useState(false);
@@ -195,6 +217,26 @@ const UserProfile = () => {
 
         if (winesData) {
           setFavoriteWines(winesData as FavoriteWine[]);
+        }
+
+        // Fetch owned venues (only for own profile)
+        const { data: venuesData } = await supabase
+          .from('venues')
+          .select('id, name, slug, category, city, country, image_url')
+          .eq('owner_id', userId);
+
+        if (venuesData) {
+          setOwnedVenues(venuesData as OwnedVenue[]);
+        }
+
+        // Fetch owned winemakers (only for own profile)
+        const { data: winemakersData } = await supabase
+          .from('winemakers')
+          .select('id, name, slug, region, country, image_url')
+          .eq('owner_id', userId);
+
+        if (winemakersData) {
+          setOwnedWinemakers(winemakersData as OwnedWinemaker[]);
         }
       }
     } catch (error) {
@@ -513,6 +555,142 @@ const UserProfile = () => {
                   </Link>
                 </motion.div>
               ))}
+            </div>
+          </section>
+        )}
+
+        {/* Owned Venues & Winemakers (only visible on own profile) */}
+        {isOwnProfile && (ownedVenues.length > 0 || ownedWinemakers.length > 0) && (
+          <section className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Store className="w-5 h-5" />
+              <h2 className="text-lg font-bold tracking-tight">İŞLETMELERİM</h2>
+            </div>
+
+            {/* Owned Venues */}
+            {ownedVenues.length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Mekanlar ({ownedVenues.length})</h3>
+                <div className="space-y-3">
+                  {ownedVenues.map((venue, index) => (
+                    <motion.div
+                      key={venue.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border-2 border-foreground/20 hover:border-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-4 p-4">
+                        <div className="w-16 h-16 border border-foreground/20 overflow-hidden flex-shrink-0">
+                          {venue.image_url ? (
+                            <img src={venue.image_url} alt={venue.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xl bg-muted">🍷</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold truncate">{venue.name}</h4>
+                          <p className="text-xs text-muted-foreground capitalize">{venue.category.replace('_', ' ')}</p>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                            <MapPin className="w-3 h-3" />
+                            {venue.city}, {venue.country}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link to={`/profile/venue/${venue.id}/edit`}>
+                            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
+                              <Edit className="w-4 h-4 mr-1" />
+                              DÜZENLE
+                            </Button>
+                          </Link>
+                          <Link to={`/venue/${venue.slug}`} target="_blank">
+                            <Button size="sm" variant="outline" className="border-2 border-foreground/20 hover:border-foreground">
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Owned Winemakers */}
+            {ownedWinemakers.length > 0 && (
+              <div>
+                <h3 className="text-sm font-medium text-muted-foreground mb-3">Şarap Üreticileri ({ownedWinemakers.length})</h3>
+                <div className="space-y-3">
+                  {ownedWinemakers.map((winemaker, index) => (
+                    <motion.div
+                      key={winemaker.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.05 }}
+                      className="border-2 border-foreground/20 hover:border-foreground transition-colors"
+                    >
+                      <div className="flex items-center gap-4 p-4">
+                        <div className="w-16 h-16 border border-foreground/20 overflow-hidden flex-shrink-0">
+                          {winemaker.image_url ? (
+                            <img src={winemaker.image_url} alt={winemaker.name} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-xl bg-muted">🍇</div>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold truncate">{winemaker.name}</h4>
+                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
+                            <MapPin className="w-3 h-3" />
+                            {winemaker.region && `${winemaker.region}, `}{winemaker.country}
+                          </div>
+                        </div>
+                        <div className="flex gap-2">
+                          <Link to={`/profile/winemaker/${winemaker.id}/edit`}>
+                            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
+                              <Edit className="w-4 h-4 mr-1" />
+                              DÜZENLE
+                            </Button>
+                          </Link>
+                          <Link to={`/winemaker/${winemaker.slug}`} target="_blank">
+                            <Button size="sm" variant="outline" className="border-2 border-foreground/20 hover:border-foreground">
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </Link>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </section>
+        )}
+
+        {/* Empty state for business owners */}
+        {isOwnProfile && ownedVenues.length === 0 && ownedWinemakers.length === 0 && (
+          <section className="mb-8">
+            <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
+              <div className="w-16 h-16 mx-auto mb-4 border-2 border-foreground/20 flex items-center justify-center">
+                <Store className="w-8 h-8" />
+              </div>
+              <h3 className="font-bold text-sm mb-2">İşletmeniz mi var?</h3>
+              <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
+                Mekanınızı veya şarap üreticisi profilinizi talep ederek yönetmeye başlayın.
+              </p>
+              <div className="flex flex-wrap gap-3 justify-center">
+                <Link to="/claim-venue">
+                  <Button className="bg-foreground text-background hover:bg-foreground/90">
+                    <Plus className="w-4 h-4 mr-2" />
+                    MEKAN TALEP ET
+                  </Button>
+                </Link>
+                <Link to="/submit/winemaker">
+                  <Button variant="outline" className="border-2 border-foreground hover:bg-foreground hover:text-background">
+                    <Wine className="w-4 h-4 mr-2" />
+                    ÜRETİCİ KAYDET
+                  </Button>
+                </Link>
+              </div>
             </div>
           </section>
         )}

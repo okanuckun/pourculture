@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, X, Wine, Map, LayoutDashboard, User as UserIcon } from 'lucide-react';
+import { ChevronDown, Menu, X, Wine, Map, User as UserIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { AuthSheet } from './AuthSheet';
@@ -161,10 +161,6 @@ export const RaisinNavbar: React.FC = () => {
                       <UserIcon className="w-4 h-4" />
                       My Profile
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/dashboard')} className="flex items-center gap-2">
-                      <LayoutDashboard className="w-4 h-4" />
-                      My Dashboard
-                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => navigate('/my-events')}>
                       My Events
                     </DropdownMenuItem>
@@ -240,14 +236,6 @@ export const RaisinNavbar: React.FC = () => {
                   >
                     <UserIcon className="w-4 h-4" />
                     My Profile
-                  </Link>
-                  <Link 
-                    to="/dashboard" 
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="flex items-center gap-2 py-2 text-sm font-medium text-foreground"
-                  >
-                    <LayoutDashboard className="w-4 h-4" />
-                    My Dashboard
                   </Link>
                   <Link 
                     to="/my-events" 
