@@ -1197,6 +1197,81 @@ export type Database = {
           },
         ]
       }
+      wine_scan_history: {
+        Row: {
+          aging_potential: string | null
+          country: string | null
+          created_at: string
+          detailed_description: string | null
+          food_pairing: string[] | null
+          grape_variety: string | null
+          id: string
+          image_url: string | null
+          is_favorite: boolean | null
+          price_range: string | null
+          quick_summary: string | null
+          rating: number | null
+          region: string | null
+          serving_temperature: string | null
+          tasting_notes: Json | null
+          terroir: Json | null
+          updated_at: string
+          user_id: string
+          vintage: string | null
+          wine_name: string
+          wine_type: string | null
+          winery: string | null
+        }
+        Insert: {
+          aging_potential?: string | null
+          country?: string | null
+          created_at?: string
+          detailed_description?: string | null
+          food_pairing?: string[] | null
+          grape_variety?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          price_range?: string | null
+          quick_summary?: string | null
+          rating?: number | null
+          region?: string | null
+          serving_temperature?: string | null
+          tasting_notes?: Json | null
+          terroir?: Json | null
+          updated_at?: string
+          user_id: string
+          vintage?: string | null
+          wine_name: string
+          wine_type?: string | null
+          winery?: string | null
+        }
+        Update: {
+          aging_potential?: string | null
+          country?: string | null
+          created_at?: string
+          detailed_description?: string | null
+          food_pairing?: string[] | null
+          grape_variety?: string | null
+          id?: string
+          image_url?: string | null
+          is_favorite?: boolean | null
+          price_range?: string | null
+          quick_summary?: string | null
+          rating?: number | null
+          region?: string | null
+          serving_temperature?: string | null
+          tasting_notes?: Json | null
+          terroir?: Json | null
+          updated_at?: string
+          user_id?: string
+          vintage?: string | null
+          wine_name?: string
+          wine_type?: string | null
+          winery?: string | null
+        }
+        Relationships: []
+      }
       winemaker_claims: {
         Row: {
           business_email: string
