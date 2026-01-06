@@ -16,11 +16,11 @@ export const GridFooter: React.FC = () => {
         <div className="grid grid-cols-12 gap-8">
           {/* Logo & Copyright */}
           <div className="col-span-12 md:col-span-4">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-4 h-4 bg-foreground" />
+            <div className="flex items-center mb-4">
               <span className="text-sm font-medium tracking-tight uppercase">
-                PourCulture
+                POURCULTURE
               </span>
+              <span className="w-2 h-2 rounded-full bg-[#EF553A] ml-0.5 mb-1"></span>
             </div>
             <p className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} PourCulture. All rights reserved.
