@@ -81,11 +81,13 @@ const UserProfile = () => {
   const [wineModalOpen, setWineModalOpen] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    // Listen FIRST to avoid missing auth events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setCurrentUser(session?.user ?? null);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    // Then read current session
+    supabase.auth.getSession().then(({ data: { session } }) => {
       setCurrentUser(session?.user ?? null);
     });
 
@@ -96,7 +98,7 @@ const UserProfile = () => {
     if (userId) {
       fetchProfile();
     }
-  }, [userId]);
+  }, [userId, currentUser?.id]);
 
   const fetchProfile = async () => {
     setLoading(true);
@@ -109,14 +111,34 @@ const UserProfile = () => {
         .maybeSingle();
 
       if (profileError) throw profileError;
-      if (!profileData) {
-        setLoading(false);
+
+      let effectiveProfile = (profileData as Profile | null) ?? null;
+
+      // If user is viewing their own profile and it doesn't exist yet, create it.
+      if (!effectiveProfile && currentUser?.id === userId) {
+        const displayName =
+          (currentUser.user_metadata as any)?.display_name ??
+          currentUser.email?.split('@')?.[0] ??
+          null;
+
+        const { data: created, error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            user_id: userId,
+            display_name: displayName,
+          })
+          .select('*')
+          .single();
+
+        if (createError) throw createError;
+        effectiveProfile = created as Profile;
+      }
+
+      if (!effectiveProfile) {
         return;
       }
 
-      setProfile(profileData as Profile);
-
-      // Fetch completed routes
+      setProfile(effectiveProfile);
       const { data: progressData } = await supabase
         .from('user_route_progress')
         .select(`
@@ -148,7 +170,7 @@ const UserProfile = () => {
       }
 
       // Fetch created routes (if verified)
-      if (profileData.is_verified) {
+      if (effectiveProfile.is_verified) {
         const { data: routesData } = await supabase
           .from('wine_routes')
           .select('id, title, slug, region, country, is_curated, venue_count')
