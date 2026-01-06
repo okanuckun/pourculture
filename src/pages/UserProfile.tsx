@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -44,12 +44,26 @@ interface CreatedRoute {
   venue_count: number;
 }
 
+interface FavoriteWine {
+  id: string;
+  wine_name: string;
+  winery: string | null;
+  region: string | null;
+  country: string | null;
+  grape_variety: string | null;
+  wine_type: string | null;
+  vintage: string | null;
+  image_url: string | null;
+  created_at: string;
+}
+
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [completedRoutes, setCompletedRoutes] = useState<CompletedRoute[]>([]);
   const [createdRoutes, setCreatedRoutes] = useState<CreatedRoute[]>([]);
+  const [favoriteWines, setFavoriteWines] = useState<FavoriteWine[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -130,6 +144,21 @@ const UserProfile = () => {
 
         if (routesData) {
           setCreatedRoutes(routesData as CreatedRoute[]);
+        }
+      }
+
+      // Fetch favorite wines (only for own profile)
+      if (currentUser?.id === userId) {
+        const { data: winesData } = await supabase
+          .from('wine_scan_history')
+          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, created_at')
+          .eq('user_id', userId)
+          .eq('is_favorite', true)
+          .order('created_at', { ascending: false })
+          .limit(12);
+
+        if (winesData) {
+          setFavoriteWines(winesData as FavoriteWine[]);
         }
       }
     } catch (error) {
@@ -326,6 +355,65 @@ const UserProfile = () => {
                       {new Date(item.completed_at).toLocaleDateString()}
                     </p>
                   </Link>
+                </motion.div>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Favorite Wines (only visible on own profile) */}
+        {isOwnProfile && favoriteWines.length > 0 && (
+          <section className="mb-8">
+            <div className="flex items-center gap-2 mb-4">
+              <Wine className="w-5 h-5 text-rose-500" />
+              <h2 className="text-lg font-bold tracking-tight">FAVORİ ŞARAPLARIM</h2>
+              <span className="text-sm text-muted-foreground">({favoriteWines.length} şarap)</span>
+            </div>
+            
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              {favoriteWines.map((wine, index) => (
+                <motion.div
+                  key={wine.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors"
+                >
+                  {wine.image_url ? (
+                    <div className="aspect-square mb-2 bg-muted overflow-hidden">
+                      <img 
+                        src={wine.image_url} 
+                        alt={wine.wine_name} 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div className="aspect-square mb-2 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 flex items-center justify-center">
+                      <Wine className="w-8 h-8 text-rose-400" />
+                    </div>
+                  )}
+                  <h3 className="font-bold text-sm leading-tight line-clamp-2">{wine.wine_name}</h3>
+                  {wine.winery && (
+                    <p className="text-[11px] text-muted-foreground line-clamp-1">{wine.winery}</p>
+                  )}
+                  <div className="flex items-center gap-1 mt-1">
+                    {wine.grape_variety && (
+                      <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
+                        <Grape className="w-3 h-3" />
+                        {wine.grape_variety}
+                      </span>
+                    )}
+                  </div>
+                  {wine.region && (
+                    <p className="text-[10px] text-muted-foreground mt-1">
+                      {wine.region}{wine.country ? `, ${wine.country}` : ''}
+                    </p>
+                  )}
+                  {wine.vintage && (
+                    <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-[9px] font-medium">
+                      {wine.vintage}
+                    </span>
+                  )}
                 </motion.div>
               ))}
             </div>
