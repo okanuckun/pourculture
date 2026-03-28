@@ -220,7 +220,7 @@ const BrutalistHome = () => {
             type="winemaker"
             linkPrefix="/winemaker"
             loading={loading}
-            viewAllLink="/winemakers"
+            viewAllLink="/explore/winemakers"
           />
           <EventsSection
             events={wineFairs}
@@ -285,7 +285,7 @@ const BrutalistHome = () => {
           type="winemaker"
           linkPrefix="/winemaker"
           loading={loading}
-          viewAllLink="/winemakers"
+          viewAllLink="/explore/winemakers"
         />
       );
     }
