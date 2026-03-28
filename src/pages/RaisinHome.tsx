@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { VenueCard } from '@/components/VenueCard';
 import { WinemakerCard } from '@/components/WinemakerCard';
 import { WineFairCard } from '@/components/WineFairCard';
@@ -44,7 +44,7 @@ const RaisinHome = () => {
         description="Discover natural wine bars, restaurants, wine shops and winemakers near you. pourculture is your guide to the best natural wine spots."
         keywords="natural wine, organic wine, wine bars, restaurants, winemakers, pourculture"
       />
-      <RaisinNavbar />
+      
 
       {/* Hero Section with Interactive Wine Map */}
       <section className="relative min-h-screen pt-16 flex flex-col">
@@ -455,6 +455,7 @@ const RaisinHome = () => {
         </div>
       </footer>
     </div>
+    </BrutalistLayout>
   );
 };
 
