@@ -142,8 +142,17 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
       }
     } catch (error: any) {
       console.error('Error analyzing wine:', error);
-      toast.error('Failed to analyze wine. Please try again.');
-      setWineInfo({ found: false, error: 'Analysis failed' });
+      const status = error?.status || error?.context?.status;
+      if (status === 402) {
+        toast.error('AI analysis limit reached. Please try again later.');
+        setWineInfo({ found: false, error: 'Analysis limit reached. Please try again later.' });
+      } else if (status === 429) {
+        toast.error('Too many requests. Please wait a moment and try again.');
+        setWineInfo({ found: false, error: 'Too many requests. Please wait a moment and try again.' });
+      } else {
+        toast.error('Failed to analyze wine. Please try again.');
+        setWineInfo({ found: false, error: 'Analysis failed. Please try again.' });
+      }
     } finally {
       setIsAnalyzing(false);
     }
@@ -237,7 +246,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('tr-TR', {
+    return new Date(dateStr).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric'
@@ -421,18 +430,18 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         ) : (
                           <Heart className={`h-4 w-4 ${currentSavedId ? 'fill-current' : ''}`} />
                         )}
-                        {currentSavedId ? 'Kaldır' : 'Kaydet'}
+                        {currentSavedId ? 'Remove' : 'Save'}
                       </Button>
                       <Button
                         onClick={async () => {
-                          const shareText = `🍷 ${wineInfo.wineName}${wineInfo.winery ? ` - ${wineInfo.winery}` : ''}\n${wineInfo.region ? `📍 ${wineInfo.region}, ${wineInfo.country}` : ''}\n${wineInfo.grapeVariety ? `🍇 ${wineInfo.grapeVariety}` : ''}\n${wineInfo.quickSummary ? `\n${wineInfo.quickSummary}` : ''}\n\nPour Culture ile keşfedildi`;
+                          const shareText = `🍷 ${wineInfo.wineName}${wineInfo.winery ? ` - ${wineInfo.winery}` : ''}\n${wineInfo.region ? `📍 ${wineInfo.region}, ${wineInfo.country}` : ''}\n${wineInfo.grapeVariety ? `🍇 ${wineInfo.grapeVariety}` : ''}\n${wineInfo.quickSummary ? `\n${wineInfo.quickSummary}` : ''}\n\nDiscovered with PourCulture`;
                           if (navigator.share) {
                             try {
                               await navigator.share({ title: wineInfo.wineName, text: shareText });
                             } catch (e) { /* user cancelled */ }
                           } else {
                             navigator.clipboard.writeText(shareText);
-                            toast.success('Panoya kopyalandı!');
+                            toast.success('Copied to clipboard!');
                           }
                         }}
                         variant="outline"
@@ -456,7 +465,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <MapPin className="h-4 w-4 text-primary mt-0.5" />
                           <div>
-                            <p className="text-xs text-muted-foreground">Bölge</p>
+                            <p className="text-xs text-muted-foreground">Region</p>
                             <p className="text-sm font-medium">{wineInfo.region}, {wineInfo.country}</p>
                           </div>
                         </div>
@@ -465,7 +474,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Grape className="h-4 w-4 text-primary mt-0.5" />
                           <div>
-                            <p className="text-xs text-muted-foreground">Üzüm</p>
+                            <p className="text-xs text-muted-foreground">Grape</p>
                             <p className="text-sm font-medium">{wineInfo.grapeVariety}</p>
                           </div>
                         </div>
@@ -474,7 +483,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <Thermometer className="h-4 w-4 text-primary mt-0.5" />
                           <div>
-                            <p className="text-xs text-muted-foreground">Servis</p>
+                            <p className="text-xs text-muted-foreground">Serving</p>
                             <p className="text-sm font-medium">{wineInfo.servingTemperature}</p>
                           </div>
                         </div>
@@ -483,7 +492,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
                           <span className="text-primary mt-0.5">€</span>
                           <div>
-                            <p className="text-xs text-muted-foreground">Fiyat</p>
+                            <p className="text-xs text-muted-foreground">Price</p>
                             <p className="text-sm font-medium">{wineInfo.priceRange}</p>
                           </div>
                         </div>
@@ -498,9 +507,9 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                           Terroir
                         </h4>
                         <div className="bg-muted/30 rounded-lg p-3 space-y-1 text-sm">
-                          {wineInfo.terroir.soil && <p><span className="text-muted-foreground">Toprak:</span> {wineInfo.terroir.soil}</p>}
-                          {wineInfo.terroir.altitude && <p><span className="text-muted-foreground">Yükseklik:</span> {wineInfo.terroir.altitude}</p>}
-                          {wineInfo.terroir.climate && <p><span className="text-muted-foreground">İklim:</span> {wineInfo.terroir.climate}</p>}
+                          {wineInfo.terroir.soil && <p><span className="text-muted-foreground">Soil:</span> {wineInfo.terroir.soil}</p>}
+                          {wineInfo.terroir.altitude && <p><span className="text-muted-foreground">Altitude:</span> {wineInfo.terroir.altitude}</p>}
+                          {wineInfo.terroir.climate && <p><span className="text-muted-foreground">Climate:</span> {wineInfo.terroir.climate}</p>}
                         </div>
                       </div>
                     )}
@@ -510,12 +519,12 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                       <div className="space-y-2">
                         <h4 className="font-semibold flex items-center gap-2">
                           <Wine className="h-4 w-4 text-primary" />
-                          Tadım Notları
+                          Tasting Notes
                         </h4>
                         <div className="bg-muted/30 rounded-lg p-3 space-y-1 text-sm">
                           {wineInfo.tastingNotes.aroma && <p><span className="text-muted-foreground">Aroma:</span> {wineInfo.tastingNotes.aroma}</p>}
-                          {wineInfo.tastingNotes.taste && <p><span className="text-muted-foreground">Tat:</span> {wineInfo.tastingNotes.taste}</p>}
-                          {wineInfo.tastingNotes.finish && <p><span className="text-muted-foreground">Bitiş:</span> {wineInfo.tastingNotes.finish}</p>}
+                          {wineInfo.tastingNotes.taste && <p><span className="text-muted-foreground">Taste:</span> {wineInfo.tastingNotes.taste}</p>}
+                          {wineInfo.tastingNotes.finish && <p><span className="text-muted-foreground">Finish:</span> {wineInfo.tastingNotes.finish}</p>}
                         </div>
                       </div>
                     )}
@@ -525,7 +534,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                       <div className="space-y-2">
                         <h4 className="font-semibold flex items-center gap-2">
                           <UtensilsCrossed className="h-4 w-4 text-primary" />
-                          Yemek Eşleştirme
+                          Food Pairing
                         </h4>
                         <div className="flex flex-wrap gap-2">
                           {wineInfo.foodPairing.map((food, index) => (
@@ -538,7 +547,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     {/* Detailed Description */}
                     {wineInfo.detailedDescription && (
                       <div className="space-y-2">
-                        <h4 className="font-semibold">Detaylı Açıklama</h4>
+                        <h4 className="font-semibold">Detailed Description</h4>
                         <p className="text-sm text-muted-foreground whitespace-pre-line">
                           {wineInfo.detailedDescription}
                         </p>
@@ -548,14 +557,14 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     {/* Aging Potential */}
                     {wineInfo.agingPotential && (
                       <div className="bg-primary/5 rounded-lg p-3">
-                        <p className="text-sm"><span className="font-medium">Yaşlanma Potansiyeli:</span> {wineInfo.agingPotential}</p>
+                        <p className="text-sm"><span className="font-medium">Aging Potential:</span> {wineInfo.agingPotential}</p>
                       </div>
                     )}
 
                     {/* Scan Another */}
                     <Button onClick={handleReset} variant="outline" className="w-full gap-2">
                       <Camera className="h-4 w-4" />
-                      Başka Bir Şarap Tara
+                      Scan Another Wine
                     </Button>
                   </div>
                 )}
@@ -567,11 +576,11 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                       <X className="h-8 w-8 text-destructive" />
                     </div>
                     <p className="text-sm text-muted-foreground text-center">
-                      {wineInfo.error || 'Şarap tanınamadı. Lütfen etiketin net göründüğünden emin olun.'}
+                      {wineInfo.error || 'Wine could not be identified. Please make sure the label is clearly visible.'}
                     </p>
                     <Button onClick={handleReset} variant="outline" className="gap-2">
                       <RotateCcw className="h-4 w-4" />
-                      Tekrar Dene
+                      Try Again
                     </Button>
                   </div>
                 )}
