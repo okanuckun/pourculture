@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
 import { supabase } from '@/integrations/supabase/client';
 import { ArrowLeft, Grape, Calendar, MapPin, Loader2, Sun, Cloud, Droplets, ThermometerSun } from 'lucide-react';
@@ -140,36 +140,30 @@ const HarvestReportDetail = () => {
 
   if (loading) {
     return (
-      <>
+      <BrutalistLayout>
         <SEOHead title="Loading..." description="Loading harvest report" />
-        <RaisinNavbar />
-        <main className="min-h-screen bg-background pt-20 flex items-center justify-center">
+        <div className="min-h-screen flex items-center justify-center">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </main>
-      </>
+        </div>
+      </BrutalistLayout>
     );
   }
 
   if (!report) {
     return (
-      <>
+      <BrutalistLayout>
         <SEOHead title="Report Not Found" description="The requested harvest report could not be found" />
-        <RaisinNavbar />
-        <main className="min-h-screen bg-background pt-20">
-          <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-            <h1 className="text-3xl font-display font-bold text-foreground mb-4">
-              Report Not Found
-            </h1>
-            <p className="text-muted-foreground mb-8">
-              The harvest report you're looking for doesn't exist or has been removed.
-            </p>
-            <Button onClick={() => navigate('/knowledge')}>
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Knowledge Hub
-            </Button>
-          </div>
-        </main>
-      </>
+        <div className="max-w-4xl mx-auto px-4 py-16 text-center">
+          <h1 className="text-3xl font-bold text-foreground mb-4">Report Not Found</h1>
+          <p className="text-muted-foreground mb-8">
+            The harvest report you're looking for doesn't exist or has been removed.
+          </p>
+          <Button onClick={() => navigate('/knowledge')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Knowledge Hub
+          </Button>
+        </div>
+      </BrutalistLayout>
     );
   }
 
@@ -205,14 +199,14 @@ const HarvestReportDetail = () => {
   const COLORS = ['hsl(var(--primary))', 'hsl(var(--accent))', '#82ca9d', '#ffc658'];
 
   return (
-    <>
+    <BrutalistLayout>
       <SEOHead 
         title={`${report.year} ${report.region} Harvest Report`}
         description={report.summary}
       />
-      <RaisinNavbar />
       
-      <main className="min-h-screen bg-background pt-20">
+      
+      <main>
         {/* Hero Section */}
         <section className="relative py-12 md:py-20 border-b border-border overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10" />
@@ -530,7 +524,7 @@ const HarvestReportDetail = () => {
           </div>
         </section>
       </main>
-    </>
+    </BrutalistLayout>
   );
 };
 
