@@ -112,7 +112,7 @@ export const GridNavbar: React.FC<GridNavbarProps> = ({
 
             {/* Copyright */}
             <span className="hidden lg:block text-sm text-muted-foreground">
-              PourCulture ©2024
+              PourCulture ©{new Date().getFullYear()}
             </span>
           </div>
         </div>
