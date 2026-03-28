@@ -458,8 +458,6 @@ const RaisinHome = () => {
     </div>
     </BrutalistLayout>
   );
-};
 
-export default RaisinHome;
 
 export default RaisinHome;
