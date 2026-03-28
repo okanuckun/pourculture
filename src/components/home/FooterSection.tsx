@@ -60,15 +60,10 @@ const FooterSection: React.FC = () => {
               NAVIGATION
             </p>
             <div className="space-y-2">
-              {['Discover', 'Winemakers', 'Events', 'About'].map((link) => (
-                <Link
-                  key={link}
-                  to={`/${link.toLowerCase()}`}
-                  className="block text-sm hover:text-muted-foreground transition-colors"
-                >
-                  {link}
-                </Link>
-              ))}
+              <Link to="/discover" className="block text-sm hover:text-muted-foreground transition-colors">Discover</Link>
+              <Link to="/explore/winemakers" className="block text-sm hover:text-muted-foreground transition-colors">Winemakers</Link>
+              <Link to="/explore/events" className="block text-sm hover:text-muted-foreground transition-colors">Events</Link>
+              <Link to="/about/natural-wine" className="block text-sm hover:text-muted-foreground transition-colors">About Natural Wine</Link>
             </div>
           </div>
 
