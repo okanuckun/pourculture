@@ -336,8 +336,9 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
             <div>
               <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">SUBMIT</h3>
               <div className="space-y-2">
-                <Link to="/submit-venue" className="block text-xs hover:text-muted-foreground">Add a Venue</Link>
-                <Link to="/submit-winemaker" className="block text-xs hover:text-muted-foreground">Add a Winemaker</Link>
+                <Link to="/submit/venue" className="block text-xs hover:text-muted-foreground">Add a Venue</Link>
+                <Link to="/submit/winemaker" className="block text-xs hover:text-muted-foreground">Add a Winemaker</Link>
+                <Link to="/submit/event" className="block text-xs hover:text-muted-foreground">Submit an Event</Link>
                 <Link to="/claim-venue" className="block text-xs hover:text-muted-foreground">Claim Your Business</Link>
               </div>
             </div>
