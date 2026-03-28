@@ -139,19 +139,6 @@ export const RaisinNavbar: React.FC = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
 
-              {/* Language */}
-              <DropdownMenu>
-                <DropdownMenuTrigger className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground hover:text-primary transition-colors">
-                  ENGLISH
-                  <ChevronDown className="w-4 h-4" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-32">
-                  <DropdownMenuItem>English</DropdownMenuItem>
-                  <DropdownMenuItem>Français</DropdownMenuItem>
-                  <DropdownMenuItem>Español</DropdownMenuItem>
-                  <DropdownMenuItem>Deutsch</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
 
               {/* Login / Account */}
               {user ? (
