@@ -38,6 +38,7 @@ const RaisinHome = () => {
   };
 
   return (
+    <BrutalistLayout>
     <div className="min-h-screen bg-background overflow-x-hidden">
       <SEOHead 
         title="pourculture - Natural Wine & Food Lovers"
