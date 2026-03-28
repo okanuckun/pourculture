@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { RaisinNavbar } from '@/components/RaisinNavbar';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -165,7 +165,6 @@ const EditVenueProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <RaisinNavbar />
         <div className="max-w-4xl mx-auto px-4 py-8">
           <Skeleton className="h-8 w-48 mb-8" />
           <Skeleton className="h-64 w-full" />
@@ -180,7 +179,6 @@ const EditVenueProfile: React.FC = () => {
         title={`Edit ${venue?.name || 'Venue'}`}
         description="Edit your venue profile"
       />
-      <RaisinNavbar />
       
       <main className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
