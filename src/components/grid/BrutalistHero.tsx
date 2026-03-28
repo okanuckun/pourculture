@@ -152,15 +152,15 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
                   <ChevronDown className="w-3 h-3" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 bg-background border-foreground/20">
-                  <DropdownMenuItem onClick={() => navigate('/submit-venue')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/venue')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit a Venue</span>
                     <span className="text-[10px] text-muted-foreground">Bar, restaurant, wine shop</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit-winemaker')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/winemaker')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit a Winemaker</span>
                     <span className="text-[10px] text-muted-foreground">Natural wine producer</span>
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/submit-wine-fair')} className="flex flex-col items-start text-xs">
+                  <DropdownMenuItem onClick={() => navigate('/submit/event')} className="flex flex-col items-start text-xs">
                     <span className="font-medium">Submit an Event</span>
                     <span className="text-[10px] text-muted-foreground">Wine fair, tasting, festival</span>
                   </DropdownMenuItem>
@@ -301,18 +301,25 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
               <div className="border-t border-foreground/10 pt-2 mt-2">
                 <div className="text-[9px] text-muted-foreground uppercase tracking-wider mb-2">Submit</div>
                 <Link 
-                  to="/submit-venue" 
+                  to="/submit/venue" 
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-1.5 text-xs hover:text-muted-foreground"
                 >
                   Submit a Venue
                 </Link>
                 <Link 
-                  to="/submit-winemaker" 
+                  to="/submit/winemaker" 
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="block py-1.5 text-xs hover:text-muted-foreground"
                 >
                   Submit a Winemaker
+                </Link>
+                <Link 
+                  to="/submit/event" 
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="block py-1.5 text-xs hover:text-muted-foreground"
+                >
+                  Submit an Event
                 </Link>
                 <Link 
                   to="/claim-venue" 
@@ -369,7 +376,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
       </header>
 
       {/* Map Section - Full Width */}
-      <div className="border-b border-foreground/20 h-[50vh] min-h-[350px]">
+      <div className="border-b border-foreground/20 h-[35vh] sm:h-[50vh] min-h-[240px]">
         <HomeWineMap 
           minimalStyle={minimalMapStyle} 
           filterCategories={mapCategories}
@@ -379,13 +386,13 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
       </div>
 
       {/* Category Pills */}
-      <div className="border-b border-foreground/20 py-3 px-4 overflow-x-auto sticky top-0 bg-background z-10">
-        <div className="flex items-center justify-center gap-2">
+      <div className="border-b border-foreground/20 py-2.5 px-3 overflow-x-auto sticky top-0 bg-background z-10 scrollbar-none">
+        <div className="flex items-center gap-1.5 min-w-max mx-auto justify-start sm:justify-center">
           {categories.map((cat) => (
             <button
               key={cat.value}
               onClick={() => onCategoryChange(cat.value)}
-              className={`px-4 py-1.5 text-[10px] tracking-wider rounded-sm transition-colors whitespace-nowrap ${
+              className={`px-3 py-1.5 text-[9px] sm:text-[10px] tracking-wider rounded-sm transition-colors whitespace-nowrap ${
                 activeCategory === cat.value
                   ? 'bg-foreground text-background' 
                   : 'border border-foreground/20 hover:border-foreground/50'
