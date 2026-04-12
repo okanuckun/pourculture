@@ -267,7 +267,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                   {/* Hero Image */}
                   {displayData.photos && displayData.photos.length > 0 ? (
                     <div className="relative aspect-video overflow-hidden border-2 border-foreground">
-                      <img 
+                      <img loading="lazy" 
                         src={displayData.photos[0]} 
                         alt={displayData.name}
                         className="w-full h-full object-cover"
@@ -416,7 +416,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
                       <div className="grid grid-cols-3 gap-2">
                         {displayData.photos.slice(1, 7).map((photo, index) => (
                           <div key={index} className="aspect-square overflow-hidden border-2 border-foreground/20">
-                            <img 
+                            <img loading="lazy" 
                               src={photo} 
                               alt={`${displayData.name} photo ${index + 2}`}
                               className="w-full h-full object-cover hover:scale-105 transition-transform"

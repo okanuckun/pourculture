@@ -41,7 +41,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, venueName })
             onClick={() => setSelectedIndex(index)}
             className="relative aspect-square rounded-lg overflow-hidden group"
           >
-            <img 
+            <img loading="lazy" 
               src={photo} 
               alt={`${venueName} - ${index + 1}`}
               className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
@@ -61,7 +61,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, venueName })
         <DialogContent className="max-w-4xl p-0 bg-black border-none">
           <div className="relative">
             {selectedIndex !== null && (
-              <img 
+              <img loading="lazy" 
                 src={photos[selectedIndex]} 
                 alt={`${venueName} - ${selectedIndex + 1}`}
                 className="w-full max-h-[80vh] object-contain"

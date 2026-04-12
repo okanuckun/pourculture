@@ -242,7 +242,7 @@ const Discover = () => {
                 >
                   {venue.image_url ? (
                     <div className="aspect-[4/3] overflow-hidden">
-                      <img 
+                      <img loading="lazy" 
                         src={venue.image_url} 
                         alt={venue.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -291,7 +291,7 @@ const Discover = () => {
                   className="border border-foreground/20 cursor-pointer group"
                 >
                   <div className="aspect-square overflow-hidden relative">
-                    <img 
+                    <img loading="lazy" 
                       src={event.background_image_url} 
                       alt={event.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

@@ -30,7 +30,7 @@ export const NewsCard: React.FC<NewsCardProps> = ({
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         {imageUrl ? (
-          <img 
+          <img loading="lazy" 
             src={imageUrl} 
             alt={title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

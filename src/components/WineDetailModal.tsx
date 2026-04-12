@@ -53,7 +53,7 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           {/* Wine Image */}
           {wine.image_url ? (
             <div className="aspect-video bg-muted overflow-hidden border-2 border-foreground/20">
-              <img 
+              <img loading="lazy" 
                 src={wine.image_url} 
                 alt={wine.wine_name} 
                 className="w-full h-full object-cover"

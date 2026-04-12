@@ -57,7 +57,7 @@ export const WineFairCard: React.FC<WineFairCardProps> = ({
       {/* Image */}
       <div className="relative aspect-[3/4] overflow-hidden bg-muted">
         {posterUrl ? (
-          <img 
+          <img loading="lazy" 
             src={posterUrl} 
             alt={title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
