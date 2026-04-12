@@ -24,7 +24,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Fetching robots.txt content...');
 
     const { data: globalSettings, error } = await supabase
       .from('seo_global_settings')
@@ -38,7 +37,6 @@ serve(async (req) => {
 
     const robotsContent = globalSettings?.robots_txt_content || DEFAULT_ROBOTS;
 
-    console.log('Returning robots.txt content');
 
     return new Response(robotsContent, { headers: corsHeaders });
   } catch (error) {

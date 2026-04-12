@@ -44,7 +44,6 @@ serve(async (req: Request) => {
       );
     }
 
-    console.log("Password reset email sent to:", email);
 
     return new Response(
       JSON.stringify({ success: true, message: "Password reset email sent" }),

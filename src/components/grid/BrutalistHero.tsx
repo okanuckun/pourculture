@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { HomeWineMap } from '@/components/WineMap/HomeWineMap';
 import { WineVenueCategory, WineFairMarker } from '@/components/WineMap/types';
-import { ChevronDown, Menu, X, Search, User, Heart } from 'lucide-react';
+import { ChevronDown, Menu, X, Search, User, Heart, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuthSheet } from '@/components/AuthSheet';
@@ -59,6 +60,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -205,6 +207,15 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
                   <span className="hidden lg:inline">SIGN IN</span>
                 </button>
               )}
+
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              </button>
             </nav>
 
             {/* Mobile Menu Button */}

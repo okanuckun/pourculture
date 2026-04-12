@@ -64,7 +64,6 @@ serve(async (req) => {
       );
     }
 
-    console.log(`Fetching place details for: ${placeId}`);
 
     const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     url.searchParams.set('place_id', placeId);
@@ -113,7 +112,6 @@ serve(async (req) => {
       }))
     };
 
-    console.log(`Successfully fetched details for: ${place.name}`);
 
     return new Response(
       JSON.stringify(result),

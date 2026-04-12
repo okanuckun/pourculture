@@ -82,7 +82,6 @@ serve(async (req) => {
     if (venuesError) {
       results.errors.push(`Venues fetch error: ${venuesError.message}`);
     } else if (venues && venues.length > 0) {
-      console.log(`Found ${venues.length} venues to geocode`);
       
       for (const venue of venues) {
         const fullAddress = `${venue.address}, ${venue.city}, ${venue.country}`;
@@ -103,7 +102,6 @@ serve(async (req) => {
               latitude: coords.lat,
               longitude: coords.lng,
             });
-            console.log(`Geocoded venue: ${venue.name} -> ${coords.lat}, ${coords.lng}`);
           }
         } else {
           results.errors.push(`Could not geocode venue: ${venue.name} (${fullAddress})`);
@@ -123,7 +121,6 @@ serve(async (req) => {
     if (winemakersError) {
       results.errors.push(`Winemakers fetch error: ${winemakersError.message}`);
     } else if (winemakers && winemakers.length > 0) {
-      console.log(`Found ${winemakers.length} winemakers to geocode`);
       
       for (const winemaker of winemakers) {
         // For winemakers, use region + country as address
@@ -147,7 +144,6 @@ serve(async (req) => {
               latitude: coords.lat,
               longitude: coords.lng,
             });
-            console.log(`Geocoded winemaker: ${winemaker.name} -> ${coords.lat}, ${coords.lng}`);
           }
         } else {
           results.errors.push(`Could not geocode winemaker: ${winemaker.name} (${address})`);
@@ -166,7 +162,6 @@ serve(async (req) => {
     if (wineFairsError) {
       results.errors.push(`Wine fairs fetch error: ${wineFairsError.message}`);
     } else if (wineFairs && wineFairs.length > 0) {
-      console.log(`Found ${wineFairs.length} wine fairs to geocode`);
       
       for (const fair of wineFairs) {
         const address = fair.venue_name 
@@ -189,7 +184,6 @@ serve(async (req) => {
               latitude: coords.lat,
               longitude: coords.lng,
             });
-            console.log(`Geocoded wine fair: ${fair.title} -> ${coords.lat}, ${coords.lng}`);
           }
         } else {
           results.errors.push(`Could not geocode wine fair: ${fair.title} (${address})`);
@@ -210,7 +204,6 @@ serve(async (req) => {
       details: results,
     };
 
-    console.log("Geocoding complete:", summary.geocoded);
 
     return new Response(JSON.stringify(summary), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

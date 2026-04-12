@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { MapPin, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { WineFairMarker } from '@/components/WineMap/types';
+import { SEOHead } from '@/components/SEOHead';
 
 type Venue = Tables<'venues'>;
 type Winemaker = Tables<'winemakers'>;
@@ -352,6 +353,10 @@ const BrutalistHome = () => {
 
   return (
     <div className="min-h-screen bg-background text-foreground font-grotesk">
+      <SEOHead
+        title="POURCULTURE — Discover Natural Wine"
+        description="Explore natural wine venues, winemakers, and events worldwide. Your guide to the natural wine community."
+      />
       {/* Location Consent Banner */}
       {showLocationBanner && (
         <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-card border border-border rounded-xl p-4 shadow-xl animate-in slide-in-from-bottom-4">

@@ -45,7 +45,6 @@ serve(async (req) => {
     }
 
     const filterMode = naturalWineOnly ? 'natural wine' : 'wine';
-    console.log(`Searching for ${filterMode} venues near ${lat}, ${lng} with radius ${radius}m`);
 
     // Search queries - if natural wine filter is on, prepend "natural" to queries
     const prefix = naturalWineOnly ? 'natural ' : '';
@@ -69,13 +68,11 @@ serve(async (req) => {
         url.searchParams.set('keyword', query);
         url.searchParams.set('key', apiKey);
 
-        console.log(`Fetching: ${query}`);
         
         const response = await fetch(url.toString());
         const data = await response.json();
 
         if (data.status === 'OK' && data.results) {
-          console.log(`Found ${data.results.length} results for "${query}"`);
           
           for (const place of data.results) {
             // Skip duplicates
@@ -102,7 +99,6 @@ serve(async (req) => {
       }
     }
 
-    console.log(`Total unique places found: ${allPlaces.length}`);
 
     return new Response(
       JSON.stringify({ places: allPlaces, count: allPlaces.length }),

@@ -19,7 +19,6 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Generating sitemap...');
 
     // Fetch global settings for sitemap rules
     const { data: globalSettings } = await supabase
@@ -213,7 +212,6 @@ serve(async (req) => {
         http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${urls.join('')}
 </urlset>`;
 
-    console.log(`Sitemap generated with ${urls.length} URLs`);
 
     return new Response(sitemap, {
       headers: corsHeaders,

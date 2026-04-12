@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronDown, Menu, X, User, Heart, ArrowLeft } from 'lucide-react';
+import { ChevronDown, Menu, X, User, Heart, ArrowLeft, Sun, Moon } from 'lucide-react';
+import { useTheme } from 'next-themes';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuthSheet } from '@/components/AuthSheet';
@@ -31,6 +32,7 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { theme, setTheme } = useTheme();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -158,6 +160,15 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                   <span className="hidden lg:inline">SIGN IN</span>
                 </button>
               )}
+
+              {/* Theme Toggle */}
+              <button
+                onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
+              </button>
             </nav>
 
             {/* Mobile Menu Button */}
@@ -290,6 +301,17 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                   </button>
                 </div>
               )}
+
+              {/* Mobile Theme Toggle */}
+              <div className="border-t border-foreground/10 pt-2 mt-2">
+                <button
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="flex items-center gap-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                  {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+                </button>
+              </div>
             </div>
           </div>
         )}

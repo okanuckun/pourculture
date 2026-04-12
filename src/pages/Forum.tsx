@@ -492,9 +492,15 @@ const Forum = () => {
         ) : filteredTopics.length === 0 ? (
           <div className="text-center py-12 border border-foreground/20">
             <MessageSquare className="w-8 h-8 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground">
-              {searchTerm ? 'No topics found' : 'No topics yet. Be the first to start a discussion!'}
+            <p className="text-muted-foreground mb-4">
+              {searchTerm ? 'No topics match your search. Try different keywords.' : 'No topics yet. Be the first to start a discussion!'}
             </p>
+            {!searchTerm && (
+              <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                NEW TOPIC
+              </Button>
+            )}
           </div>
         ) : (
           <>
