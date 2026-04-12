@@ -497,6 +497,7 @@ const Forum = () => {
             </p>
           </div>
         ) : (
+          <>
           <div className="space-y-4">
             {filteredTopics.map((topic, index) => {
               const categoryInfo = categoryLabels[topic.category] || categoryLabels.general;
@@ -591,6 +592,7 @@ const Forum = () => {
               </Button>
             </div>
           )}
+          </>
         )}
       </div>
     </BrutalistLayout>
