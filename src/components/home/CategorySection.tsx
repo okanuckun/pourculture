@@ -141,7 +141,7 @@ const CategorySection: React.FC<CategorySectionProps> = ({
                     {/* Image */}
                     <div className="aspect-[4/3] bg-muted relative overflow-hidden">
                       {item.image_url ? (
-                        <img loading="lazy" 
+                        <img
                           src={item.image_url} 
                           alt={item.name}
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
