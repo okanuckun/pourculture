@@ -51,14 +51,31 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
       <header className="border-b border-foreground/20 sticky top-0 bg-background z-50">
         <div className="flex items-center justify-between h-12 px-4 md:px-6">
           {/* Logo */}
-          <Link to="/" className="text-sm font-bold tracking-tight">
+          <Link to="/" className="flex items-baseline text-sm font-bold tracking-tight">
             POURCULTURE
+            <span className="w-1.5 h-1.5 rounded-full bg-[#EF553A] ml-0.5 inline-block flex-shrink-0"></span>
           </Link>
 
           {/* Right Side Navigation */}
           <div className="flex items-center gap-1 md:gap-2">
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center">
+              {/* Wine Routes */}
+              <Link
+                to="/wine-routes"
+                className="px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+              >
+                WINE ROUTES
+              </Link>
+
+              {/* People */}
+              <Link
+                to="/people"
+                className="px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors"
+              >
+                PEOPLE
+              </Link>
+
               {/* Natural Wine Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger className="flex items-center gap-1 px-2 py-1 text-[10px] tracking-wider text-muted-foreground hover:text-foreground transition-colors">
@@ -69,14 +86,8 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                   <DropdownMenuItem onClick={() => navigate('/about/natural-wine')} className="text-xs">
                     What is Natural Wine?
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/wine-routes')} className="text-xs">
-                    Wine Routes
-                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/knowledge')} className="text-xs">
                     Knowledge Hub
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => navigate('/people')} className="text-xs">
-                    People & Books
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/forum')} className="text-xs">
                     Forum
