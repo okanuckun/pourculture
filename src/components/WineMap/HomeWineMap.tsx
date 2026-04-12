@@ -424,7 +424,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         markersRef.current.push(marker);
       } else {
         // Individual venue marker (existing logic)
-        const venue = feature.properties.venue;
+        const venue = props.venue as WineVenue;
         const config = CATEGORY_CONFIG[venue.category];
         const isVerified = venue.isClaimed === true;
         
