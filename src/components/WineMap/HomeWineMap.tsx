@@ -86,12 +86,14 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     fetchToken();
   }, [fetchToken]);
 
-  // Load database venues
+  // Load database venues — initial load with limit, refetched on bounds change
+  const [mapBounds, setMapBounds] = useState<{ north: number; south: number; east: number; west: number } | null>(null);
+
   useEffect(() => {
     const loadDbVenues = async () => {
       setDbLoading(true);
       try {
-        const venues = await fetchAllDatabaseVenues();
+        const venues = await fetchAllDatabaseVenues(mapBounds || undefined);
         setDbVenues(venues);
       } catch (error) {
         console.error('Error loading database venues:', error);
@@ -100,7 +102,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       }
     };
     loadDbVenues();
-  }, []);
+  }, [mapBounds]);
 
   // Fetch venues - moved up to be used by getUserLocationAndSearch
   const fetchVenues = useCallback(async (bounds: MapBounds) => {

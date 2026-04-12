@@ -98,7 +98,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
     fetchToken();
   }, [fetchToken]);
 
-  // Load database venues on mount
+  // Load database venues with limit
   useEffect(() => {
     const loadDbVenues = async () => {
       setDbLoading(true);
@@ -112,7 +112,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
       }
     };
     loadDbVenues();
-  }, []);
+  }, []); // Initial load — limited to 500 per table by databaseApi
 
   const [centerLng, centerLat] = initialCenter;
 

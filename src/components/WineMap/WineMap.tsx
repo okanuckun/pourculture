@@ -68,12 +68,18 @@ export const WineMap: React.FC<WineMapProps> = ({
   const [mapCenter, setMapCenter] = useState<[number, number]>(initialCenter);
   const [hasSearched, setHasSearched] = useState(false);
 
-  // Load database venues on mount
+  // Load database venues based on map bounds
   useEffect(() => {
     const loadDbVenues = async () => {
       setDbLoading(true);
       try {
-        const venues = await fetchAllDatabaseVenues();
+        const bounds = currentBounds ? {
+          north: currentBounds.north,
+          south: currentBounds.south,
+          east: currentBounds.east,
+          west: currentBounds.west,
+        } : undefined;
+        const venues = await fetchAllDatabaseVenues(bounds);
         setDbVenues(venues);
       } catch (error) {
         console.error('Error loading database venues:', error);
@@ -82,7 +88,7 @@ export const WineMap: React.FC<WineMapProps> = ({
       }
     };
     loadDbVenues();
-  }, []);
+  }, [currentBounds]);
 
   // Combine Google Places and database venues
   const allVenues = useMemo(() => {

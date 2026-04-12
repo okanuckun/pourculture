@@ -1,6 +1,15 @@
 import { supabase } from '@/integrations/supabase/client';
 import { WineVenue, WineVenueCategory } from './types';
 
+export interface MapBoundsFilter {
+  north: number;
+  south: number;
+  east: number;
+  west: number;
+}
+
+const MAX_RESULTS = 500;
+
 // Map database venue category to WineVenueCategory
 const mapVenueCategory = (category: string): WineVenueCategory => {
   switch (category) {
@@ -13,20 +22,31 @@ const mapVenueCategory = (category: string): WineVenueCategory => {
     case 'winemaker':
       return 'winery';
     case 'accommodation':
-      return 'restaurant'; // Map to restaurant as closest match
+      return 'restaurant';
     default:
       return 'wine_shop';
   }
 };
 
-// Fetch venues from database
-export const fetchVenuesFromDatabase = async (): Promise<WineVenue[]> => {
+// Fetch venues from database with optional bounds filtering
+export const fetchVenuesFromDatabase = async (bounds?: MapBoundsFilter): Promise<WineVenue[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('venues')
       .select('*')
       .not('latitude', 'is', null)
-      .not('longitude', 'is', null);
+      .not('longitude', 'is', null)
+      .limit(MAX_RESULTS);
+
+    if (bounds) {
+      query = query
+        .gte('latitude', bounds.south)
+        .lte('latitude', bounds.north)
+        .gte('longitude', bounds.west)
+        .lte('longitude', bounds.east);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching venues from database:', error);
@@ -57,14 +77,25 @@ export const fetchVenuesFromDatabase = async (): Promise<WineVenue[]> => {
   }
 };
 
-// Fetch wine fairs from database
-export const fetchWineFairsFromDatabase = async (): Promise<WineVenue[]> => {
+// Fetch wine fairs from database with optional bounds filtering
+export const fetchWineFairsFromDatabase = async (bounds?: MapBoundsFilter): Promise<WineVenue[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('wine_fairs')
       .select('*')
       .not('latitude', 'is', null)
-      .not('longitude', 'is', null);
+      .not('longitude', 'is', null)
+      .limit(MAX_RESULTS);
+
+    if (bounds) {
+      query = query
+        .gte('latitude', bounds.south)
+        .lte('latitude', bounds.north)
+        .gte('longitude', bounds.west)
+        .lte('longitude', bounds.east);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching wine fairs from database:', error);
@@ -94,14 +125,25 @@ export const fetchWineFairsFromDatabase = async (): Promise<WineVenue[]> => {
   }
 };
 
-// Fetch winemakers from database
-export const fetchWinemakersFromDatabase = async (): Promise<WineVenue[]> => {
+// Fetch winemakers from database with optional bounds filtering
+export const fetchWinemakersFromDatabase = async (bounds?: MapBoundsFilter): Promise<WineVenue[]> => {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('winemakers')
       .select('*')
       .not('latitude', 'is', null)
-      .not('longitude', 'is', null);
+      .not('longitude', 'is', null)
+      .limit(MAX_RESULTS);
+
+    if (bounds) {
+      query = query
+        .gte('latitude', bounds.south)
+        .lte('latitude', bounds.north)
+        .gte('longitude', bounds.west)
+        .lte('longitude', bounds.east);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       console.error('Error fetching winemakers from database:', error);
@@ -131,12 +173,12 @@ export const fetchWinemakersFromDatabase = async (): Promise<WineVenue[]> => {
   }
 };
 
-// Fetch all database venues
-export const fetchAllDatabaseVenues = async (): Promise<WineVenue[]> => {
+// Fetch all database venues — with optional bounds for map viewport filtering
+export const fetchAllDatabaseVenues = async (bounds?: MapBoundsFilter): Promise<WineVenue[]> => {
   const [venues, wineFairs, winemakers] = await Promise.all([
-    fetchVenuesFromDatabase(),
-    fetchWineFairsFromDatabase(),
-    fetchWinemakersFromDatabase(),
+    fetchVenuesFromDatabase(bounds),
+    fetchWineFairsFromDatabase(bounds),
+    fetchWinemakersFromDatabase(bounds),
   ]);
 
   return [...venues, ...wineFairs, ...winemakers];
