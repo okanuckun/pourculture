@@ -376,7 +376,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
       </header>
 
       {/* Map Section - Full Width */}
-      <div className="border-b border-foreground/20 h-[35vh] sm:h-[50vh] min-h-[240px]">
+      <div className="border-b border-foreground/20 h-[25vh] sm:h-[35vh] md:h-[50vh] min-h-[200px]">
         <HomeWineMap 
           minimalStyle={minimalMapStyle} 
           filterCategories={mapCategories}

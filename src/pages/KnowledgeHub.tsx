@@ -171,7 +171,7 @@ const KnowledgeHub = () => {
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
         {/* Search & Filters */}
         <div className="border-b border-foreground/20 pb-6 mb-8">
-          <div className="relative max-w-xl mb-6">
+          <div className="relative w-full md:max-w-xl mb-6">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               placeholder="Search across all resources..."

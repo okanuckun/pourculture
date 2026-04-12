@@ -413,7 +413,7 @@ const WineRoutes = () => {
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8">
         {/* Search Bar */}
         <div className="mb-6">
-          <div className="relative max-w-md">
+          <div className="relative w-full md:max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <Input
               type="text"
@@ -442,7 +442,7 @@ const WineRoutes = () => {
             </div>
             
             <Select value={selectedCountry} onValueChange={setSelectedCountry}>
-              <SelectTrigger className="w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
+              <SelectTrigger className="w-[130px] md:w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
                 <SelectValue placeholder="Country" />
               </SelectTrigger>
               <SelectContent className="bg-background border-2 border-foreground/30">
@@ -454,7 +454,7 @@ const WineRoutes = () => {
             </Select>
 
             <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-              <SelectTrigger className="w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
+              <SelectTrigger className="w-[130px] md:w-[160px] h-9 text-xs border-2 border-foreground/30 bg-background">
                 <SelectValue placeholder="Region" />
               </SelectTrigger>
               <SelectContent className="bg-background border-2 border-foreground/30">

@@ -219,7 +219,7 @@ const Discover = () => {
       {/* Content */}
       <div className="max-w-6xl mx-auto px-4 md:px-6 py-8 md:py-12">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
             {[...Array(6)].map((_, i) => (
               <div key={i} className="border border-foreground/20 aspect-[4/3] animate-pulse bg-muted" />
             ))}
@@ -230,7 +230,7 @@ const Discover = () => {
               <p className="text-muted-foreground">No venues found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {venues.map((venue, index) => (
                 <motion.article
                   key={venue.id}
@@ -280,7 +280,7 @@ const Discover = () => {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
               {filteredEvents.map((event, index) => (
                 <motion.article
                   key={event.id}

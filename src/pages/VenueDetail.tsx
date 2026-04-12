@@ -171,7 +171,7 @@ const VenueDetail: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           {venue.image_url ? (
-            <div className="relative aspect-[21/9] overflow-hidden mb-8 border border-foreground/20">
+            <div className="relative aspect-video md:aspect-[21/9] overflow-hidden mb-8 border border-foreground/20">
               <img 
                 src={venue.image_url} 
                 alt={venue.name}
@@ -179,7 +179,7 @@ const VenueDetail: React.FC = () => {
               />
             </div>
           ) : (
-            <div className="aspect-[21/9] bg-muted flex items-center justify-center mb-8 border border-foreground/20">
+            <div className="aspect-video md:aspect-[21/9] bg-muted flex items-center justify-center mb-8 border border-foreground/20">
               <span className="text-8xl">🍷</span>
             </div>
           )}
