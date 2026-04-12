@@ -400,13 +400,13 @@ export const KnowledgeHubAdmin = () => {
         <TabsContent value="glossary" className="space-y-4">
           {!isAddingTerm && !editingTerm && (
             <Button onClick={() => setIsAddingTerm(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Yeni Terim Ekle
+              <Plus className="h-4 w-4 mr-2" /> Add New Term
             </Button>
           )}
 
           {(isAddingTerm || editingTerm) && (
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-foreground">{isAddingTerm ? 'Yeni Terim' : 'Terimi Düzenle'}</h3>
+              <h3 className="font-semibold text-foreground">{isAddingTerm ? 'New Term' : 'Edit Term'}</h3>
               <Input
                 placeholder="Terim"
                 value={isAddingTerm ? newTerm.term : editingTerm?.term || ''}
@@ -425,9 +425,9 @@ export const KnowledgeHubAdmin = () => {
                 }
               />
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => { setIsAddingTerm(false); setEditingTerm(null); }}>İptal</Button>
+                <Button variant="outline" onClick={() => { setIsAddingTerm(false); setEditingTerm(null); }}>Cancel</Button>
                 <Button onClick={isAddingTerm ? handleSaveTerm : handleUpdateTerm} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </div>
@@ -463,13 +463,13 @@ export const KnowledgeHubAdmin = () => {
         <TabsContent value="guides" className="space-y-4">
           {!isAddingGuide && !editingGuide && (
             <Button onClick={() => setIsAddingGuide(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Yeni Rehber Ekle
+              <Plus className="h-4 w-4 mr-2" /> Add New Guide
             </Button>
           )}
 
           {(isAddingGuide || editingGuide) && (
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-foreground">{isAddingGuide ? 'Yeni Rehber' : 'Rehberi Düzenle'}</h3>
+              <h3 className="font-semibold text-foreground">{isAddingGuide ? 'New Guide' : 'Edit Guide'}</h3>
               <Input
                 placeholder="Başlık"
                 value={isAddingGuide ? newGuide.title : editingGuide?.title || ''}
@@ -521,7 +521,7 @@ export const KnowledgeHubAdmin = () => {
                     <SelectContent>
                       <SelectItem value="Beginner">Başlangıç</SelectItem>
                       <SelectItem value="Intermediate">Orta</SelectItem>
-                      <SelectItem value="Advanced">İleri</SelectItem>
+                      <SelectItem value="Advanced">Advanced</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -539,9 +539,9 @@ export const KnowledgeHubAdmin = () => {
                 <span className="text-sm">Yayınla</span>
               </label>
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => { setIsAddingGuide(false); setEditingGuide(null); }}>İptal</Button>
+                <Button variant="outline" onClick={() => { setIsAddingGuide(false); setEditingGuide(null); }}>Cancel</Button>
                 <Button onClick={isAddingGuide ? handleSaveGuide : handleUpdateGuide} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </div>
@@ -583,13 +583,13 @@ export const KnowledgeHubAdmin = () => {
         <TabsContent value="pdfs" className="space-y-4">
           {!isAddingPdf && !editingPdf && (
             <Button onClick={() => setIsAddingPdf(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Yeni PDF Ekle
+              <Plus className="h-4 w-4 mr-2" /> Add New PDF
             </Button>
           )}
 
           {(isAddingPdf || editingPdf) && (
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-foreground">{isAddingPdf ? 'Yeni PDF' : 'PDF Düzenle'}</h3>
+              <h3 className="font-semibold text-foreground">{isAddingPdf ? 'New PDF' : 'Edit PDF'}</h3>
               <Input
                 placeholder="Başlık"
                 value={isAddingPdf ? newPdf.title : editingPdf?.title || ''}
@@ -681,9 +681,9 @@ export const KnowledgeHubAdmin = () => {
               </label>
               
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => { setIsAddingPdf(false); setEditingPdf(null); }}>İptal</Button>
+                <Button variant="outline" onClick={() => { setIsAddingPdf(false); setEditingPdf(null); }}>Cancel</Button>
                 <Button onClick={isAddingPdf ? handleSavePdf : handleUpdatePdf} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </div>
@@ -730,13 +730,13 @@ export const KnowledgeHubAdmin = () => {
         <TabsContent value="harvest" className="space-y-4">
           {!isAddingReport && !editingReport && (
             <Button onClick={() => setIsAddingReport(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Yeni Hasat Raporu Ekle
+              <Plus className="h-4 w-4 mr-2" /> Add New Harvest Report
             </Button>
           )}
 
           {(isAddingReport || editingReport) && (
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
-              <h3 className="font-semibold text-foreground">{isAddingReport ? 'Yeni Hasat Raporu' : 'Raporu Düzenle'}</h3>
+              <h3 className="font-semibold text-foreground">{isAddingReport ? 'New Harvest Report' : 'Edit Report'}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="text-sm font-medium mb-1 block">Yıl</label>
@@ -799,7 +799,7 @@ export const KnowledgeHubAdmin = () => {
                       isAddingReport ? setNewReport : setEditingReport
                     )}
                   >
-                    Ekle
+                    Add
                   </Button>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -836,9 +836,9 @@ export const KnowledgeHubAdmin = () => {
               </label>
               
               <div className="flex gap-3">
-                <Button variant="outline" onClick={() => { setIsAddingReport(false); setEditingReport(null); }}>İptal</Button>
+                <Button variant="outline" onClick={() => { setIsAddingReport(false); setEditingReport(null); }}>Cancel</Button>
                 <Button onClick={isAddingReport ? handleSaveReport : handleUpdateReport} disabled={saving}>
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Kaydet'}
+                  {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
                 </Button>
               </div>
             </div>

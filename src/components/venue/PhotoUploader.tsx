@@ -118,13 +118,13 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       onPhotosChange([...photos, ...uploadedUrls]);
       
       toast({
-        title: "Yüklendi",
+        title: "Uploaded",
         description: `${uploadedUrls.length} fotoğraf başarıyla yüklendi.`
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
-        title: "Yükleme hatası",
+        title: "Upload error",
         description: error.message || "Fotoğraf yüklenirken bir hata oluştu.",
         variant: "destructive"
       });
@@ -251,12 +251,12 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
             {uploading ? (
               <>
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Yükleniyor...
+                Uploading...
               </>
             ) : (
               <>
                 <Upload className="w-4 h-4 mr-2" />
-                Fotoğraf Yükle
+                Upload Photo
               </>
             )}
           </Button>
@@ -277,7 +277,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
             onClick={addUrlPhoto}
             disabled={!urlInput.trim() || photos.length >= maxPhotos}
           >
-            Ekle
+            Add
           </Button>
         </div>
 

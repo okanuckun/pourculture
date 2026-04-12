@@ -29,7 +29,7 @@ const questions: Question[] = [
   },
   {
     id: 'style',
-    question: 'Şarapta hangi tarza yakınsın?',
+    question: 'What wine style suits you?',
     options: [
       { value: 'funky', label: 'Funky', emoji: '🎸', description: 'Vahşi, doğal ve spontan' },
       { value: 'clean', label: 'Temiz', emoji: '✨', description: 'Zarif, net ve klasik' },
@@ -220,7 +220,7 @@ export const WineQuiz = () => {
     if (!user) {
       toast.info('Sonuçları kaydetmek için giriş yapmalısın', {
         action: {
-          label: 'Giriş Yap',
+          label: 'Sign In',
           onClick: () => navigate('/auth'),
         },
       });
@@ -241,7 +241,7 @@ export const WineQuiz = () => {
       toast.success('Sonuç kaydedildi!');
     } catch (error) {
       console.error('Error saving result:', error);
-      toast.error('Kaydetme başarısız oldu');
+      toast.error('Failed to save');
     } finally {
       setIsSaving(false);
     }
@@ -423,7 +423,7 @@ export const WineQuiz = () => {
                           onClick={reset}
                           className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                         >
-                          Yeni Test Yap
+                          Retake Quiz
                         </button>
                       </div>
                     </motion.div>
@@ -468,7 +468,7 @@ export const WineQuiz = () => {
                           className="flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
                         >
                           <ArrowLeft className="h-4 w-4" />
-                          Geri
+                          Back
                         </button>
                         <span className="text-sm text-muted-foreground">
                           {currentStep + 1} / {questions.length}
@@ -492,7 +492,7 @@ export const WineQuiz = () => {
                             <Wine className="h-10 w-10 text-muted-foreground" />
                           </div>
                           <h3 className="font-display text-xl font-bold text-foreground mb-2">
-                            Şarap bulunamadı
+                            Wine not found
                           </h3>
                           <p className="text-muted-foreground text-sm mb-6">
                             Bu kriterlere uygun şarap henüz eklenmemiş. Farklı seçenekler dene!
@@ -584,7 +584,7 @@ export const WineQuiz = () => {
                                         disabled={isSaving}
                                         className="text-xs font-medium text-primary hover:underline disabled:opacity-50"
                                       >
-                                        {isSaving ? 'Kaydediliyor...' : 'Kaydet'}
+                                        {isSaving ? 'Saving...' : 'Save'}
                                       </button>
                                     )}
                                   </div>
@@ -597,7 +597,7 @@ export const WineQuiz = () => {
                           {!user && (
                             <div className="mt-4 rounded-xl bg-secondary p-3 text-sm text-muted-foreground text-center">
                               <User className="inline-block h-4 w-4 mr-1" />
-                              <span>Giriş yaparak sonuçlarını kaydedebilirsin</span>
+                              <span>Sign in to save your results</span>
                             </div>
                           )}
 

@@ -95,7 +95,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
   const handleSubmit = async () => {
     if (!userId) {
       toast({
-        title: "Giriş yapmalısınız",
+        title: "Please sign in",
         description: "Yorum yapmak için lütfen giriş yapın.",
         variant: "destructive"
       });
@@ -156,7 +156,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
       });
     } else {
       toast({
-        title: userReview ? "Güncellendi" : "Yorum eklendi",
+        title: userReview ? "Updated" : "Review added",
         description: userReview ? "Yorumunuz güncellendi." : "Yorumunuz başarıyla eklendi."
       });
       fetchReviews();
@@ -223,7 +223,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
             size="sm"
           >
             <Send className="w-4 h-4 mr-2" />
-            {submitting ? 'Gönderiliyor...' : (userReview ? 'Güncelle' : 'Gönder')}
+            {submitting ? 'Submitting...' : (userReview ? 'Update' : 'Submit')}
           </Button>
         </div>
       )}

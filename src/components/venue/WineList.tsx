@@ -14,7 +14,7 @@ interface WineListProps {
   title?: string;
 }
 
-export const WineList: React.FC<WineListProps> = ({ wines, title = "Şarap Listesi" }) => {
+export const WineList: React.FC<WineListProps> = ({ wines, title = "Wine List" }) => {
   if (!wines || wines.length === 0) {
     return null;
   }

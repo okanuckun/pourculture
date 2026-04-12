@@ -152,7 +152,7 @@ const EditWinemakerProfile: React.FC = () => {
           </div>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
 
@@ -302,7 +302,7 @@ const EditWinemakerProfile: React.FC = () => {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSave} disabled={saving} size="lg">
               <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>

@@ -195,7 +195,7 @@ const EditVenueProfile: React.FC = () => {
           </div>
           <Button onClick={handleSave} disabled={saving}>
             <Save className="w-4 h-4 mr-2" />
-            {saving ? 'Kaydediliyor...' : 'Kaydet'}
+            {saving ? 'Saving...' : 'Save'}
           </Button>
         </div>
 
@@ -263,7 +263,7 @@ const EditVenueProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Wine className="w-5 h-5" />
-                Şarap Listesi
+                Wine List
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -278,11 +278,11 @@ const EditVenueProfile: React.FC = () => {
                     </button>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <Label className="text-xs">Şarap Adı *</Label>
+                        <Label className="text-xs">Wine Name *</Label>
                         <Input
                           value={wine.name}
                           onChange={(e) => updateWine(index, 'name', e.target.value)}
-                          placeholder="Şarap adı"
+                          placeholder="Wine name"
                         />
                       </div>
                       <div>
@@ -322,7 +322,7 @@ const EditVenueProfile: React.FC = () => {
                 ))}
                 <Button onClick={addWine} variant="outline" className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
-                  Şarap Ekle
+                  Add Wine
                 </Button>
               </div>
             </CardContent>
@@ -393,7 +393,7 @@ const EditVenueProfile: React.FC = () => {
                 ))}
                 <Button onClick={addEvent} variant="outline" className="w-full">
                   <Plus className="w-4 h-4 mr-2" />
-                  Etkinlik Ekle
+                  Add Event
                 </Button>
               </div>
             </CardContent>
@@ -449,7 +449,7 @@ const EditVenueProfile: React.FC = () => {
           <div className="flex justify-end pt-4">
             <Button onClick={handleSave} disabled={saving} size="lg">
               <Save className="w-4 h-4 mr-2" />
-              {saving ? 'Kaydediliyor...' : 'Değişiklikleri Kaydet'}
+              {saving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>
