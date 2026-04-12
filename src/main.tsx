@@ -7,6 +7,13 @@ import { ErrorBoundary } from "./components/ErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
 
+// Silence console.log and console.warn in production
+if (import.meta.env.PROD) {
+  console.log = () => {};
+  console.warn = () => {};
+  // Keep console.error for Sentry/debugging
+}
+
 const queryClient = new QueryClient();
 
 createRoot(document.getElementById("root")!).render(
