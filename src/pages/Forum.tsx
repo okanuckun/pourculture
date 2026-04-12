@@ -55,6 +55,8 @@ const categoryLabels: Record<string, { label: string; icon: React.ElementType }>
 const Forum = () => {
   const [topics, setTopics] = useState<Topic[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [userId, setUserId] = useState<string | null>(null);
@@ -82,62 +84,91 @@ const Forum = () => {
     fetchTopics();
   }, [userId]);
 
-  const fetchTopics = async () => {
-    setLoading(true);
-    
-    const { data: topicsData, error: topicsError } = await supabase
-      .from('forum_topics')
-      .select('*')
-      .order('created_at', { ascending: false });
+  const PAGE_SIZE = 20;
 
-    if (topicsError) {
-      console.error('Error fetching topics:', topicsError);
-      setLoading(false);
-      return;
-    }
+  const fetchTopics = async (offset = 0, append = false) => {
+    if (!append) setLoading(true);
+    else setLoadingMore(true);
 
-    const topicsWithCounts = await Promise.all(
-      (topicsData || []).map(async (topic) => {
-        const { count: commentCount } = await supabase
-          .from('forum_comments')
-          .select('*', { count: 'exact', head: true })
-          .eq('topic_id', topic.id);
+    try {
+      const { data: topicsData, error: topicsError } = await supabase
+        .from('forum_topics')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(offset, offset + PAGE_SIZE - 1);
 
-        const { count: likeCount } = await supabase
+      if (topicsError) {
+        console.error('Error fetching topics:', topicsError);
+        return;
+      }
+
+      const items = topicsData || [];
+      setHasMore(items.length === PAGE_SIZE);
+
+      // Batch fetch: get all unique user IDs and topic IDs
+      const topicIds = items.map(t => t.id);
+      const userIds = [...new Set(items.map(t => t.user_id))];
+
+      // Fetch profiles in one query
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('user_id, display_name')
+        .in('user_id', userIds);
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, p.display_name]));
+
+      // Fetch comment counts in one query
+      const { data: commentCounts } = await supabase
+        .from('forum_comments')
+        .select('topic_id')
+        .in('topic_id', topicIds);
+      const commentCountMap = new Map<string, number>();
+      (commentCounts || []).forEach(c => {
+        commentCountMap.set(c.topic_id, (commentCountMap.get(c.topic_id) || 0) + 1);
+      });
+
+      // Fetch like counts in one query
+      const { data: likeCounts } = await supabase
+        .from('forum_likes')
+        .select('topic_id')
+        .in('topic_id', topicIds);
+      const likeCountMap = new Map<string, number>();
+      (likeCounts || []).forEach(l => {
+        likeCountMap.set(l.topic_id, (likeCountMap.get(l.topic_id) || 0) + 1);
+      });
+
+      // Fetch user's likes in one query
+      let userLikeSet = new Set<string>();
+      if (userId) {
+        const { data: userLikes } = await supabase
           .from('forum_likes')
-          .select('*', { count: 'exact', head: true })
-          .eq('topic_id', topic.id);
+          .select('topic_id')
+          .eq('user_id', userId)
+          .in('topic_id', topicIds);
+        userLikeSet = new Set((userLikes || []).map(l => l.topic_id));
+      }
 
-        let isLiked = false;
-        if (userId) {
-          const { data: likeData } = await supabase
-            .from('forum_likes')
-            .select('id')
-            .eq('topic_id', topic.id)
-            .eq('user_id', userId)
-            .maybeSingle();
-          isLiked = !!likeData;
-        }
+      const enriched: Topic[] = items.map(topic => ({
+        ...topic,
+        comment_count: commentCountMap.get(topic.id) || 0,
+        like_count: likeCountMap.get(topic.id) || 0,
+        is_liked: userLikeSet.has(topic.id),
+        author_name: profileMap.get(topic.user_id) || 'Anonymous',
+        image_url: topic.image_url,
+      }));
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('display_name')
-          .eq('user_id', topic.user_id)
-          .single();
+      setTopics(prev => append ? [...prev, ...enriched] : enriched);
+    } catch (err) {
+      console.error('Error fetching topics:', err);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  };
 
-        return {
-          ...topic,
-          comment_count: commentCount || 0,
-          like_count: likeCount || 0,
-          is_liked: isLiked,
-          author_name: profile?.display_name || 'Anonymous',
-          image_url: topic.image_url,
-        };
-      })
-    );
-
-    setTopics(topicsWithCounts);
-    setLoading(false);
+  const loadMore = () => {
+    if (!loadingMore && hasMore) {
+      fetchTopics(topics.length, true);
+    }
   };
 
   const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -542,6 +573,24 @@ const Forum = () => {
               );
             })}
           </div>
+
+          {/* Load More */}
+          {hasMore && !searchTerm && (
+            <div className="flex justify-center mt-8">
+              <Button
+                variant="outline"
+                onClick={loadMore}
+                disabled={loadingMore}
+                className="tracking-wider text-xs"
+              >
+                {loadingMore ? (
+                  <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Loading...</>
+                ) : (
+                  'LOAD MORE'
+                )}
+              </Button>
+            </div>
+          )}
         )}
       </div>
     </BrutalistLayout>
