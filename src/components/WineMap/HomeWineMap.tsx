@@ -325,17 +325,6 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     });
   }, [allVenues, showOnlyVerified, showOnlyOpen, selectedCategories, filterCategories]);
 
-  // Toggle category filter
-  const toggleCategory = (category: WineVenueCategory) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        // Don't allow removing all categories
-        if (prev.length === 1) return prev;
-        return prev.filter(c => c !== category);
-      }
-      return [...prev, category];
-    });
-  };
 
   // Handle venue click to open panel
   const handleVenueClick = useCallback((venue: WineVenue) => {
