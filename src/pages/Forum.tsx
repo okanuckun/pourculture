@@ -592,6 +592,7 @@ const Forum = () => {
               </Button>
             </div>
           )}
+          </>
         )}
       </div>
     </BrutalistLayout>
