@@ -5,6 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { WineScanButton } from "@/components/WineScanner";
+import { MobileBottomNav } from "@/components/MobileBottomNav";
 
 // Eager: critical pages
 import BrutalistHome from "./pages/BrutalistHome";
@@ -101,6 +102,7 @@ const App = () => (
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
+    <MobileBottomNav />
   </TooltipProvider>
 );
 

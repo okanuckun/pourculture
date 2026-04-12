@@ -5,6 +5,7 @@ import { useTheme } from 'next-themes';
 import { supabase } from '@/integrations/supabase/client';
 import { User as SupabaseUser } from '@supabase/supabase-js';
 import { AuthSheet } from '@/components/AuthSheet';
+import { MobileBottomNav } from '@/components/MobileBottomNav';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -341,7 +342,7 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
       )}
 
       {/* Main Content */}
-      <main>
+      <main className="pb-16 md:pb-0">
         {children}
       </main>
 

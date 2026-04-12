@@ -352,7 +352,7 @@ const BrutalistHome = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground font-grotesk">
+    <div className="min-h-screen bg-background text-foreground font-grotesk pb-16 md:pb-0">
       <SEOHead
         title="POURCULTURE — Discover Natural Wine"
         description="Explore natural wine venues, winemakers, and events worldwide. Your guide to the natural wine community."
