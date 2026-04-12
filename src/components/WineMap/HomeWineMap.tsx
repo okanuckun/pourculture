@@ -39,6 +39,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
   const [currentBounds, setCurrentBounds] = useState<MapBounds | null>(null);
   const [hasSearched, setHasSearched] = useState(false);
   const [mapReady, setMapReady] = useState(false);
+  const [mapZoom, setMapZoom] = useState(4);
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
