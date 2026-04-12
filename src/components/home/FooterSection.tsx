@@ -42,57 +42,50 @@ const FooterSection: React.FC = () => {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-foreground/20">
-        <div className="grid grid-cols-12 divide-y md:divide-y-0 md:divide-x divide-foreground/20">
-          <div className="col-span-12 md:col-span-4 p-6">
-            <div className="flex items-center gap-2 mb-4">
-              <div className="w-6 h-6 bg-foreground rounded-sm" />
-              <span className="text-sm font-bold tracking-tight">POURCULTURE</span>
+      {/* Footer — matches BrutalistLayout footer */}
+      <footer className="border-t border-foreground/20 py-8 px-4 md:px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">EXPLORE</h3>
+              <div className="space-y-2">
+                <Link to="/discover?category=bar" className="block text-xs hover:text-muted-foreground">Wine Bars</Link>
+                <Link to="/discover?category=wine_shop" className="block text-xs hover:text-muted-foreground">Wine Shops</Link>
+                <Link to="/discover?category=restaurant" className="block text-xs hover:text-muted-foreground">Restaurants</Link>
+                <Link to="/wine-routes" className="block text-xs hover:text-muted-foreground">Wine Routes</Link>
+              </div>
             </div>
-            <p className="text-xs text-muted-foreground">
-              © {new Date().getFullYear()} PourCulture. All rights reserved.
-            </p>
-          </div>
-
-          <div className="col-span-6 md:col-span-4 p-6">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              NAVIGATION
-            </p>
-            <div className="space-y-2">
-              <Link to="/discover" className="block text-sm hover:text-muted-foreground transition-colors">Discover</Link>
-              <Link to="/explore/winemakers" className="block text-sm hover:text-muted-foreground transition-colors">Winemakers</Link>
-              <Link to="/explore/events" className="block text-sm hover:text-muted-foreground transition-colors">Events</Link>
-              <Link to="/about/natural-wine" className="block text-sm hover:text-muted-foreground transition-colors">About Natural Wine</Link>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">LEARN</h3>
+              <div className="space-y-2">
+                <Link to="/about/natural-wine" className="block text-xs hover:text-muted-foreground">What is Natural Wine?</Link>
+                <Link to="/knowledge" className="block text-xs hover:text-muted-foreground">Knowledge Hub</Link>
+                <Link to="/people" className="block text-xs hover:text-muted-foreground">People & Books</Link>
+                <Link to="/forum" className="block text-xs hover:text-muted-foreground">Forum</Link>
+              </div>
             </div>
-          </div>
-
-          <div className="col-span-6 md:col-span-4 p-6">
-            <p className="text-[10px] text-muted-foreground uppercase tracking-wider mb-4">
-              CONNECT
-            </p>
-            <div className="space-y-2 text-sm">
-              <a
-                href="mailto:hello@pourculture.com"
-                className="block hover:text-muted-foreground transition-colors"
-              >
-                hello@pourculture.com
-              </a>
-              <a
-                href="https://instagram.com/pourculture"
-                className="block hover:text-muted-foreground transition-colors"
-              >
-                @pourculture
-              </a>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">SUBMIT</h3>
+              <div className="space-y-2">
+                <Link to="/submit/venue" className="block text-xs hover:text-muted-foreground">Add a Venue</Link>
+                <Link to="/submit/winemaker" className="block text-xs hover:text-muted-foreground">Add a Winemaker</Link>
+                <Link to="/submit/event" className="block text-xs hover:text-muted-foreground">Submit an Event</Link>
+                <Link to="/claim-venue" className="block text-xs hover:text-muted-foreground">Claim Your Business</Link>
+              </div>
+            </div>
+            <div>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">CONNECT</h3>
+              <div className="space-y-2">
+                <a href="mailto:hello@pourculture.com" className="block text-xs hover:text-muted-foreground">hello@pourculture.com</a>
+                <a href="https://instagram.com/pourculture" target="_blank" rel="noopener noreferrer" className="block text-xs hover:text-muted-foreground">@pourculture</a>
+              </div>
             </div>
           </div>
-        </div>
-
-        {/* Large Year */}
-        <div className="border-t border-foreground/20 p-4 text-right overflow-hidden">
-          <span className="text-[20vw] font-bold tracking-tighter text-foreground/5 leading-none">
-            {new Date().getFullYear()}
-          </span>
+          <div className="border-t border-foreground/10 mt-8 pt-6 text-center">
+            <p className="text-[10px] text-muted-foreground tracking-wider">
+              © {new Date().getFullYear()} POURCULTURE. ALL RIGHTS RESERVED.
+            </p>
+          </div>
         </div>
       </footer>
     </>

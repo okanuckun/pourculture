@@ -333,6 +333,7 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
                 <Link to="/discover?category=bar" className="block text-xs hover:text-muted-foreground">Wine Bars</Link>
                 <Link to="/discover?category=wine_shop" className="block text-xs hover:text-muted-foreground">Wine Shops</Link>
                 <Link to="/discover?category=restaurant" className="block text-xs hover:text-muted-foreground">Restaurants</Link>
+                <Link to="/wine-routes" className="block text-xs hover:text-muted-foreground">Wine Routes</Link>
               </div>
             </div>
             <div>
@@ -354,10 +355,11 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
               </div>
             </div>
             <div>
-              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">POURCULTURE</h3>
-              <p className="text-xs text-muted-foreground">
-                Discover natural wine venues and winemakers around the world.
-              </p>
+              <h3 className="text-[10px] tracking-wider text-muted-foreground mb-3">CONNECT</h3>
+              <div className="space-y-2">
+                <a href="mailto:hello@pourculture.com" className="block text-xs hover:text-muted-foreground">hello@pourculture.com</a>
+                <a href="https://instagram.com/pourculture" target="_blank" rel="noopener noreferrer" className="block text-xs hover:text-muted-foreground">@pourculture</a>
+              </div>
             </div>
           </div>
           <div className="border-t border-foreground/10 mt-8 pt-6 text-center">
