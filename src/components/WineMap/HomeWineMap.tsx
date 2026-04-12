@@ -270,6 +270,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         north: bounds.getNorth(),
         east: bounds.getEast(),
       });
+      setMapZoom(map.current.getZoom());
     });
 
     return () => {
