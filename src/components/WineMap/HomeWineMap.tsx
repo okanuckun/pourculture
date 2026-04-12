@@ -807,7 +807,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         markersRef.current.push(marker);
       });
     }
-  }, [filteredVenues, mapReady, handleVenueClick, minimalStyle, showEvents, wineFairs]);
+  }, [filteredVenues, mapReady, handleVenueClick, minimalStyle, showEvents, wineFairs, mapZoom]);
 
   // Search functionality
   const searchTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
