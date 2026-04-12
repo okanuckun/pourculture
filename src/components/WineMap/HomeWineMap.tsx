@@ -1024,22 +1024,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       {/* Minimal Google Attribution */}
       <div className="absolute bottom-1 left-1 z-20 opacity-60">
         <GoogleAttribution variant="dark" />
-
-      {/* Category legend removed for cleaner UI */}
-
-      {/* Decorative compass rose - only for vintage style */}
-      {!minimalStyle && (
-        <div className="absolute bottom-4 right-4 z-10 opacity-20 pointer-events-none">
-          <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
-            <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
-            <path d="M50 90 L55 55 L50 50 L45 55 Z" fill="#d4a574" />
-            <path d="M10 50 L45 45 L50 50 L45 55 Z" fill="#d4a574" />
-            <path d="M90 50 L55 45 L50 50 L55 55 Z" fill="#8b5a2b" />
-            <text x="50" y="8" textAnchor="middle" fontSize="10" fill="#8b5a2b">N</text>
-          </svg>
-        </div>
-      )}
+      </div>
 
       {/* Custom styles */}
       <style>{`
