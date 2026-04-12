@@ -373,11 +373,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
     clusters.forEach((feature) => {
       const [lng, lat] = feature.geometry.coordinates;
-      const isCluster = feature.properties.cluster;
+      const props = feature.properties as any;
+      const isCluster = props.cluster;
 
       if (isCluster) {
-        const count = feature.properties.point_count;
-        const clusterId = feature.properties.cluster_id;
+        const count = props.point_count;
+        const clusterId = props.cluster_id;
         const size = count < 10 ? 36 : count < 50 ? 44 : 52;
 
         const el = document.createElement('div');
