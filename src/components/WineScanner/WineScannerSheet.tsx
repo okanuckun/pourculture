@@ -347,37 +347,39 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
 
                 {/* Initial State - Show Camera Button */}
                 {!capturedImage && !isAnalyzing && (
-                  <div className="flex flex-col items-center justify-center py-12 space-y-4">
-                    <div className="w-32 h-32 rounded-full bg-primary/10 flex items-center justify-center">
-                      <Wine className="h-16 w-16 text-primary" />
+                  <div className="flex flex-col items-center justify-center py-8 space-y-6">
+                    <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
+                      <Camera className="h-10 w-10 text-primary" />
                     </div>
-                    <h3 className="text-lg font-semibold text-center">Scan Wine Label</h3>
-                    <p className="text-sm text-muted-foreground text-center max-w-xs">
-                      Take a photo of the wine label and let AI identify it for you.
-                    </p>
-                    <Button onClick={handleCapture} size="lg" className="gap-2">
+                    <div className="text-center space-y-2">
+                      <h3 className="text-lg font-bold tracking-tight">Scan Wine Label</h3>
+                      <p className="text-sm text-muted-foreground max-w-[250px]">
+                        Point your camera at any wine bottle — AI will identify it instantly.
+                      </p>
+                    </div>
+                    <Button onClick={handleCapture} size="lg" className="gap-2 w-full max-w-xs h-12">
                       <Camera className="h-5 w-5" />
-                      Take Photo
+                      Open Camera
                     </Button>
                   </div>
                 )}
 
                 {/* Captured Image Preview */}
                 {capturedImage && (
-                  <div className="relative">
-                    <img 
-                      src={capturedImage} 
-                      alt="Captured photo" 
-                      className="w-full max-h-48 object-contain rounded-lg"
+                  <div className="relative rounded-xl overflow-hidden border border-foreground/10">
+                    <img
+                      src={capturedImage}
+                      alt="Captured photo"
+                      className="w-full max-h-64 object-contain bg-muted/30"
                     />
                     {!isAnalyzing && (
                       <Button
                         onClick={handleReset}
                         variant="secondary"
                         size="sm"
-                        className="absolute top-2 right-2 gap-1"
+                        className="absolute top-2 right-2 gap-1 rounded-lg"
                       >
-                        <RotateCcw className="h-4 w-4" />
+                        <RotateCcw className="h-3.5 w-3.5" />
                         Retake
                       </Button>
                     )}
@@ -386,9 +388,17 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
 
                 {/* Analyzing State */}
                 {isAnalyzing && (
-                  <div className="flex flex-col items-center py-8 space-y-4">
-                    <Loader2 className="h-12 w-12 text-primary animate-spin" />
-                    <p className="text-sm text-muted-foreground">Analyzing wine...</p>
+                  <div className="flex flex-col items-center py-6 space-y-3">
+                    <div className="relative">
+                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Wine className="h-8 w-8 text-primary" />
+                      </div>
+                      <Loader2 className="h-6 w-6 text-primary animate-spin absolute -bottom-1 -right-1" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm font-medium">Analyzing wine...</p>
+                      <p className="text-xs text-muted-foreground">This may take a few seconds</p>
+                    </div>
                   </div>
                 )}
 
@@ -448,7 +458,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         className="gap-2"
                       >
                         <Share2 className="h-4 w-4" />
-                        Paylaş
+                        Share
                       </Button>
                     </div>
 
