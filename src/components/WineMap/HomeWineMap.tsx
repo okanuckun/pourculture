@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Supercluster from 'supercluster';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck, Clock } from 'lucide-react';
+import { Loader2, Search, MapPin, X, Wine, Compass } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG, WineFairMarker } from './types';
@@ -51,8 +51,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
   const [selectedVenue, setSelectedVenue] = useState<WineVenue | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   
-  // Filter state
-  const [showFilters, setShowFilters] = useState(false);
+  // Filter state (controlled externally via filterCategories prop)
   const [showOnlyVerified, setShowOnlyVerified] = useState(false);
   const [showOnlyOpen, setShowOnlyOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<WineVenueCategory[]>(['wine_shop', 'wine_bar', 'winery', 'restaurant']);
@@ -326,17 +325,6 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     });
   }, [allVenues, showOnlyVerified, showOnlyOpen, selectedCategories, filterCategories]);
 
-  // Toggle category filter
-  const toggleCategory = (category: WineVenueCategory) => {
-    setSelectedCategories(prev => {
-      if (prev.includes(category)) {
-        // Don't allow removing all categories
-        if (prev.length === 1) return prev;
-        return prev.filter(c => c !== category);
-      }
-      return [...prev, category];
-    });
-  };
 
   // Handle venue click to open panel
   const handleVenueClick = useCallback((venue: WineVenue) => {
@@ -943,49 +931,38 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       {/* Texture overlays - only for vintage style */}
       {!minimalStyle && (
         <>
-          {/* Vintage paper texture overlay */}
           <div className="absolute inset-0 pointer-events-none z-10 opacity-30" style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
           }} />
-          
-          {/* Vignette effect */}
           <div className="absolute inset-0 pointer-events-none z-10" style={{
             background: 'radial-gradient(ellipse at center, transparent 50%, rgba(139, 90, 43, 0.15) 100%)',
           }} />
         </>
       )}
 
-      {/* Search Bar */}
-      <div className="absolute top-4 left-4 right-4 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-md z-20">
+      {/* Compact Search Bar */}
+      <div className="absolute top-3 left-3 right-3 md:left-1/2 md:-translate-x-1/2 md:w-full md:max-w-sm z-20">
         <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             {searchLoading ? (
-              <Loader2 className={`w-5 h-5 animate-spin ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
+              <Loader2 className="w-4 h-4 animate-spin text-muted-foreground" />
             ) : (
-              <Search className={`w-5 h-5 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
+              <Search className="w-4 h-4 text-muted-foreground" />
             )}
           </div>
           <input
             type="text"
             value={searchQuery}
             onChange={handleSearchChange}
-            placeholder="Search wine venues & locations..."
-            className={`w-full pl-12 pr-4 py-3 shadow-lg font-medium ${
-              minimalStyle 
-                ? 'rounded-none border-2 border-foreground bg-background text-foreground placeholder-muted-foreground focus:outline-none' 
-                : 'rounded-full border-2 border-amber-200 bg-amber-50/95 backdrop-blur-sm text-amber-900 placeholder-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400'
-            }`}
-            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
+            placeholder="Search locations..."
+            className="w-full pl-9 pr-8 py-2 text-sm rounded-lg border border-border/50 bg-background/90 backdrop-blur-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary/30 shadow-sm"
           />
           {searchQuery && (
             <button
-              onClick={() => {
-                setSearchQuery('');
-                setShowSearchResults(false);
-              }}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center"
+              onClick={() => { setSearchQuery(''); setShowSearchResults(false); }}
+              className="absolute inset-y-0 right-0 pr-3 flex items-center"
             >
-              <X className={`w-5 h-5 ${minimalStyle ? 'text-muted-foreground hover:text-foreground' : 'text-amber-500 hover:text-amber-700'}`} />
+              <X className="w-4 h-4 text-muted-foreground hover:text-foreground" />
             </button>
           )}
         </div>
@@ -994,41 +971,31 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         <AnimatePresence>
           {showSearchResults && searchResults.length > 0 && (
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
+              initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className={`absolute top-full mt-2 w-full shadow-xl overflow-hidden ${
-                minimalStyle 
-                  ? 'bg-background border-2 border-foreground' 
-                  : 'bg-amber-50/98 backdrop-blur-lg rounded-2xl border-2 border-amber-200'
-              }`}
+              exit={{ opacity: 0, y: -5 }}
+              className="absolute top-full mt-1 w-full bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-lg overflow-hidden"
             >
               {searchResults.map((result: any, index: number) => (
                 <button
                   key={result.id || index}
                   onClick={() => handleResultClick(result)}
-                  className={`w-full px-4 py-3 flex items-center gap-3 transition-colors text-left last:border-b-0 ${
-                    minimalStyle 
-                      ? 'hover:bg-muted border-b border-foreground/20' 
-                      : 'hover:bg-amber-100 border-b border-amber-100'
-                  }`}
+                  className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
                 >
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    minimalStyle 
-                      ? (result.isDbVenue ? 'bg-foreground text-background' : 'border-2 border-foreground')
-                      : (result.isDbVenue ? 'bg-purple-100' : 'bg-amber-100')
+                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                    result.isDbVenue ? 'bg-primary/10' : 'bg-muted'
                   }`}>
                     {result.isDbVenue ? (
-                      <Wine className={`w-4 h-4 ${minimalStyle ? '' : 'text-purple-600'}`} />
+                      <Wine className="w-3 h-3 text-primary" />
                     ) : (
-                      <MapPin className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
+                      <MapPin className="w-3 h-3 text-muted-foreground" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className={`font-medium truncate ${minimalStyle ? 'text-foreground' : 'text-amber-900'}`} style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}>
+                    <p className="text-sm font-medium truncate text-foreground">
                       {result.place_name?.split(',')[0]}
                     </p>
-                    <p className={`text-xs truncate ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>
+                    <p className="text-xs truncate text-muted-foreground">
                       {result.isDbVenue ? 'Verified venue' : result.place_name?.split(',').slice(1).join(',').trim()}
                     </p>
                   </div>
@@ -1039,233 +1006,13 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
         </AnimatePresence>
       </div>
 
-      {/* Filter Panel */}
-      <div className="absolute top-20 left-4 z-20">
-        <div className="flex flex-col gap-2">
-          {/* Filter Toggle Button */}
-          <motion.button
-            onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2.5 shadow-lg flex items-center gap-2 font-medium transition-colors ${
-              minimalStyle 
-                ? `border-2 border-foreground ${showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4 ? 'bg-foreground text-background' : 'bg-background text-foreground'}`
-                : `rounded-full border-2 ${showFilters || showOnlyVerified || showOnlyOpen || selectedCategories.length < 4 ? 'bg-amber-600 text-white border-amber-500' : 'bg-amber-50/95 text-amber-800 border-amber-200'}`
-            }`}
-            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            <Filter className="w-4 h-4" />
-            <span className="text-sm">Filters</span>
-            {(showOnlyVerified || showOnlyOpen || selectedCategories.length < 4) && (
-              <span className={`w-5 h-5 rounded-full text-xs flex items-center justify-center font-bold ${
-                minimalStyle ? 'bg-background text-foreground border border-foreground' : 'bg-white text-amber-600'
-              }`}>
-                {(showOnlyVerified ? 1 : 0) + (showOnlyOpen ? 1 : 0) + (4 - selectedCategories.length)}
-              </span>
-            )}
-          </motion.button>
-
-          {/* Filter Options */}
-          <AnimatePresence>
-            {showFilters && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, height: 0 }}
-                animate={{ opacity: 1, y: 0, height: 'auto' }}
-                exit={{ opacity: 0, y: -10, height: 0 }}
-                className={`shadow-xl overflow-hidden p-3 ${
-                  minimalStyle 
-                    ? 'bg-background border-2 border-foreground' 
-                    : 'bg-amber-50/98 backdrop-blur-lg rounded-xl border-2 border-amber-200'
-                }`}
-              >
-                {/* Verified Only Toggle */}
-                <button
-                  onClick={() => setShowOnlyVerified(!showOnlyVerified)}
-                  className={`w-full px-3 py-2.5 flex items-center gap-2.5 transition-colors mb-2 ${
-                    minimalStyle
-                      ? `border border-foreground/20 ${showOnlyVerified ? 'bg-foreground text-background' : 'bg-background hover:bg-muted text-foreground'}`
-                      : `rounded-lg ${showOnlyVerified ? 'bg-amber-500 text-white' : 'bg-white hover:bg-amber-100 text-amber-800'}`
-                  }`}
-                >
-                  <ShieldCheck className="w-4 h-4" />
-                  <span className="text-sm font-medium flex-1 text-left">Verified Only</span>
-                  {showOnlyVerified && <Check className="w-4 h-4" />}
-                </button>
-
-                {/* Open Now Toggle */}
-                <button
-                  onClick={() => setShowOnlyOpen(!showOnlyOpen)}
-                  className={`w-full px-3 py-2.5 flex items-center gap-2.5 transition-colors mb-2 ${
-                    minimalStyle
-                      ? `border border-foreground/20 ${showOnlyOpen ? 'bg-foreground text-background' : 'bg-background hover:bg-muted text-foreground'}`
-                      : `rounded-lg ${showOnlyOpen ? 'bg-green-500 text-white' : 'bg-white hover:bg-amber-100 text-amber-800'}`
-                  }`}
-                >
-                  <Clock className="w-4 h-4" />
-                  <span className="text-sm font-medium flex-1 text-left">Open Now</span>
-                  {showOnlyOpen && <Check className="w-4 h-4" />}
-                </button>
-
-                <div className={`h-px my-2 ${minimalStyle ? 'bg-foreground/20' : 'bg-amber-200'}`} />
-
-                {/* Category Filters */}
-                <div className="flex items-center justify-between mb-2">
-                  <p className={`text-xs font-medium ${minimalStyle ? 'text-muted-foreground' : 'text-amber-600'}`}>Categories</p>
-                  <div className="flex gap-1">
-                    <button
-                      onClick={() => setSelectedCategories(['wine_shop', 'wine_bar', 'winery', 'restaurant'])}
-                      className={`text-xs px-2 py-1 transition-colors ${
-                        minimalStyle 
-                          ? 'border border-foreground/30 hover:bg-muted text-foreground' 
-                          : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
-                      }`}
-                    >
-                      Select All
-                    </button>
-                    <button
-                      onClick={() => setSelectedCategories(['wine_shop'])}
-                      className={`text-xs px-2 py-1 transition-colors ${
-                        minimalStyle 
-                          ? 'border border-foreground/30 hover:bg-muted text-foreground' 
-                          : 'rounded-md bg-amber-100 hover:bg-amber-200 text-amber-700'
-                      }`}
-                    >
-                      Clear
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  {(['wine_shop', 'wine_bar', 'winery', 'restaurant'] as WineVenueCategory[]).map(category => {
-                    const config = CATEGORY_CONFIG[category];
-                    const isSelected = selectedCategories.includes(category);
-                    return (
-                      <button
-                        key={category}
-                        onClick={() => toggleCategory(category)}
-                        className={`w-full px-3 py-2 flex items-center gap-2.5 transition-colors ${
-                          minimalStyle
-                            ? `border ${isSelected ? 'border-foreground bg-background' : 'border-foreground/20 opacity-60'}`
-                            : `rounded-lg ${isSelected ? 'bg-white border border-amber-300' : 'bg-amber-100/50 opacity-60'}`
-                        }`}
-                      >
-                        <span 
-                          className={`w-6 h-6 flex items-center justify-center text-sm ${minimalStyle ? 'rounded-full border-2 border-foreground' : 'rounded-full'}`}
-                          style={{ backgroundColor: minimalStyle ? (isSelected ? '#000' : '#fff') : (isSelected ? config.color : '#ccc') }}
-                        >
-                          <span style={{ filter: minimalStyle && isSelected ? 'invert(1)' : 'none' }}>{config.icon}</span>
-                        </span>
-                        <span className={`text-sm flex-1 text-left ${
-                          minimalStyle 
-                            ? (isSelected ? 'text-foreground' : 'text-muted-foreground')
-                            : (isSelected ? 'text-amber-900' : 'text-amber-600')
-                        }`}>
-                          {config.label}
-                        </span>
-                        {isSelected && <Check className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-      </div>
-
-      {/* Loading indicator */}
-      <AnimatePresence>
-        {loading && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className={`absolute top-20 right-4 z-20 px-4 py-2 shadow-lg flex items-center gap-2 ${
-              minimalStyle 
-                ? 'bg-background border-2 border-foreground' 
-                : 'bg-amber-50/95 backdrop-blur-sm rounded-full border border-amber-200'
-            }`}
-          >
-            <Loader2 className={`w-4 h-4 animate-spin ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
-            <span className={`text-sm ${minimalStyle ? 'font-grotesk text-foreground' : 'font-serif text-amber-800'}`}>Discovering venues...</span>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Search this area button */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-2">
-        <motion.button
-          onClick={() => currentBounds && fetchVenues(currentBounds)}
-          disabled={loading}
-          className={`px-6 py-3 shadow-lg flex items-center gap-2 font-medium disabled:opacity-50 ${
-            minimalStyle 
-              ? 'border-2 border-foreground bg-foreground text-background hover:bg-foreground/90' 
-              : 'rounded-full border-2 border-amber-300'
-          }`}
-          style={minimalStyle ? { fontFamily: 'Space Grotesk, sans-serif' } : { 
-            background: 'linear-gradient(180deg, #d97706, #b45309)',
-            color: 'white',
-            fontFamily: 'Georgia, serif',
-          }}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          {loading ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
-          ) : (
-            <Search className="w-5 h-5" />
-          )}
-          Search this area
-        </motion.button>
-        
-        {filteredVenues.length > 0 && !loading && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`px-4 py-1.5 shadow-lg text-sm flex items-center gap-2 ${
-              minimalStyle 
-                ? 'bg-background border-2 border-foreground text-foreground' 
-                : 'bg-amber-50/95 backdrop-blur-sm rounded-full border border-amber-200 text-amber-800'
-            }`}
-            style={{ fontFamily: minimalStyle ? 'Space Grotesk, sans-serif' : 'Georgia, serif' }}
-          >
-            <Wine className={`w-4 h-4 ${minimalStyle ? 'text-foreground' : 'text-amber-600'}`} />
-            <span>
-              {filteredVenues.length} venues
-              {allVenues.length !== filteredVenues.length && ` (${allVenues.length} total)`}
-            </span>
-          </motion.div>
-        )}
-      </div>
-
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
 
-      {/* Google Attribution Badge - Required by Google Terms of Service */}
-      <div className="absolute bottom-6 left-4 z-20">
-        <div className={`px-3 py-2 shadow-md ${
-          minimalStyle 
-            ? 'bg-background border-2 border-foreground' 
-            : 'bg-white/90 backdrop-blur-sm rounded-lg border border-amber-200'
-        }`}>
-          <GoogleAttribution variant="dark" />
-        </div>
+      {/* Minimal Google Attribution */}
+      <div className="absolute bottom-1 left-1 z-20 opacity-60">
+        <GoogleAttribution variant="dark" />
       </div>
-
-      {/* Category legend removed for cleaner UI */}
-
-      {/* Decorative compass rose - only for vintage style */}
-      {!minimalStyle && (
-        <div className="absolute bottom-4 right-4 z-10 opacity-20 pointer-events-none">
-          <svg width="50" height="50" viewBox="0 0 100 100" fill="none">
-            <circle cx="50" cy="50" r="45" stroke="#8b5a2b" strokeWidth="2" />
-            <path d="M50 10 L55 45 L50 50 L45 45 Z" fill="#8b5a2b" />
-            <path d="M50 90 L55 55 L50 50 L45 55 Z" fill="#d4a574" />
-            <path d="M10 50 L45 45 L50 50 L45 55 Z" fill="#d4a574" />
-            <path d="M90 50 L55 45 L50 50 L55 55 Z" fill="#8b5a2b" />
-            <text x="50" y="8" textAnchor="middle" fontSize="10" fill="#8b5a2b">N</text>
-          </svg>
-        </div>
-      )}
 
       {/* Custom styles */}
       <style>{`
