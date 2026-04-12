@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import Supercluster from 'supercluster';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck, Clock } from 'lucide-react';
 import { toast } from 'sonner';
