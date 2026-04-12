@@ -3,7 +3,7 @@ import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import Supercluster from 'supercluster';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader2, Search, MapPin, X, Wine, Compass, Filter, Check, ShieldCheck, Clock } from 'lucide-react';
+import { Loader2, Search, MapPin, X, Wine, Compass } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { WineVenue, WineVenueCategory, MapBounds, CATEGORY_CONFIG, WineFairMarker } from './types';
@@ -51,8 +51,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
   const [selectedVenue, setSelectedVenue] = useState<WineVenue | null>(null);
   const [isPanelOpen, setIsPanelOpen] = useState(false);
   
-  // Filter state
-  const [showFilters, setShowFilters] = useState(false);
+  // Filter state (controlled externally via filterCategories prop)
   const [showOnlyVerified, setShowOnlyVerified] = useState(false);
   const [showOnlyOpen, setShowOnlyOpen] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<WineVenueCategory[]>(['wine_shop', 'wine_bar', 'winery', 'restaurant']);
