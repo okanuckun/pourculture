@@ -6,6 +6,8 @@ import CategorySection from '@/components/home/CategorySection';
 import EventsSection from '@/components/home/EventsSection';
 import FooterSection from '@/components/home/FooterSection';
 import { toast } from 'sonner';
+import { MapPin, X } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { WineFairMarker } from '@/components/WineMap/types';
 
 type Venue = Tables<'venues'>;
@@ -47,6 +49,9 @@ const BrutalistHome = () => {
   const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
   const [loading, setLoading] = useState(true);
   const [locationRequested, setLocationRequested] = useState(false);
+  const [showLocationBanner, setShowLocationBanner] = useState(
+    !localStorage.getItem('pourculture_location_consent') && !localStorage.getItem('pourculture_location_dismissed')
+  );
 
   // Data states
   const [wineBars, setWineBars] = useState<Venue[]>([]);
@@ -115,10 +120,14 @@ const BrutalistHome = () => {
     }
   }, []);
 
-  // Request location on mount
+  // Request location — only if user previously consented
   useEffect(() => {
     if (locationRequested) return;
     setLocationRequested(true);
+
+    // Check if user already granted location consent
+    const hasConsent = localStorage.getItem('pourculture_location_consent');
+    if (!hasConsent) return;
 
     const requestLocation = async () => {
       if ('geolocation' in navigator) {
@@ -320,8 +329,57 @@ const BrutalistHome = () => {
       }));
   }, [wineFairs]);
 
+  const handleAllowLocation = () => {
+    localStorage.setItem('pourculture_location_consent', 'true');
+    setShowLocationBanner(false);
+    // Trigger location request
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
+          setUserCoords(coords);
+          fetchData(coords);
+        },
+        () => { /* User denied browser prompt — that's fine */ }
+      );
+    }
+  };
+
+  const handleDismissLocation = () => {
+    localStorage.setItem('pourculture_location_dismissed', 'true');
+    setShowLocationBanner(false);
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground font-grotesk">
+      {/* Location Consent Banner */}
+      {showLocationBanner && (
+        <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-50 bg-card border border-border rounded-xl p-4 shadow-xl animate-in slide-in-from-bottom-4">
+          <div className="flex gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg h-fit shrink-0">
+              <MapPin className="w-5 h-5 text-primary" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium">Enable location?</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                See nearby wine bars, shops, and winemakers. Your location is never stored.
+              </p>
+              <div className="flex gap-2 mt-3">
+                <Button size="sm" className="h-8 text-xs" onClick={handleAllowLocation}>
+                  Allow
+                </Button>
+                <Button size="sm" variant="ghost" className="h-8 text-xs" onClick={handleDismissLocation}>
+                  Not now
+                </Button>
+              </div>
+            </div>
+            <button onClick={handleDismissLocation} className="text-muted-foreground hover:text-foreground h-fit">
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Hero Section with Map and Category Tabs */}
       <BrutalistHero
         activeCategory={activeCategory}
