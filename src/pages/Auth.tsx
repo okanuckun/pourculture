@@ -25,7 +25,7 @@ const Auth = () => {
   useEffect(() => {
     if (mode !== 'reset') {
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (session && mode !== 'reset') {
+        if (session) {
           navigate('/');
         }
       });
