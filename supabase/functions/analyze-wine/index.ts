@@ -25,42 +25,42 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `Sen bir şarap uzmanısın. Kullanıcı sana bir şarap şişesi fotoğrafı gönderecek. Fotoğrafı analiz et ve şarap hakkında bilgi ver.
+    const systemPrompt = `You are a wine expert and sommelier. The user will send you a photo of a wine bottle. Analyze the photo and provide detailed information about the wine.
 
-Yanıtını MUTLAKA aşağıdaki JSON formatında ver (başka hiçbir metin ekleme):
+You MUST respond in the following JSON format only (no other text):
 
 {
   "found": true/false,
-  "wineName": "Şarabın tam adı",
-  "winery": "Üretici/Şato adı",
-  "region": "Bölge (örn: Bordeaux, Toskana)",
-  "country": "Ülke",
-  "grapeVariety": "Üzüm çeşidi/çeşitleri",
-  "vintage": "Yıl (eğer görünüyorsa)",
-  "type": "Kırmızı/Beyaz/Rose/Köpüklü",
+  "wineName": "Full name of the wine",
+  "winery": "Producer/Chateau name",
+  "region": "Region (e.g., Bordeaux, Tuscany, Napa Valley)",
+  "country": "Country",
+  "grapeVariety": "Grape variety/varieties",
+  "vintage": "Year (if visible)",
+  "type": "Red/White/Rosé/Sparkling/Orange",
   "terroir": {
-    "soil": "Toprak tipi",
-    "altitude": "Yükseklik (varsa)",
-    "climate": "İklim özellikleri"
+    "soil": "Soil type",
+    "altitude": "Altitude (if known)",
+    "climate": "Climate characteristics"
   },
   "tastingNotes": {
-    "aroma": "Aroma profili",
-    "taste": "Tat profili",
-    "finish": "Bitiş"
+    "aroma": "Aroma profile",
+    "taste": "Taste profile",
+    "finish": "Finish"
   },
-  "foodPairing": ["Yemek eşleştirme önerileri"],
-  "servingTemperature": "Servis sıcaklığı",
-  "agingPotential": "Yaşlanma potansiyeli",
-  "quickSummary": "2-3 cümlelik kısa özet",
-  "detailedDescription": "Şarap hakkında detaylı 3-4 paragraflık açıklama (üretim yöntemi, tarihçe, özel özellikler vb.)",
-  "priceRange": "Fiyat aralığı tahmini (€)",
-  "rating": "Genel kalite puanı 1-100 arası"
+  "foodPairing": ["Food pairing suggestions"],
+  "servingTemperature": "Serving temperature",
+  "agingPotential": "Aging potential",
+  "quickSummary": "2-3 sentence summary",
+  "detailedDescription": "Detailed 3-4 paragraph description (production method, history, special characteristics)",
+  "priceRange": "Estimated price range (€)",
+  "rating": "Overall quality score 1-100"
 }
 
-Eğer fotoğrafta şarap şişesi bulamazsan veya tanıyamazsan:
+If you cannot find or identify a wine bottle in the photo:
 {
   "found": false,
-  "error": "Açıklama"
+  "error": "Description of why the wine could not be identified"
 }`;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
@@ -78,7 +78,7 @@ Eğer fotoğrafta şarap şişesi bulamazsan veya tanıyamazsan:
             content: [
               {
                 type: "text",
-                text: "Bu şarap şişesini analiz et ve bilgilerini ver."
+                text: "Analyze this wine bottle and provide its details."
               },
               {
                 type: "image_url",
@@ -95,21 +95,21 @@ Eğer fotoğrafta şarap şişesi bulamazsan veya tanıyamazsan:
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI Gateway error:", response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
-      
+
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: "Payment required. Please add credits to continue." }),
           { status: 402, headers: { "Content-Type": "application/json", ...corsHeaders } }
         );
       }
-      
+
       throw new Error(`AI Gateway error: ${response.status}`);
     }
 
@@ -120,11 +120,9 @@ Eğer fotoğrafta şarap şişesi bulamazsan veya tanıyamazsan:
       throw new Error("No response from AI");
     }
 
-    // Parse the JSON response
     let wineInfo;
     try {
-      // Extract JSON from response (handle markdown code blocks if present)
-      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || 
+      const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) ||
                         content.match(/```\s*([\s\S]*?)\s*```/) ||
                         [null, content];
       const jsonStr = jsonMatch[1] || content;
@@ -133,7 +131,7 @@ Eğer fotoğrafta şarap şişesi bulamazsan veya tanıyamazsan:
       console.error("Failed to parse AI response:", content);
       wineInfo = {
         found: true,
-        wineName: "Bilinmeyen Şarap",
+        wineName: "Unknown Wine",
         quickSummary: content,
         detailedDescription: content
       };
