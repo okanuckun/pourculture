@@ -342,232 +342,301 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     setIsPanelOpen(true);
   }, []);
 
-  // Update markers
+  // Update markers with clustering
   useEffect(() => {
     if (!map.current || !mapReady) return;
 
     markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
-    filteredVenues.forEach(venue => {
-      const config = CATEGORY_CONFIG[venue.category];
-      const isVerified = venue.isClaimed === true;
-      
-      const el = document.createElement('div');
-      el.className = minimalStyle ? 'minimal-wine-marker' : 'vintage-wine-marker';
-      
-      if (minimalStyle) {
-        // Minimal black & white marker style
+    // Create Supercluster index
+    const points: Supercluster.PointFeature<{ venue: WineVenue }>[] = filteredVenues.map((venue, i) => ({
+      type: 'Feature' as const,
+      properties: { venue },
+      geometry: { type: 'Point' as const, coordinates: [venue.lng, venue.lat] },
+      id: i,
+    }));
+
+    const cluster = new Supercluster<{ venue: WineVenue }>({
+      radius: 60,
+      maxZoom: 16,
+    });
+    cluster.load(points);
+
+    const zoom = Math.floor(map.current.getZoom());
+    const bounds = map.current.getBounds();
+    const bbox: [number, number, number, number] = [
+      bounds.getWest(), bounds.getSouth(), bounds.getEast(), bounds.getNorth()
+    ];
+
+    const clusters = cluster.getClusters(bbox, zoom);
+
+    clusters.forEach((feature) => {
+      const [lng, lat] = feature.geometry.coordinates;
+      const isCluster = feature.properties.cluster;
+
+      if (isCluster) {
+        const count = feature.properties.point_count;
+        const clusterId = feature.properties.cluster_id;
+        const size = count < 10 ? 36 : count < 50 ? 44 : 52;
+
+        const el = document.createElement('div');
+        el.className = 'cluster-marker';
         el.innerHTML = `
-          <div class="marker-pin" style="
-            background: ${isVerified ? '#000' : '#fff'};
-            width: 24px;
-            height: 24px;
+          <div style="
+            width: ${size}px;
+            height: ${size}px;
             border-radius: 50%;
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground, 0 0% 100%));
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
-            box-shadow: none;
-            border: 2px solid #000;
-            cursor: pointer;
-            transition: transform 0.2s ease, background 0.2s ease;
-            position: relative;
-          ">
-            <span style="filter: ${isVerified ? 'invert(1)' : 'none'};">${config.icon}</span>
-          </div>
-        `;
-      } else {
-        // Vintage colored marker style
-        el.innerHTML = `
-          <div class="marker-pin" style="
-            background: linear-gradient(180deg, ${config.color}, ${config.color}cc);
-            width: 32px;
-            height: 42px;
-            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding-top: 2px;
-            font-size: 16px;
-            box-shadow: 
-              0 3px 10px rgba(0,0,0,0.3),
-              inset 0 1px 0 rgba(255,255,255,0.3)${isVerified ? ', 0 0 0 3px #f59e0b' : ''};
-            border: 2px solid ${isVerified ? '#f59e0b' : 'rgba(255,255,255,0.8)'};
+            font-size: ${size < 40 ? 13 : 15}px;
+            font-weight: 700;
+            border: 3px solid hsl(var(--background));
+            box-shadow: 0 2px 10px rgba(0,0,0,0.25);
             cursor: pointer;
             transition: transform 0.2s ease;
-            position: relative;
-          ">
-            ${config.icon}
-            ${isVerified ? `
+            font-family: sans-serif;
+          ">${count}</div>
+        `;
+
+        el.addEventListener('click', () => {
+          const expansionZoom = Math.min(cluster.getClusterExpansionZoom(clusterId), 20);
+          map.current?.flyTo({ center: [lng, lat], zoom: expansionZoom, duration: 500 });
+        });
+        el.addEventListener('mouseenter', () => {
+          const inner = el.firstElementChild as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1.15)';
+        });
+        el.addEventListener('mouseleave', () => {
+          const inner = el.firstElementChild as HTMLElement;
+          if (inner) inner.style.transform = 'scale(1)';
+        });
+
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([lng, lat])
+          .addTo(map.current!);
+        markersRef.current.push(marker);
+      } else {
+        // Individual venue marker (existing logic)
+        const venue = feature.properties.venue;
+        const config = CATEGORY_CONFIG[venue.category];
+        const isVerified = venue.isClaimed === true;
+        
+        const el = document.createElement('div');
+        el.className = minimalStyle ? 'minimal-wine-marker' : 'vintage-wine-marker';
+        
+        if (minimalStyle) {
+          el.innerHTML = `
+            <div class="marker-pin" style="
+              background: ${isVerified ? '#000' : '#fff'};
+              width: 24px;
+              height: 24px;
+              border-radius: 50%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              font-size: 12px;
+              box-shadow: none;
+              border: 2px solid #000;
+              cursor: pointer;
+              transition: transform 0.2s ease, background 0.2s ease;
+              position: relative;
+            ">
+              <span style="filter: ${isVerified ? 'invert(1)' : 'none'};">${config.icon}</span>
+            </div>
+          `;
+        } else {
+          el.innerHTML = `
+            <div class="marker-pin" style="
+              background: linear-gradient(180deg, ${config.color}, ${config.color}cc);
+              width: 32px;
+              height: 42px;
+              border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding-top: 2px;
+              font-size: 16px;
+              box-shadow: 
+                0 3px 10px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.3)${isVerified ? ', 0 0 0 3px #f59e0b' : ''};
+              border: 2px solid ${isVerified ? '#f59e0b' : 'rgba(255,255,255,0.8)'};
+              cursor: pointer;
+              transition: transform 0.2s ease;
+              position: relative;
+            ">
+              ${config.icon}
+              ${isVerified ? `
+                <div style="
+                  position: absolute;
+                  top: -6px;
+                  right: -6px;
+                  width: 16px;
+                  height: 16px;
+                  background: #f59e0b;
+                  border-radius: 50%;
+                  display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  font-size: 10px;
+                  color: white;
+                  border: 2px solid white;
+                  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+                ">✓</div>
+              ` : ''}
               <div style="
                 position: absolute;
-                top: -6px;
-                right: -6px;
-                width: 16px;
-                height: 16px;
-                background: #f59e0b;
-                border-radius: 50%;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-size: 10px;
-                color: white;
-                border: 2px solid white;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-              ">✓</div>
-            ` : ''}
-            <div style="
-              position: absolute;
-              bottom: -6px;
-              left: 50%;
-              transform: translateX(-50%);
-              width: 0;
-              height: 0;
-              border-left: 6px solid transparent;
-              border-right: 6px solid transparent;
-              border-top: 8px solid ${config.color}cc;
-            "></div>
-          </div>
-        `;
-      }
+                bottom: -6px;
+                left: 50%;
+                transform: translateX(-50%);
+                width: 0;
+                height: 0;
+                border-left: 6px solid transparent;
+                border-right: 6px solid transparent;
+                border-top: 8px solid ${config.color}cc;
+              "></div>
+            </div>
+          `;
+        }
 
-      const inner = el.querySelector('.marker-pin') as HTMLDivElement | null;
-      el.addEventListener('mouseenter', () => {
-        if (inner) inner.style.transform = 'scale(1.2) translateY(-5px)';
-        el.style.zIndex = '1000';
-      });
-      el.addEventListener('mouseleave', () => {
-        if (inner) inner.style.transform = 'scale(1)';
-        el.style.zIndex = '1';
-      });
+        const inner = el.querySelector('.marker-pin') as HTMLDivElement | null;
+        el.addEventListener('mouseenter', () => {
+          if (inner) inner.style.transform = 'scale(1.2) translateY(-5px)';
+          el.style.zIndex = '1000';
+        });
+        el.addEventListener('mouseleave', () => {
+          if (inner) inner.style.transform = 'scale(1)';
+          el.style.zIndex = '1';
+        });
 
-      // Click handler to open panel instead of popup
-      el.addEventListener('click', (e) => {
-        e.stopPropagation();
-        handleVenueClick(venue);
-      });
+        el.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleVenueClick(venue);
+        });
 
-      // Create popup with minimal info - clicking opens the panel
-      const popup = new mapboxgl.Popup({
-        offset: 30,
-        closeButton: true,
-        closeOnClick: true,
-        className: 'vintage-popup',
-      }).setHTML(`
-        <div style="
-          padding: 12px; 
-          min-width: 200px; 
-          max-width: 280px;
-          background: linear-gradient(180deg, #fffbf5, #f8f0e3);
-          font-family: 'Georgia', serif;
-        ">
+        // Create popup
+        const popup = new mapboxgl.Popup({
+          offset: 30,
+          closeButton: true,
+          closeOnClick: true,
+          className: 'vintage-popup',
+        }).setHTML(`
           <div style="
-            display: flex; 
-            gap: 6px; 
-            margin-bottom: 8px;
-            border-bottom: 1px solid #d4c4a8;
-            padding-bottom: 6px;
-          ">
-            <span style="
-              padding: 3px 10px;
-              border-radius: 20px;
-              font-size: 11px;
-              font-weight: 500;
-              color: white;
-              background: ${config.color};
-              font-family: sans-serif;
-            ">
-              ${config.icon} ${config.label}
-            </span>
-            ${isVerified ? `
-              <span style="
-                padding: 3px 10px;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 500;
-                color: #f59e0b;
-                background: rgba(245, 158, 11, 0.1);
-                font-family: sans-serif;
-              ">
-                ✓ Verified
-              </span>
-            ` : `
-              <span style="
-                padding: 3px 10px;
-                border-radius: 20px;
-                font-size: 11px;
-                font-weight: 500;
-                color: #6b7280;
-                background: rgba(107, 114, 128, 0.1);
-                font-family: sans-serif;
-              ">
-                Unverified
-              </span>
-            `}
-          </div>
-          <h3 style="
-            font-weight: 700; 
-            color: #3d2914; 
-            font-size: 15px; 
-            margin-bottom: 6px;
+            padding: 12px; 
+            min-width: 200px; 
+            max-width: 280px;
+            background: linear-gradient(180deg, #fffbf5, #f8f0e3);
             font-family: 'Georgia', serif;
           ">
-            ${venue.name}
-          </h3>
-          ${venue.address ? `
             <div style="
               display: flex; 
-              align-items: flex-start; 
               gap: 6px; 
-              font-size: 11px; 
-              color: #6b5a47;
               margin-bottom: 8px;
+              border-bottom: 1px solid #d4c4a8;
+              padding-bottom: 6px;
             ">
-              <span>📍</span>
-              <span>${venue.address}${venue.city ? `, ${venue.city}` : ''}</span>
+              <span style="
+                padding: 3px 10px;
+                border-radius: 20px;
+                font-size: 11px;
+                font-weight: 500;
+                color: white;
+                background: ${config.color};
+                font-family: sans-serif;
+              ">
+                ${config.icon} ${config.label}
+              </span>
+              ${isVerified ? `
+                <span style="
+                  padding: 3px 10px;
+                  border-radius: 20px;
+                  font-size: 11px;
+                  font-weight: 500;
+                  color: #f59e0b;
+                  background: rgba(245, 158, 11, 0.1);
+                  font-family: sans-serif;
+                ">
+                  ✓ Verified
+                </span>
+              ` : `
+                <span style="
+                  padding: 3px 10px;
+                  border-radius: 20px;
+                  font-size: 11px;
+                  font-weight: 500;
+                  color: #6b7280;
+                  background: rgba(107, 114, 128, 0.1);
+                  font-family: sans-serif;
+                ">
+                  Unverified
+                </span>
+              `}
             </div>
-          ` : ''}
-          <button 
-            id="view-details-${venue.id}"
-            style="
-              width: 100%;
-              display: flex; 
-              align-items: center; 
-              justify-content: center;
-              gap: 4px; 
-              font-size: 12px; 
-              color: white; 
-              background: #8b5cf6;
-              padding: 8px 14px; 
-              border-radius: 20px; 
-              border: none;
-              cursor: pointer;
-              font-weight: 500;
-              font-family: sans-serif;
+            <h3 style="
+              font-weight: 700; 
+              color: #3d2914; 
+              font-size: 15px; 
+              margin-bottom: 6px;
+              font-family: 'Georgia', serif;
             ">
-            View Details
-          </button>
-        </div>
-      `);
+              ${venue.name}
+            </h3>
+            ${venue.address ? `
+              <div style="
+                display: flex; 
+                align-items: flex-start; 
+                gap: 6px; 
+                font-size: 11px; 
+                color: #6b5a47;
+                margin-bottom: 8px;
+              ">
+                <span>📍</span>
+                <span>${venue.address}${venue.city ? `, ${venue.city}` : ''}</span>
+              </div>
+            ` : ''}
+            <button 
+              id="view-details-${venue.id}"
+              style="
+                width: 100%;
+                display: flex; 
+                align-items: center; 
+                justify-content: center;
+                gap: 4px; 
+                font-size: 12px; 
+                color: white; 
+                background: #8b5cf6;
+                padding: 8px 14px; 
+                border-radius: 20px; 
+                border: none;
+                cursor: pointer;
+                font-weight: 500;
+                font-family: sans-serif;
+              ">
+              View Details
+            </button>
+          </div>
+        `);
 
-      // Add click handler after popup opens
-      popup.on('open', () => {
-        const btn = document.getElementById(`view-details-${venue.id}`);
-        if (btn) {
-          btn.addEventListener('click', () => {
-            popup.remove();
-            handleVenueClick(venue);
-          });
-        }
-      });
+        popup.on('open', () => {
+          const btn = document.getElementById(`view-details-${venue.id}`);
+          if (btn) {
+            btn.addEventListener('click', () => {
+              popup.remove();
+              handleVenueClick(venue);
+            });
+          }
+        });
 
-      const marker = new mapboxgl.Marker({ element: el })
-        .setLngLat([venue.lng, venue.lat])
-        .setPopup(popup)
-        .addTo(map.current!);
+        const marker = new mapboxgl.Marker({ element: el })
+          .setLngLat([venue.lng, venue.lat])
+          .setPopup(popup)
+          .addTo(map.current!);
 
-      markersRef.current.push(marker);
+        markersRef.current.push(marker);
+      }
     });
 
     // Add wine fair event markers if showEvents is true
