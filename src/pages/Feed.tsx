@@ -198,9 +198,9 @@ export default function Feed() {
     if (targetUserId === userId) return;
 
     if (isFollowing) {
-      await supabase.from('follows').delete().eq('follower_id', userId).eq('following_id', targetUserId);
+      await (supabase as any).from('follows').delete().eq('follower_id', userId).eq('following_id', targetUserId);
     } else {
-      await supabase.from('follows').insert({ follower_id: userId, following_id: targetUserId });
+      await (supabase as any).from('follows').insert({ follower_id: userId, following_id: targetUserId });
     }
 
     setPosts(prev => prev.map(p =>
