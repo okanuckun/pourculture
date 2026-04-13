@@ -203,9 +203,8 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     setWineInfo(null);
     setCurrentSavedId(null);
     
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   const handleClose = () => {
