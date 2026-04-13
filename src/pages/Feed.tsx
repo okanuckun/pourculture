@@ -604,10 +604,13 @@ export default function Feed() {
                       <Eye className="w-4 h-4" />
                       <span className="text-xs">{post.view_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <button
+                      onClick={() => {/* scroll to comments handled by PostComments */}}
+                      className="flex items-center gap-1 text-muted-foreground"
+                    >
                       <MessageCircle className="w-4 h-4" />
                       <span className="text-xs">{post.comment_count || 0}</span>
-                    </div>
+                    </button>
                   </div>
 
                   {/* Wine info */}
