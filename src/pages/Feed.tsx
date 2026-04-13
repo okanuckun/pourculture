@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
+import { PostComments } from '@/components/PostComments';
 
 interface Post {
   id: string;
@@ -603,10 +604,13 @@ export default function Feed() {
                       <Eye className="w-4 h-4" />
                       <span className="text-xs">{post.view_count || 0}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-muted-foreground">
+                    <button
+                      onClick={() => {/* scroll to comments handled by PostComments */}}
+                      className="flex items-center gap-1 text-muted-foreground"
+                    >
                       <MessageCircle className="w-4 h-4" />
                       <span className="text-xs">{post.comment_count || 0}</span>
-                    </div>
+                    </button>
                   </div>
 
                   {/* Wine info */}
@@ -633,6 +637,18 @@ export default function Feed() {
                     {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                   </p>
                 </div>
+
+                {/* Comments section */}
+                <PostComments
+                  postId={post.id}
+                  userId={userId}
+                  commentCount={post.comment_count || 0}
+                  onCommentCountChange={(pid, delta) => {
+                    setPosts(prev => prev.map(p =>
+                      p.id === pid ? { ...p, comment_count: (p.comment_count || 0) + delta } : p
+                    ));
+                  }}
+                />
               </motion.div>
             ))}
 
