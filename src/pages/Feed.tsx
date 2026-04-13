@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { Plus, Eye, MapPin, Star, Image as ImageIcon, X, Store, User, MessageCircle, Search } from 'lucide-react';
@@ -62,6 +63,62 @@ interface GoogleVenueSearchPlace {
   address?: string;
 }
 
+interface GooglePlaceDetailsResult {
+  id: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  country?: string;
+  phone?: string;
+  website?: string;
+  rating?: number;
+  isOpen?: boolean;
+  openingHours?: string[];
+  photos?: string[];
+  lat?: number;
+  lng?: number;
+  types?: string[];
+}
+
+type VenueCategory = Database['public']['Enums']['venue_category'];
+
+type PersistedVenueResult = {
+  id: string | null;
+  name: string;
+  city: string;
+  country: string;
+};
+
+const slugifyVenueName = (value: string) => {
+  const slug = value
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return slug || 'venue';
+};
+
+const mapGoogleTypesToVenueCategory = (types: string[] = []): VenueCategory => {
+  if (types.includes('restaurant') || types.includes('food') || types.includes('meal_takeaway')) return 'restaurant';
+  if (types.includes('liquor_store') || types.includes('store') || types.includes('wine_shop')) return 'wine_shop';
+  if (types.includes('lodging')) return 'accommodation';
+  return 'bar';
+};
+
+const formatOpeningHours = (weekdayText?: string[]) => {
+  if (!weekdayText?.length) return {};
+
+  return weekdayText.reduce<Record<string, string>>((acc, entry) => {
+    const [day, ...hours] = entry.split(':');
+    if (!day) return acc;
+    acc[day.trim()] = hours.join(':').trim();
+    return acc;
+  }, {});
+};
+
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -111,6 +168,116 @@ export default function Feed() {
 
   const buildVenueKey = (name: string, location?: string) =>
     `${name.trim().toLowerCase()}__${(location || '').trim().toLowerCase()}`;
+
+  const createUniqueVenueSlug = async (name: string) => {
+    const baseSlug = slugifyVenueName(name);
+    const { data, error } = await supabase
+      .from('venues')
+      .select('slug')
+      .ilike('slug', `${baseSlug}%`)
+      .limit(50);
+
+    if (error) throw error;
+
+    const existingSlugs = new Set((data || []).map(venue => venue.slug));
+    if (!existingSlugs.has(baseSlug)) return baseSlug;
+
+    let counter = 2;
+    while (existingSlugs.has(`${baseSlug}-${counter}`)) {
+      counter += 1;
+    }
+
+    return `${baseSlug}-${counter}`;
+  };
+
+  const ensureGoogleVenueInDatabase = async (venue: VenueSearchResult): Promise<PersistedVenueResult> => {
+    const fallbackLocation = extractCityCountryFromAddress(venue.address);
+    const fallbackName = venue.name;
+    const fallbackCity = venue.city || fallbackLocation.city;
+    const fallbackCountry = venue.country || fallbackLocation.country;
+
+    if (!venue.googlePlaceId || !userId) {
+      return {
+        id: null,
+        name: fallbackName,
+        city: fallbackCity,
+        country: fallbackCountry,
+      };
+    }
+
+    const { data: existingGoogleVenue, error: existingGoogleVenueError } = await supabase
+      .from('venues')
+      .select('id, name, city, country')
+      .eq('google_place_id', venue.googlePlaceId)
+      .maybeSingle();
+
+    if (existingGoogleVenueError) throw existingGoogleVenueError;
+    if (existingGoogleVenue) return existingGoogleVenue;
+
+    const { data, error } = await supabase.functions.invoke('get-place-details', {
+      body: { placeId: venue.googlePlaceId },
+    });
+
+    if (error) throw error;
+
+    const placeDetails = data as GooglePlaceDetailsResult | null;
+    const resolvedName = placeDetails?.name || fallbackName;
+    const resolvedCity = placeDetails?.city || fallbackCity || 'Unknown city';
+    const resolvedCountry = placeDetails?.country || fallbackCountry || 'Unknown country';
+    const resolvedAddress = placeDetails?.address || venue.address || `${resolvedCity}, ${resolvedCountry}`;
+
+    const { data: existingNamedVenue, error: existingNamedVenueError } = await supabase
+      .from('venues')
+      .select('id, name, city, country')
+      .ilike('name', resolvedName)
+      .eq('city', resolvedCity)
+      .eq('country', resolvedCountry)
+      .maybeSingle();
+
+    if (existingNamedVenueError) throw existingNamedVenueError;
+    if (existingNamedVenue) return existingNamedVenue;
+
+    const slug = await createUniqueVenueSlug(resolvedName);
+    const venueInsert: Database['public']['Tables']['venues']['Insert'] = {
+      name: resolvedName,
+      slug,
+      address: resolvedAddress,
+      city: resolvedCity,
+      country: resolvedCountry,
+      category: mapGoogleTypesToVenueCategory(placeDetails?.types),
+      created_by: userId,
+      source: 'google',
+      google_place_id: venue.googlePlaceId,
+      google_rating: placeDetails?.rating ?? null,
+      is_open: placeDetails?.isOpen ?? null,
+      opening_hours: formatOpeningHours(placeDetails?.openingHours),
+      phone: placeDetails?.phone ?? null,
+      website: placeDetails?.website ?? null,
+      latitude: placeDetails?.lat ?? null,
+      longitude: placeDetails?.lng ?? null,
+      photos: placeDetails?.photos ?? [],
+      image_url: placeDetails?.photos?.[0] ?? null,
+    };
+
+    const { data: insertedVenue, error: insertVenueError } = await supabase
+      .from('venues')
+      .insert(venueInsert)
+      .select('id, name, city, country')
+      .single();
+
+    if (insertVenueError) {
+      const { data: fallbackExistingVenue } = await supabase
+        .from('venues')
+        .select('id, name, city, country')
+        .eq('google_place_id', venue.googlePlaceId)
+        .maybeSingle();
+
+      if (fallbackExistingVenue) return fallbackExistingVenue;
+      throw insertVenueError;
+    }
+
+    return insertedVenue;
+  };
 
   const searchVenues = async (query: string) => {
     const trimmedQuery = query.trim();
@@ -192,40 +359,34 @@ export default function Feed() {
   };
 
   const selectSearchedVenue = async (v: VenueSearchResult) => {
-    setVenueName(v.name);
-    setVenueSearch(v.name);
     setVenueResults([]);
     setShowVenueDropdown(false);
 
     if (v.source === 'database') {
       setSelectedVenueId(v.id);
+      setVenueName(v.name);
+      setVenueSearch(v.name);
       setCity(v.city);
       setCountry(v.country);
       return;
     }
 
-    setSelectedVenueId(null);
-
-    const fallbackLocation = extractCityCountryFromAddress(v.address);
-    setCity(v.city || fallbackLocation.city);
-    setCountry(v.country || fallbackLocation.country);
-
-    if (!v.googlePlaceId) return;
-
     try {
-      const { data, error } = await supabase.functions.invoke('get-place-details', {
-        body: { placeId: v.googlePlaceId },
-      });
-
-      if (error) throw error;
-
-      const placeDetails = data as { name?: string; city?: string; country?: string } | null;
-      setVenueName(placeDetails?.name || v.name);
-      setVenueSearch(placeDetails?.name || v.name);
-      setCity(placeDetails?.city || v.city || fallbackLocation.city);
-      setCountry(placeDetails?.country || v.country || fallbackLocation.country);
+      const persistedVenue = await ensureGoogleVenueInDatabase(v);
+      setSelectedVenueId(persistedVenue.id);
+      setVenueName(persistedVenue.name);
+      setVenueSearch(persistedVenue.name);
+      setCity(persistedVenue.city);
+      setCountry(persistedVenue.country);
     } catch (error) {
-      console.error('Google place details fetch failed:', error);
+      console.error('Google venue save failed:', error);
+      const fallbackLocation = extractCityCountryFromAddress(v.address);
+      setSelectedVenueId(null);
+      setVenueName(v.name);
+      setVenueSearch(v.name);
+      setCity(v.city || fallbackLocation.city);
+      setCountry(v.country || fallbackLocation.country);
+      toast.error('Venue could not be saved automatically.');
     }
   };
 
