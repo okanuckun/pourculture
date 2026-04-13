@@ -626,7 +626,7 @@ export default function Feed() {
       {/* Header */}
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
-          <h1 className="text-lg font-bold tracking-tight">Feed</h1>
+          <h1 className="text-lg font-bold tracking-tight">POURCULTURE<span className="text-primary">.</span></h1>
           {userId && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
