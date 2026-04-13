@@ -627,12 +627,15 @@ export default function Feed() {
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <h1 className="text-lg font-bold tracking-tight">Feed</h1>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" /> Share
-              </Button>
-            </DialogTrigger>
+          {userId && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" /> Share
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+          )}
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>New Post</DialogTitle>
