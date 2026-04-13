@@ -634,121 +634,120 @@ export default function Feed() {
                   <Plus className="w-4 h-4" /> Share
                 </Button>
               </DialogTrigger>
-            </Dialog>
-          )}
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
-              <DialogHeader>
-                <DialogTitle>New Post</DialogTitle>
-              </DialogHeader>
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
+                <DialogHeader>
+                  <DialogTitle>New Post</DialogTitle>
+                </DialogHeader>
 
-              {/* Post As selector */}
-              {ownedVenues.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Post as</label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => selectVenueForPost(null)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        !postAsVenueId
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <User className="w-3 h-3" /> Myself
-                    </button>
-                    {ownedVenues.map(v => (
+                {/* Post As selector */}
+                {ownedVenues.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Post as</label>
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        key={v.id}
                         type="button"
-                        onClick={() => selectVenueForPost(v)}
+                        onClick={() => selectVenueForPost(null)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                          postAsVenueId === v.id
+                          !postAsVenueId
                             ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
                         }`}
                       >
-                        <Store className="w-3 h-3" /> {v.name}
+                        <User className="w-3 h-3" /> Myself
                       </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Image upload */}
-              <div className="space-y-2">
-                {imagePreview ? (
-                  <div className="relative">
-                    <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
-                    <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
-                      <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                    <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">Choose photo</span>
-                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                  </label>
-                )}
-              </div>
-
-              {/* Wine info */}
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Wine name" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
-                <Input placeholder="Producer" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
-                <Input placeholder="Year" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
-                <Input placeholder="Type (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
-                <Input placeholder="Rating (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
-              </div>
-
-              {/* Venue search */}
-              {!postAsVenueId && (
-                <div>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Search venue..."
-                      value={venueSearch}
-                      onChange={e => handleVenueSearchChange(e.target.value)}
-                      className="text-sm pl-8"
-                    />
-                  </div>
-                  {showVenueDropdown && venueResults.length > 0 && (
-                    <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto relative z-[9999]">
-                      {venueResults.map(v => (
+                      {ownedVenues.map(v => (
                         <button
                           key={v.id}
                           type="button"
-                          onClick={() => void selectSearchedVenue(v)}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
+                          onClick={() => selectVenueForPost(v)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                            postAsVenueId === v.id
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
+                          }`}
                         >
-                          <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <div className="min-w-0">
-                            <span className="font-medium block truncate">{v.name}</span>
-                            <span className="text-muted-foreground block truncate">
-                              {v.address || [v.city, v.country].filter(Boolean).join(', ')}
-                            </span>
-                          </div>
+                          <Store className="w-3 h-3" /> {v.name}
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Image upload */}
+                <div className="space-y-2">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                      <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
+                      <span className="text-xs text-muted-foreground">Choose photo</span>
+                      <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                    </label>
                   )}
                 </div>
-              )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="City *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
-                <Input placeholder="Country *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
-              </div>
+                {/* Wine info */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="Wine name" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
+                  <Input placeholder="Producer" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
+                  <Input placeholder="Year" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
+                  <Input placeholder="Type (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
+                  <Input placeholder="Rating (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
+                </div>
 
-              <Textarea placeholder="Notes..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
+                {/* Venue search */}
+                {!postAsVenueId && (
+                  <div>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Search venue..."
+                        value={venueSearch}
+                        onChange={e => handleVenueSearchChange(e.target.value)}
+                        className="text-sm pl-8"
+                      />
+                    </div>
+                    {showVenueDropdown && venueResults.length > 0 && (
+                      <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto relative z-[9999]">
+                        {venueResults.map(v => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => void selectSearchedVenue(v)}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
+                          >
+                            <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-medium block truncate">{v.name}</span>
+                              <span className="text-muted-foreground block truncate">
+                                {v.address || [v.city, v.country].filter(Boolean).join(', ')}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <Button onClick={handleCreatePost} disabled={creating} className="w-full">
-                {creating ? 'Sharing...' : 'Share'}
-              </Button>
-            </DialogContent>
-          </Dialog>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="City *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                  <Input placeholder="Country *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                </div>
+
+                <Textarea placeholder="Notes..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
+
+                <Button onClick={handleCreatePost} disabled={creating} className="w-full">
+                  {creating ? 'Sharing...' : 'Share'}
+                </Button>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
