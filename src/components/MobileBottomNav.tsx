@@ -7,7 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 const publicTabs = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/feed', label: 'Feed', icon: Wine },
-  { path: '/wine-routes', label: 'Routes', icon: Route },
+  { path: '/knowledge', label: 'Learn', icon: BookOpen },
+];
+
+const authTabs = [
+  { path: '/discover', label: 'Discover', icon: Compass },
+  { path: '/feed', label: 'Feed', icon: Wine },
+  { path: '/journal', label: 'Journal', icon: BookOpen },
   { path: '/knowledge', label: 'Learn', icon: BookOpen },
 ];
 
