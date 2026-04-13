@@ -404,28 +404,15 @@ export default function Feed() {
         </div>
 
         {/* City filter */}
-        <div className="mb-6 -mx-4 px-4 overflow-x-auto scrollbar-none">
-          <div className="flex gap-1.5 w-max">
-            <button
-              onClick={() => setSelectedCity('all')}
-              className={`px-3 py-1.5 text-[10px] uppercase tracking-wider border transition-colors whitespace-nowrap ${
-                selectedCity === 'all' ? 'border-foreground bg-foreground text-background' : 'border-foreground/20 hover:border-foreground/50'
-              }`}
-            >
-              All Cities
-            </button>
-            {cities.map(city => (
-              <button
-                key={city}
-                onClick={() => setSelectedCity(city)}
-                className={`px-3 py-1.5 text-[10px] uppercase tracking-wider border transition-colors whitespace-nowrap ${
-                  selectedCity === city ? 'border-foreground bg-foreground text-background' : 'border-foreground/20 hover:border-foreground/50'
-                }`}
-              >
-                {city}
-              </button>
-            ))}
-          </div>
+        <div className="mb-6 flex gap-1.5">
+          <button
+            onClick={() => setSelectedCity('all')}
+            className={`px-3 py-1.5 text-[10px] uppercase tracking-wider border transition-colors whitespace-nowrap ${
+              selectedCity === 'all' ? 'border-foreground bg-foreground text-background' : 'border-foreground/20 hover:border-foreground/50'
+            }`}
+          >
+            All
+          </button>
         </div>
 
         {/* Posts */}
@@ -506,11 +493,8 @@ export default function Feed() {
                       {post.wine_type && (
                         <Badge variant="outline" className="text-[9px] px-1.5 py-0">{post.wine_type}</Badge>
                       )}
-                      {post.rating && post.rating <= 5 && (
-                        <span className="text-[10px] text-muted-foreground">{'🍷'.repeat(post.rating)}</span>
-                      )}
-                      {post.rating && post.rating > 5 && (
-                        <span className="text-[10px] text-muted-foreground">{post.rating}/100</span>
+                      {post.rating && (
+                        <span className="text-[10px] font-medium text-muted-foreground">{post.rating}/100</span>
                       )}
                     </div>
                   )}
