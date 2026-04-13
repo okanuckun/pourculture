@@ -289,10 +289,32 @@ export default function Feed() {
 
     const venueMap = new Map<string, string>();
     const venueSlugMap = new Map<string, string>();
+    const venueNameSlugMap = new Map<string, string>();
     (venuesRes.data || []).forEach((v: any) => {
       venueMap.set(v.id, v.name);
-      if (v.slug) venueSlugMap.set(v.id, v.slug);
+      if (v.slug) {
+        venueSlugMap.set(v.id, v.slug);
+        venueNameSlugMap.set(v.name.toLowerCase(), v.slug);
+      }
     });
+
+    // For posts without venue_id, try to find slug by venue_name
+    const venueNamesWithoutId = [...new Set(
+      postsData
+        .filter(p => p.venue_name && !p.venue_id)
+        .map(p => p.venue_name!)
+        .filter(name => !venueNameSlugMap.has(name.toLowerCase()))
+    )];
+
+    if (venueNamesWithoutId.length > 0) {
+      const { data: nameMatches } = await supabase
+        .from('venues')
+        .select('name, slug')
+        .in('name', venueNamesWithoutId);
+      (nameMatches || []).forEach((v: any) => {
+        if (v.slug) venueNameSlugMap.set(v.name.toLowerCase(), v.slug);
+      });
+    }
 
     const likeCounts = new Map<string, number>();
     (likesRes.data || []).forEach((l: any) => likeCounts.set(l.post_id, (likeCounts.get(l.post_id) || 0) + 1));
