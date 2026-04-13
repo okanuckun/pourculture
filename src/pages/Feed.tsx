@@ -120,6 +120,7 @@ const formatOpeningHours = (weekdayText?: string[]) => {
 };
 
 export default function Feed() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
