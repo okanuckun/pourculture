@@ -374,37 +374,62 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     </div>
 
                     {/* Action Buttons */}
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={currentSavedId ? () => removeFromFavorites(currentSavedId) : saveToFavorites}
+                          disabled={isSaving}
+                          variant={currentSavedId ? "secondary" : "default"}
+                          className="flex-1 gap-2"
+                        >
+                          {isSaving ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Heart className={`h-4 w-4 ${currentSavedId ? 'fill-current' : ''}`} />
+                          )}
+                          {currentSavedId ? 'Saved' : 'Save'}
+                        </Button>
+                        <Button
+                          onClick={async () => {
+                            const shareText = `🍷 ${wineInfo.wineName}${wineInfo.winery ? ` - ${wineInfo.winery}` : ''}\n${wineInfo.region ? `📍 ${wineInfo.region}, ${wineInfo.country}` : ''}\n${wineInfo.grapeVariety ? `🍇 ${wineInfo.grapeVariety}` : ''}\n${wineInfo.quickSummary ? `\n${wineInfo.quickSummary}` : ''}\n\nDiscovered with PourCulture`;
+                            if (navigator.share) {
+                              try {
+                                await navigator.share({ title: wineInfo.wineName, text: shareText });
+                              } catch (e) { /* user cancelled */ }
+                            } else {
+                              navigator.clipboard.writeText(shareText);
+                              toast.success('Copied to clipboard!');
+                            }
+                          }}
+                          variant="outline"
+                          className="gap-2"
+                        >
+                          <Share2 className="h-4 w-4" />
+                          Share
+                        </Button>
+                      </div>
+                      {/* Share to Feed */}
                       <Button
-                        onClick={currentSavedId ? () => removeFromFavorites(currentSavedId) : saveToFavorites}
-                        disabled={isSaving}
-                        variant={currentSavedId ? "secondary" : "default"}
-                        className="flex-1 gap-2"
-                      >
-                        {isSaving ? (
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        ) : (
-                          <Heart className={`h-4 w-4 ${currentSavedId ? 'fill-current' : ''}`} />
-                        )}
-                        {currentSavedId ? 'Remove' : 'Save'}
-                      </Button>
-                      <Button
-                        onClick={async () => {
-                          const shareText = `🍷 ${wineInfo.wineName}${wineInfo.winery ? ` - ${wineInfo.winery}` : ''}\n${wineInfo.region ? `📍 ${wineInfo.region}, ${wineInfo.country}` : ''}\n${wineInfo.grapeVariety ? `🍇 ${wineInfo.grapeVariety}` : ''}\n${wineInfo.quickSummary ? `\n${wineInfo.quickSummary}` : ''}\n\nDiscovered with PourCulture`;
-                          if (navigator.share) {
-                            try {
-                              await navigator.share({ title: wineInfo.wineName, text: shareText });
-                            } catch (e) { /* user cancelled */ }
-                          } else {
-                            navigator.clipboard.writeText(shareText);
-                            toast.success('Copied to clipboard!');
-                          }
-                        }}
                         variant="outline"
-                        className="gap-2"
+                        className="w-full gap-2 border-primary/30 text-primary hover:bg-primary/5"
+                        onClick={() => {
+                          // Build pre-filled URL params for Feed post
+                          const params = new URLSearchParams();
+                          if (wineInfo.wineName) params.set('wine', wineInfo.wineName);
+                          if (wineInfo.winery) params.set('winery', wineInfo.winery);
+                          if (wineInfo.type) params.set('type', wineInfo.type.toLowerCase());
+                          if (wineInfo.region) params.set('region', wineInfo.region);
+                          if (wineInfo.quickSummary) params.set('caption', wineInfo.quickSummary);
+                          if (capturedImage) {
+                            // Store image temporarily in sessionStorage for Feed to pick up
+                            try { sessionStorage.setItem('feed_scan_image', capturedImage); } catch { /* too large */ }
+                          }
+                          handleClose();
+                          navigate(`/feed?from=scan&${params.toString()}`);
+                        }}
                       >
-                        <Share2 className="h-4 w-4" />
-                        Share
+                        <Wine className="h-4 w-4" />
+                        Post to Feed
                       </Button>
                     </div>
 

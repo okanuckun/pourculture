@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
 import { Button } from '@/components/ui/button';
@@ -85,6 +85,44 @@ export default function Feed() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const venueInputRef = useRef<HTMLInputElement>(null);
   const { isLoaded: placesLoaded, onPlaceSelected } = useGooglePlacesAutocomplete(venueInputRef);
+
+  const [searchParams] = useSearchParams();
+
+  // Auto-fill from Wine Scanner
+  useEffect(() => {
+    if (searchParams.get('from') !== 'scan') return;
+
+    const wine = searchParams.get('wine') || '';
+    const winery = searchParams.get('winery') || '';
+    const type = searchParams.get('type') || 'natural';
+    const caption = searchParams.get('caption') || '';
+
+    setNewPost(p => ({
+      ...p,
+      wine_name: wine,
+      winery,
+      wine_type: type,
+      caption,
+    }));
+
+    // Try to get scan image from sessionStorage
+    try {
+      const scanImage = sessionStorage.getItem('feed_scan_image');
+      if (scanImage) {
+        setImagePreview(scanImage);
+        // Convert base64 to File for upload
+        fetch(scanImage)
+          .then(r => r.blob())
+          .then(blob => {
+            const file = new File([blob], 'scan.jpg', { type: 'image/jpeg' });
+            setSelectedImage(file);
+          });
+        sessionStorage.removeItem('feed_scan_image');
+      }
+    } catch { /* sessionStorage might be full */ }
+
+    setIsCreateOpen(true);
+  }, []);
 
   // Google Places venue callback
   useEffect(() => {
