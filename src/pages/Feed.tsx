@@ -289,10 +289,32 @@ export default function Feed() {
 
     const venueMap = new Map<string, string>();
     const venueSlugMap = new Map<string, string>();
+    const venueNameSlugMap = new Map<string, string>();
     (venuesRes.data || []).forEach((v: any) => {
       venueMap.set(v.id, v.name);
-      if (v.slug) venueSlugMap.set(v.id, v.slug);
+      if (v.slug) {
+        venueSlugMap.set(v.id, v.slug);
+        venueNameSlugMap.set(v.name.toLowerCase(), v.slug);
+      }
     });
+
+    // For posts without venue_id, try to find slug by venue_name
+    const venueNamesWithoutId = [...new Set(
+      postsData
+        .filter(p => p.venue_name && !p.venue_id)
+        .map(p => p.venue_name!)
+        .filter(name => !venueNameSlugMap.has(name.toLowerCase()))
+    )];
+
+    if (venueNamesWithoutId.length > 0) {
+      const { data: nameMatches } = await supabase
+        .from('venues')
+        .select('name, slug')
+        .in('name', venueNamesWithoutId);
+      (nameMatches || []).forEach((v: any) => {
+        if (v.slug) venueNameSlugMap.set(v.name.toLowerCase(), v.slug);
+      });
+    }
 
     const likeCounts = new Map<string, number>();
     (likesRes.data || []).forEach((l: any) => likeCounts.set(l.post_id, (likeCounts.get(l.post_id) || 0) + 1));
@@ -313,7 +335,9 @@ export default function Feed() {
         comment_count: commentCounts.get(p.id) || 0,
         liked_by_me: myLikedPosts.has(p.id),
         posted_as_venue_name: p.posted_as_venue_id ? venueMap.get(p.posted_as_venue_id) : undefined,
-        venue_slug: p.venue_id ? venueSlugMap.get(p.venue_id) : undefined,
+        venue_slug: p.venue_id
+          ? venueSlugMap.get(p.venue_id)
+          : (p.venue_name ? venueNameSlugMap.get(p.venue_name.toLowerCase()) : undefined),
       };
     });
 
@@ -567,7 +591,7 @@ export default function Feed() {
                     <span>{post.city}, {post.country}</span>
                     {post.venue_name && (
                       post.venue_slug ? (
-                        <Link to={`/venue/${post.venue_slug}`} className="hover:underline">· {post.venue_name}</Link>
+                        <Link to={`/venue/${post.venue_slug}`} className="underline font-medium text-foreground/70 hover:text-foreground" onClick={(e) => e.stopPropagation()}>· {post.venue_name}</Link>
                       ) : (
                         <span>· {post.venue_name}</span>
                       )
