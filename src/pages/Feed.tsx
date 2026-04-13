@@ -331,42 +331,77 @@ export default function Feed() {
                 Post
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent className="w-[calc(100vw-2rem)] max-w-md max-h-[85vh] overflow-y-auto p-4 sm:p-6">
               <DialogHeader>
-                <DialogTitle className="font-bold tracking-tight">Share a Moment</DialogTitle>
+                <DialogTitle className="font-bold tracking-tight text-base">Share a Moment</DialogTitle>
               </DialogHeader>
-              <div className="space-y-4 pt-2">
+              <div className="space-y-3 pt-1">
                 {/* Photo */}
                 <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
                 {imagePreview ? (
                   <div className="relative">
-                    <img src={imagePreview} alt="Preview" className="w-full aspect-square object-cover rounded-lg" />
-                    <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-background/80 rounded-full p-1">
+                    <img src={imagePreview} alt="Preview" className="w-full aspect-[4/3] object-cover rounded-lg" />
+                    <button onClick={() => { setSelectedImage(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-background/80 rounded-full p-1.5">
                       <X className="w-4 h-4" />
                     </button>
                   </div>
                 ) : (
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className="w-full aspect-square border-2 border-dashed border-foreground/20 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-foreground/40 transition-colors"
+                    className="w-full aspect-[4/3] border-2 border-dashed border-foreground/20 rounded-lg flex flex-col items-center justify-center gap-2 hover:border-foreground/40 transition-colors"
                   >
-                    <Camera className="w-8 h-8 text-muted-foreground" />
+                    <Camera className="w-7 h-7 text-muted-foreground" />
                     <span className="text-xs text-muted-foreground">Add photo</span>
                   </button>
                 )}
 
                 <Textarea
-                  placeholder="What are you drinking? Share your thoughts..."
+                  placeholder="What are you drinking?"
                   value={newPost.caption}
                   onChange={(e) => setNewPost(p => ({ ...p, caption: e.target.value }))}
-                  className="h-20 text-sm resize-none"
+                  className="h-16 text-sm resize-none"
+                  maxLength={500}
                 />
 
-                <div className="grid grid-cols-2 gap-3">
+                {/* Venue — full width */}
+                <div>
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Venue</label>
+                  <Input
+                    ref={venueInputRef}
+                    placeholder="Search venue..."
+                    className="h-9 text-sm"
+                  />
+                </div>
+
+                {/* City + Country */}
+                <div className="grid grid-cols-2 gap-2">
                   <div>
-                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Wine Name</label>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">City *</label>
                     <Input
-                      placeholder="e.g. Gut Oggau Theodora"
+                      placeholder="City"
+                      value={newPost.city}
+                      onChange={(e) => setNewPost(p => ({ ...p, city: e.target.value }))}
+                      className="h-9 text-sm"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Country</label>
+                    <Input
+                      placeholder="Country"
+                      value={newPost.country}
+                      onChange={(e) => setNewPost(p => ({ ...p, country: e.target.value }))}
+                      className="h-9 text-sm"
+                    />
+                  </div>
+                </div>
+
+                {/* Wine name + type */}
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Wine</label>
+                    <Input
+                      placeholder="Wine name"
                       value={newPost.wine_name}
                       onChange={(e) => setNewPost(p => ({ ...p, wine_name: e.target.value }))}
                       className="h-9 text-sm"
@@ -383,36 +418,15 @@ export default function Feed() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">City *</label>
-                    <Input
-                      placeholder="Auto-filled from venue or type manually"
-                      value={newPost.city}
-                      onChange={(e) => setNewPost(p => ({ ...p, city: e.target.value }))}
-                      className="h-9 text-sm"
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Venue (Google search)</label>
-                    <Input
-                      ref={venueInputRef}
-                      placeholder="Search venue..."
-                      className="h-9 text-sm"
-                    />
-                  </div>
-                </div>
-
                 {/* Rating */}
                 <div>
-                  <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-2">Rating</label>
+                  <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1.5">Rating</label>
                   <div className="flex gap-1">
                     {[1, 2, 3, 4, 5].map((star) => (
                       <button
                         key={star}
                         onClick={() => setNewPost(p => ({ ...p, rating: p.rating === star ? 0 : star }))}
-                        className="p-1"
+                        className="p-1.5"
                       >
                         <Wine className={`w-5 h-5 ${newPost.rating >= star ? 'text-foreground fill-current' : 'text-muted-foreground/30'}`} />
                       </button>
