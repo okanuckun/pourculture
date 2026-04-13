@@ -61,12 +61,13 @@ const Discover = () => {
   const [events, setEvents] = useState<Event[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'venues' | 'events'>(initialView as 'venues' | 'events');
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState(initialCategory === 'events' ? 'events' : initialCategory);
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [userCity, setUserCity] = useState('');
   const [showLocationBanner, setShowLocationBanner] = useState(false);
   const navigate = useNavigate();
+
+  const isEventsView = selectedCategory === 'events';
 
   // Check location consent on mount
   useEffect(() => {
