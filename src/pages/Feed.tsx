@@ -273,7 +273,7 @@ export default function Feed() {
                 <Plus className="w-4 h-4" /> Paylaş
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-visible">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Yeni Post</DialogTitle>
               </DialogHeader>
