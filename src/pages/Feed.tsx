@@ -373,6 +373,8 @@ export default function Feed() {
                   )}
                 </div>
               )}
+
+              <div className="grid grid-cols-2 gap-2">
                 <Input placeholder="Şehir *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
                 <Input placeholder="Ülke *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
               </div>
