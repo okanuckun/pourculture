@@ -8,7 +8,7 @@ interface LocationBannerProps {
 
 export const LocationBanner: React.FC<LocationBannerProps> = ({ onAllow, onDismiss }) => {
   return (
-    <div className="fixed left-0 right-0 bottom-20 z-50 px-4">
+    <div className="fixed left-0 right-0 bottom-24 z-50 px-4">
       <div className="max-w-md mx-auto bg-foreground text-background p-4 flex items-center gap-3 shadow-lg border border-foreground/20">
         <MapPin className="w-5 h-5 flex-shrink-0" />
         <div className="flex-1 min-w-0">
