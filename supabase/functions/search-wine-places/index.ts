@@ -19,6 +19,35 @@ interface PlaceResult {
   phone?: string;
 }
 
+function getCategoryFromTypes(
+  types: string[] = [],
+  fallback: PlaceResult['category'] = 'wine_bar'
+): PlaceResult['category'] {
+  if (types.includes('winery')) return 'winery';
+  if (types.includes('bar')) return 'wine_bar';
+  if (types.includes('liquor_store') || types.includes('store')) return 'wine_shop';
+  if (types.includes('restaurant') || types.includes('food')) return 'restaurant';
+
+  return fallback;
+}
+
+function mapGooglePlace(
+  place: any,
+  fallbackCategory: PlaceResult['category'] = 'wine_bar'
+): PlaceResult {
+  return {
+    id: `google_${place.place_id}`,
+    name: place.name,
+    lat: place.geometry.location.lat,
+    lng: place.geometry.location.lng,
+    address: place.formatted_address || place.vicinity,
+    category: getCategoryFromTypes(place.types, fallbackCategory),
+    rating: place.rating,
+    priceLevel: place.price_level,
+    isOpen: place.opening_hours?.open_now,
+  };
+}
+
 serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -26,11 +55,12 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng, radius = 5000, naturalWineOnly = false } = await req.json();
-    
-    if (!lat || !lng) {
+    const { lat, lng, radius = 5000, naturalWineOnly = false, query } = await req.json();
+    const trimmedQuery = typeof query === 'string' ? query.trim() : '';
+
+    if (!trimmedQuery && (typeof lat !== 'number' || typeof lng !== 'number')) {
       return new Response(
-        JSON.stringify({ error: 'lat and lng are required' }),
+        JSON.stringify({ error: 'Either query or lat/lng are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -44,7 +74,32 @@ serve(async (req) => {
       );
     }
 
-    const filterMode = naturalWineOnly ? 'natural wine' : 'wine';
+    if (trimmedQuery) {
+      const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+      url.searchParams.set('query', naturalWineOnly ? `${trimmedQuery} natural wine` : trimmedQuery);
+      url.searchParams.set('key', apiKey);
+
+      const response = await fetch(url.toString());
+      const data = await response.json();
+
+      if (data.status === 'OK' && data.results) {
+        const places = data.results.slice(0, 10).map((place: any) => mapGooglePlace(place));
+
+        return new Response(
+          JSON.stringify({ places, count: places.length }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (data.status !== 'ZERO_RESULTS') {
+        console.warn(`API returned status: ${data.status} for query "${trimmedQuery}"`);
+      }
+
+      return new Response(
+        JSON.stringify({ places: [], count: 0 }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Search queries - if natural wine filter is on, prepend "natural" to queries
     const prefix = naturalWineOnly ? 'natural ' : '';
@@ -73,23 +128,12 @@ serve(async (req) => {
         const data = await response.json();
 
         if (data.status === 'OK' && data.results) {
-          
           for (const place of data.results) {
             // Skip duplicates
             if (seenIds.has(place.place_id)) continue;
             seenIds.add(place.place_id);
 
-            allPlaces.push({
-              id: `google_${place.place_id}`,
-              name: place.name,
-              lat: place.geometry.location.lat,
-              lng: place.geometry.location.lng,
-              address: place.vicinity,
-              category,
-              rating: place.rating,
-              priceLevel: place.price_level,
-              isOpen: place.opening_hours?.open_now,
-            });
+            allPlaces.push(mapGooglePlace(place, category));
           }
         } else if (data.status !== 'ZERO_RESULTS') {
           console.warn(`API returned status: ${data.status} for query "${query}"`);
@@ -98,7 +142,6 @@ serve(async (req) => {
         console.error(`Error fetching "${query}":`, error);
       }
     }
-
 
     return new Response(
       JSON.stringify({ places: allPlaces, count: allPlaces.length }),

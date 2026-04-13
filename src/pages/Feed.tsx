@@ -44,6 +44,22 @@ interface OwnedVenue {
   country: string;
 }
 
+interface VenueSearchResult {
+  id: string;
+  name: string;
+  city: string;
+  country: string;
+  address?: string;
+  source: 'database' | 'google';
+  googlePlaceId?: string;
+}
+
+interface GoogleVenueSearchPlace {
+  id: string;
+  name: string;
+  address?: string;
+}
+
 export default function Feed() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
@@ -71,35 +87,144 @@ export default function Feed() {
 
   // Venue search
   const [venueSearch, setVenueSearch] = useState('');
-  const [venueResults, setVenueResults] = useState<{ id: string; name: string; city: string; country: string }[]>([]);
+  const [venueResults, setVenueResults] = useState<VenueSearchResult[]>([]);
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
+  const [selectedVenueId, setSelectedVenueId] = useState<string | null>(null);
   const venueSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const latestVenueQueryRef = useRef('');
+
+  const extractCityCountryFromAddress = (address?: string) => {
+    if (!address) return { city: '', country: '' };
+
+    const parts = address
+      .split(',')
+      .map(part => part.trim())
+      .filter(Boolean);
+
+    return {
+      city: parts.length >= 2 ? parts[parts.length - 2] : '',
+      country: parts[parts.length - 1] || '',
+    };
+  };
+
+  const buildVenueKey = (name: string, location?: string) =>
+    `${name.trim().toLowerCase()}__${(location || '').trim().toLowerCase()}`;
 
   const searchVenues = async (query: string) => {
-    if (query.length < 2) { setVenueResults([]); setShowVenueDropdown(false); return; }
-    const { data, error } = await supabase
-      .from('venues')
-      .select('id, name, city, country')
-      .ilike('name', `%${query}%`)
-      .limit(5);
-    console.log('Venue search results:', query, data, error);
-    setVenueResults(data || []);
-    setShowVenueDropdown((data || []).length > 0);
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery.length < 2) {
+      setVenueResults([]);
+      setShowVenueDropdown(false);
+      return;
+    }
+
+    const [dbResponse, googleResponse] = await Promise.all([
+      supabase
+        .from('venues')
+        .select('id, name, city, country')
+        .ilike('name', `%${trimmedQuery}%`)
+        .limit(5),
+      supabase.functions.invoke('search-wine-places', {
+        body: { query: trimmedQuery },
+      }),
+    ]);
+
+    if (trimmedQuery !== latestVenueQueryRef.current) return;
+
+    const dbResults: VenueSearchResult[] = (dbResponse.data || []).map(venue => ({
+      id: venue.id,
+      name: venue.name,
+      city: venue.city,
+      country: venue.country,
+      source: 'database',
+    }));
+
+    if (dbResponse.error) {
+      console.error('Database venue search failed:', dbResponse.error);
+    }
+
+    if (googleResponse.error) {
+      console.error('Google venue search failed:', googleResponse.error);
+    }
+
+    const googleResults: VenueSearchResult[] = (((googleResponse.data as { places?: GoogleVenueSearchPlace[] } | null)?.places) || [])
+      .map(place => {
+        const fallbackLocation = extractCityCountryFromAddress(place.address);
+
+        return {
+          id: place.id,
+          name: place.name,
+          city: fallbackLocation.city,
+          country: fallbackLocation.country,
+          address: place.address,
+          source: 'google' as const,
+          googlePlaceId: place.id.replace(/^google_/, ''),
+        };
+      });
+
+    const mergedResults = [...dbResults];
+    const seenKeys = new Set(
+      dbResults.map(venue => buildVenueKey(venue.name, `${venue.city},${venue.country}`))
+    );
+
+    for (const venue of googleResults) {
+      const venueKey = buildVenueKey(venue.name, venue.address || `${venue.city},${venue.country}`);
+      if (seenKeys.has(venueKey)) continue;
+
+      seenKeys.add(venueKey);
+      mergedResults.push(venue);
+    }
+
+    setVenueResults(mergedResults.slice(0, 8));
+    setShowVenueDropdown(mergedResults.length > 0);
   };
 
   const handleVenueSearchChange = (val: string) => {
     setVenueSearch(val);
     setVenueName(val);
+    setSelectedVenueId(null);
+    latestVenueQueryRef.current = val.trim();
     if (venueSearchTimeout.current) clearTimeout(venueSearchTimeout.current);
     venueSearchTimeout.current = setTimeout(() => searchVenues(val), 300);
   };
 
-  const selectSearchedVenue = (v: { id: string; name: string; city: string; country: string }) => {
+  const selectSearchedVenue = async (v: VenueSearchResult) => {
     setVenueName(v.name);
     setVenueSearch(v.name);
-    setCity(v.city);
-    setCountry(v.country);
+    setVenueResults([]);
     setShowVenueDropdown(false);
+
+    if (v.source === 'database') {
+      setSelectedVenueId(v.id);
+      setCity(v.city);
+      setCountry(v.country);
+      return;
+    }
+
+    setSelectedVenueId(null);
+
+    const fallbackLocation = extractCityCountryFromAddress(v.address);
+    setCity(v.city || fallbackLocation.city);
+    setCountry(v.country || fallbackLocation.country);
+
+    if (!v.googlePlaceId) return;
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-place-details', {
+        body: { placeId: v.googlePlaceId },
+      });
+
+      if (error) throw error;
+
+      const placeDetails = data as { name?: string; city?: string; country?: string } | null;
+      setVenueName(placeDetails?.name || v.name);
+      setVenueSearch(placeDetails?.name || v.name);
+      setCity(placeDetails?.city || v.city || fallbackLocation.city);
+      setCountry(placeDetails?.country || v.country || fallbackLocation.country);
+    } catch (error) {
+      console.error('Google place details fetch failed:', error);
+    }
   };
 
   useEffect(() => {
@@ -194,11 +319,13 @@ export default function Feed() {
   const selectVenueForPost = (venue: OwnedVenue | null) => {
     if (venue) {
       setPostAsVenueId(venue.id);
+      setSelectedVenueId(venue.id);
       setVenueName(venue.name);
       setCity(venue.city);
       setCountry(venue.country);
     } else {
       setPostAsVenueId(null);
+      setSelectedVenueId(null);
       setVenueName('');
       setCity('');
       setCountry('');
@@ -231,6 +358,7 @@ export default function Feed() {
         caption: caption.trim() || null,
         city: city.trim(),
         country: country.trim(),
+        venue_id: postAsVenueId || selectedVenueId,
         venue_name: venueName.trim() || null,
         posted_as_venue_id: postAsVenueId,
       } as any);
@@ -251,7 +379,7 @@ export default function Feed() {
     setWineName(''); setWinery(''); setVintage(''); setWineType('');
     setRating(''); setCaption(''); setCity(''); setCountry('');
     setVenueName(''); setImageFile(null); setImagePreview(null);
-    setPostAsVenueId(null); setVenueSearch(''); setVenueResults([]); setShowVenueDropdown(false);
+    setPostAsVenueId(null); setSelectedVenueId(null); setVenueSearch(''); setVenueResults([]); setShowVenueDropdown(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -358,13 +486,15 @@ export default function Feed() {
                         <button
                           key={v.id}
                           type="button"
-                          onClick={() => selectSearchedVenue(v)}
+                          onClick={() => void selectSearchedVenue(v)}
                           className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
                         >
                           <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <div>
-                            <span className="font-medium">{v.name}</span>
-                            <span className="text-muted-foreground ml-1">· {v.city}, {v.country}</span>
+                          <div className="min-w-0">
+                            <span className="font-medium block truncate">{v.name}</span>
+                            <span className="text-muted-foreground block truncate">
+                              {v.address || [v.city, v.country].filter(Boolean).join(', ')}
+                            </span>
                           </div>
                         </button>
                       ))}
