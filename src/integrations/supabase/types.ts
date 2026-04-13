@@ -449,6 +449,127 @@ export type Database = {
         }
         Relationships: []
       }
+      post_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          post_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          post_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      post_likes: {
+        Row: {
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      posts: {
+        Row: {
+          caption: string | null
+          city: string | null
+          country: string | null
+          created_at: string
+          id: string
+          image_url: string | null
+          rating: number | null
+          region: string | null
+          tasting_notes: string | null
+          updated_at: string
+          user_id: string
+          venue_name: string | null
+          vintage: string | null
+          wine_name: string | null
+          wine_type: string | null
+          winery: string | null
+        }
+        Insert: {
+          caption?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          region?: string | null
+          tasting_notes?: string | null
+          updated_at?: string
+          user_id: string
+          venue_name?: string | null
+          vintage?: string | null
+          wine_name?: string | null
+          wine_type?: string | null
+          winery?: string | null
+        }
+        Update: {
+          caption?: string | null
+          city?: string | null
+          country?: string | null
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          rating?: number | null
+          region?: string | null
+          tasting_notes?: string | null
+          updated_at?: string
+          user_id?: string
+          venue_name?: string | null
+          vintage?: string | null
+          wine_name?: string | null
+          wine_type?: string | null
+          winery?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
