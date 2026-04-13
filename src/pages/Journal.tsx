@@ -154,6 +154,15 @@ const Journal = () => {
     }
   };
 
+  if (!user) {
+    return (
+      <BrutalistLayout>
+        <SEOHead title="My Wine Journal | PourCulture" description="Track your wine discoveries, tasting notes and completed routes." />
+        <AuthGate feature="journal" />
+      </BrutalistLayout>
+    );
+  }
+
   if (loading) {
     return (
       <BrutalistLayout>
