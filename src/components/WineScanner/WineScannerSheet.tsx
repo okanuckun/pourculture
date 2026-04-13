@@ -223,9 +223,8 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
 
         <ScrollArea className="h-[calc(90vh-80px)]">
           <div className="p-4 space-y-4">
-            {/* Camera Input */}
-            {(
-              <>
+
+            
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -484,8 +483,6 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     </Button>
                   </div>
                 )}
-              </>
-            )}
           </div>
         </ScrollArea>
       </SheetContent>
