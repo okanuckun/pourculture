@@ -637,6 +637,18 @@ export default function Feed() {
                     {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
                   </p>
                 </div>
+
+                {/* Comments section */}
+                <PostComments
+                  postId={post.id}
+                  userId={userId}
+                  commentCount={post.comment_count || 0}
+                  onCommentCountChange={(pid, delta) => {
+                    setPosts(prev => prev.map(p =>
+                      p.id === pid ? { ...p, comment_count: (p.comment_count || 0) + delta } : p
+                    ));
+                  }}
+                />
               </motion.div>
             ))}
 
