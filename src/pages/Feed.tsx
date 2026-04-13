@@ -506,8 +506,11 @@ export default function Feed() {
                       {post.wine_type && (
                         <Badge variant="outline" className="text-[9px] px-1.5 py-0">{post.wine_type}</Badge>
                       )}
-                      {post.rating && (
+                      {post.rating && post.rating <= 5 && (
                         <span className="text-[10px] text-muted-foreground">{'🍷'.repeat(post.rating)}</span>
+                      )}
+                      {post.rating && post.rating > 5 && (
+                        <span className="text-[10px] text-muted-foreground">{post.rating}/100</span>
                       )}
                     </div>
                   )}
