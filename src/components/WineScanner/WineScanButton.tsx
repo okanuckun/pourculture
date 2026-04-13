@@ -31,9 +31,14 @@ export const WineScanButton: React.FC = () => {
     setIsOpen(true);
   };
 
+  // On mobile, the scan button lives in MobileBottomNav
+  if (isMobile) {
+    return null;
+  }
+
   return (
     <>
-      <div className={`fixed z-50 ${isMobile ? 'bottom-20 right-4' : 'bottom-6 right-6'}`}>
+      <div className="fixed z-50 bottom-6 right-6">
         {/* CTA Tooltip */}
         <AnimatePresence>
           {showCTA && (
@@ -53,31 +58,18 @@ export const WineScanButton: React.FC = () => {
           )}
         </AnimatePresence>
 
-        {/* Button */}
-        {isMobile ? (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
-            onClick={handleClick}
-            className="h-10 w-10 rounded-full bg-foreground/80 backdrop-blur-sm text-background flex items-center justify-center shadow-lg hover:bg-foreground transition-colors"
-            aria-label="Wine Scanner"
-          >
-            <Camera className="h-4 w-4" />
-          </motion.button>
-        ) : (
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
-            onClick={handleClick}
-            className="h-9 px-4 rounded-full bg-foreground/80 backdrop-blur-sm text-background flex items-center gap-2 shadow-lg hover:bg-foreground transition-colors"
-            aria-label="Wine Scanner"
-          >
-            <Camera className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-medium uppercase tracking-widest">Scan</span>
-          </motion.button>
-        )}
+        {/* Desktop button */}
+        <motion.button
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.8, type: 'spring', stiffness: 260, damping: 20 }}
+          onClick={handleClick}
+          className="h-9 px-4 rounded-full bg-foreground/80 backdrop-blur-sm text-background flex items-center gap-2 shadow-lg hover:bg-foreground transition-colors"
+          aria-label="Wine Scanner"
+        >
+          <Camera className="h-3.5 w-3.5" />
+          <span className="text-[10px] font-medium uppercase tracking-widest">Scan</span>
+        </motion.button>
       </div>
 
       <WineScannerSheet open={isOpen} onOpenChange={setIsOpen} />
