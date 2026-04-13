@@ -73,7 +73,7 @@ export default function Feed() {
   const [venueSearch, setVenueSearch] = useState('');
   const [venueResults, setVenueResults] = useState<{ id: string; name: string; city: string; country: string }[]>([]);
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
-  const venueSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+  const venueSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const searchVenues = async (query: string) => {
     if (query.length < 2) { setVenueResults([]); setShowVenueDropdown(false); return; }
