@@ -69,6 +69,38 @@ export default function Feed() {
   const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
   const [postAsVenueId, setPostAsVenueId] = useState<string | null>(null);
 
+  // Venue search
+  const [venueSearch, setVenueSearch] = useState('');
+  const [venueResults, setVenueResults] = useState<{ id: string; name: string; city: string; country: string }[]>([]);
+  const [showVenueDropdown, setShowVenueDropdown] = useState(false);
+  const venueSearchTimeout = useRef<NodeJS.Timeout | null>(null);
+
+  const searchVenues = async (query: string) => {
+    if (query.length < 2) { setVenueResults([]); setShowVenueDropdown(false); return; }
+    const { data } = await supabase
+      .from('venues')
+      .select('id, name, city, country')
+      .ilike('name', `%${query}%`)
+      .limit(5);
+    setVenueResults(data || []);
+    setShowVenueDropdown((data || []).length > 0);
+  };
+
+  const handleVenueSearchChange = (val: string) => {
+    setVenueSearch(val);
+    setVenueName(val);
+    if (venueSearchTimeout.current) clearTimeout(venueSearchTimeout.current);
+    venueSearchTimeout.current = setTimeout(() => searchVenues(val), 300);
+  };
+
+  const selectSearchedVenue = (v: { id: string; name: string; city: string; country: string }) => {
+    setVenueName(v.name);
+    setVenueSearch(v.name);
+    setCity(v.city);
+    setCountry(v.country);
+    setShowVenueDropdown(false);
+  };
+
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       const uid = data.user?.id || null;
