@@ -630,8 +630,8 @@ export default function Feed() {
           {userId && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
-                <Button size="sm" className="gap-1.5">
-                  <Plus className="w-4 h-4" /> Share
+                <Button size="icon" variant="outline" className="h-8 w-8 rounded-full">
+                  <Plus className="w-4 h-4" />
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
