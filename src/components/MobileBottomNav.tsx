@@ -4,26 +4,19 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WineScannerSheet } from '@/components/WineScanner/WineScannerSheet';
+import { AuthSheet } from '@/components/AuthSheet';
 
 interface Tab {
   path: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
+  requiresAuth?: boolean;
 }
 
-const publicTabs: Tab[] = [
+const tabs: Tab[] = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/feed', label: 'Feed', icon: Wine },
-  { path: '/knowledge', label: 'Learn', icon: BookOpen },
-];
-
-const authLeftTabs: Tab[] = [
-  { path: '/discover', label: 'Discover', icon: Compass },
-  { path: '/feed', label: 'Feed', icon: Wine },
-];
-
-const authRightTabs: Tab[] = [
-  { path: '/journal', label: 'Journal', icon: Notebook },
+  { path: '/journal', label: 'Journal', icon: Notebook, requiresAuth: true },
   { path: '/knowledge', label: 'Learn', icon: BookOpen },
 ];
 
@@ -31,6 +24,7 @@ export function MobileBottomNav() {
   const location = useLocation();
   const [loggedIn, setLoggedIn] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -41,6 +35,14 @@ export function MobileBottomNav() {
     });
     return () => subscription.unsubscribe();
   }, []);
+
+  const handleScanClick = () => {
+    if (!loggedIn) {
+      setAuthOpen(true);
+    } else {
+      setScanOpen(true);
+    }
+  };
 
   const renderTab = (tab: Tab) => {
     const isActive = location.pathname.startsWith(tab.path);
@@ -61,26 +63,20 @@ export function MobileBottomNav() {
     );
   };
 
-  if (!loggedIn) {
-    return (
-      <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-foreground/20 bg-background/95 backdrop-blur-sm">
-        <div className="flex items-center justify-around h-14">
-          {publicTabs.map(renderTab)}
-        </div>
-      </nav>
-    );
-  }
+  // Left tabs (before scan button)
+  const leftTabs = tabs.slice(0, 2);
+  // Right tabs (after scan button)
+  const rightTabs = tabs.slice(2);
 
   return (
     <>
       <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-foreground/20 bg-background/95 backdrop-blur-sm">
         <div className="flex items-center justify-around h-14 relative">
-          {/* Left tabs */}
-          {authLeftTabs.map(renderTab)}
+          {leftTabs.map(renderTab)}
 
           {/* Center scan button */}
           <button
-            onClick={() => setScanOpen(true)}
+            onClick={handleScanClick}
             className="flex flex-col items-center justify-center -mt-5"
           >
             <div className="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center shadow-lg border-4 border-background">
@@ -89,12 +85,12 @@ export function MobileBottomNav() {
             <span className="text-[9px] tracking-wider text-muted-foreground mt-0.5">SCAN</span>
           </button>
 
-          {/* Right tabs */}
-          {authRightTabs.map(renderTab)}
+          {rightTabs.map(renderTab)}
         </div>
       </nav>
 
       <WineScannerSheet open={scanOpen} onOpenChange={setScanOpen} />
+      <AuthSheet isOpen={authOpen} onClose={() => setAuthOpen(false)} />
     </>
   );
 }

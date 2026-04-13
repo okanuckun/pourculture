@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthGate } from '@/components/AuthGate';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Trophy, Loader2, Award, Star, Wine, Grape, Camera, Heart, StickyNote, Filter, X } from 'lucide-react';
@@ -106,8 +107,6 @@ const Journal = () => {
   useEffect(() => {
     if (user) {
       fetchJournalData();
-    } else if (user === null && !loading) {
-      navigate('/auth');
     }
   }, [user]);
 
@@ -155,6 +154,15 @@ const Journal = () => {
       setLoading(false);
     }
   };
+
+  if (!user) {
+    return (
+      <BrutalistLayout>
+        <SEOHead title="My Wine Journal | PourCulture" description="Track your wine discoveries, tasting notes and completed routes." />
+        <AuthGate feature="journal" />
+      </BrutalistLayout>
+    );
+  }
 
   if (loading) {
     return (

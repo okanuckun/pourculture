@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { AuthGate } from '@/components/AuthGate';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
@@ -626,125 +627,127 @@ export default function Feed() {
       <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
         <div className="flex items-center justify-between max-w-lg mx-auto">
           <h1 className="text-lg font-bold tracking-tight">Feed</h1>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-            <DialogTrigger asChild>
-              <Button size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" /> Share
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
-              <DialogHeader>
-                <DialogTitle>New Post</DialogTitle>
-              </DialogHeader>
+          {userId && (
+            <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+              <DialogTrigger asChild>
+                <Button size="sm" className="gap-1.5">
+                  <Plus className="w-4 h-4" /> Share
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
+                <DialogHeader>
+                  <DialogTitle>New Post</DialogTitle>
+                </DialogHeader>
 
-              {/* Post As selector */}
-              {ownedVenues.length > 0 && (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Post as</label>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      onClick={() => selectVenueForPost(null)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                        !postAsVenueId
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
-                      }`}
-                    >
-                      <User className="w-3 h-3" /> Myself
-                    </button>
-                    {ownedVenues.map(v => (
+                {/* Post As selector */}
+                {ownedVenues.length > 0 && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-muted-foreground">Post as</label>
+                    <div className="flex flex-wrap gap-2">
                       <button
-                        key={v.id}
                         type="button"
-                        onClick={() => selectVenueForPost(v)}
+                        onClick={() => selectVenueForPost(null)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
-                          postAsVenueId === v.id
+                          !postAsVenueId
                             ? 'bg-primary text-primary-foreground border-primary'
                             : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
                         }`}
                       >
-                        <Store className="w-3 h-3" /> {v.name}
+                        <User className="w-3 h-3" /> Myself
                       </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Image upload */}
-              <div className="space-y-2">
-                {imagePreview ? (
-                  <div className="relative">
-                    <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
-                    <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
-                      <X className="w-4 h-4 text-white" />
-                    </button>
-                  </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
-                    <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">Choose photo</span>
-                    <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
-                  </label>
-                )}
-              </div>
-
-              {/* Wine info */}
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Wine name" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
-                <Input placeholder="Producer" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
-                <Input placeholder="Year" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
-                <Input placeholder="Type (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
-                <Input placeholder="Rating (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
-              </div>
-
-              {/* Venue search */}
-              {!postAsVenueId && (
-                <div>
-                  <div className="relative">
-                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                    <Input
-                      placeholder="Search venue..."
-                      value={venueSearch}
-                      onChange={e => handleVenueSearchChange(e.target.value)}
-                      className="text-sm pl-8"
-                    />
-                  </div>
-                  {showVenueDropdown && venueResults.length > 0 && (
-                    <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto relative z-[9999]">
-                      {venueResults.map(v => (
+                      {ownedVenues.map(v => (
                         <button
                           key={v.id}
                           type="button"
-                          onClick={() => void selectSearchedVenue(v)}
-                          className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
+                          onClick={() => selectVenueForPost(v)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                            postAsVenueId === v.id
+                              ? 'bg-primary text-primary-foreground border-primary'
+                              : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
+                          }`}
                         >
-                          <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                          <div className="min-w-0">
-                            <span className="font-medium block truncate">{v.name}</span>
-                            <span className="text-muted-foreground block truncate">
-                              {v.address || [v.city, v.country].filter(Boolean).join(', ')}
-                            </span>
-                          </div>
+                          <Store className="w-3 h-3" /> {v.name}
                         </button>
                       ))}
                     </div>
+                  </div>
+                )}
+
+                {/* Image upload */}
+                <div className="space-y-2">
+                  {imagePreview ? (
+                    <div className="relative">
+                      <img src={imagePreview} alt="Preview" className="w-full h-48 object-cover rounded-lg" />
+                      <button onClick={() => { setImageFile(null); setImagePreview(null); }} className="absolute top-2 right-2 bg-black/50 rounded-full p-1">
+                        <X className="w-4 h-4 text-white" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
+                      <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
+                      <span className="text-xs text-muted-foreground">Choose photo</span>
+                      <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
+                    </label>
                   )}
                 </div>
-              )}
 
-              <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="City *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
-                <Input placeholder="Country *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
-              </div>
+                {/* Wine info */}
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="Wine name" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
+                  <Input placeholder="Producer" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
+                  <Input placeholder="Year" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
+                  <Input placeholder="Type (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
+                  <Input placeholder="Rating (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
+                </div>
 
-              <Textarea placeholder="Notes..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
+                {/* Venue search */}
+                {!postAsVenueId && (
+                  <div>
+                    <div className="relative">
+                      <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                      <Input
+                        placeholder="Search venue..."
+                        value={venueSearch}
+                        onChange={e => handleVenueSearchChange(e.target.value)}
+                        className="text-sm pl-8"
+                      />
+                    </div>
+                    {showVenueDropdown && venueResults.length > 0 && (
+                      <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto relative z-[9999]">
+                        {venueResults.map(v => (
+                          <button
+                            key={v.id}
+                            type="button"
+                            onClick={() => void selectSearchedVenue(v)}
+                            className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
+                          >
+                            <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                            <div className="min-w-0">
+                              <span className="font-medium block truncate">{v.name}</span>
+                              <span className="text-muted-foreground block truncate">
+                                {v.address || [v.city, v.country].filter(Boolean).join(', ')}
+                              </span>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
 
-              <Button onClick={handleCreatePost} disabled={creating} className="w-full">
-                {creating ? 'Sharing...' : 'Share'}
-              </Button>
-            </DialogContent>
-          </Dialog>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input placeholder="City *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                  <Input placeholder="Country *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                </div>
+
+                <Textarea placeholder="Notes..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
+
+                <Button onClick={handleCreatePost} disabled={creating} className="w-full">
+                  {creating ? 'Sharing...' : 'Share'}
+                </Button>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -760,105 +763,117 @@ export default function Feed() {
             <p className="text-xs mt-1">Be the first to share!</p>
           </div>
         ) : (
-          posts.map(post => (
-            <div key={post.id} className="border-b border-border">
-              {/* Post header */}
-              <div className="flex items-center gap-2.5 px-4 py-2.5">
-                <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {post.author_avatar ? (
-                    <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-xs font-bold text-muted-foreground">
-                      {(post.posted_as_venue_name || post.author_name || '?')[0].toUpperCase()}
-                    </span>
-                  )}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-sm font-semibold truncate">
-                      {post.posted_as_venue_name || post.author_name}
-                    </span>
-                    {post.is_verified && !post.posted_as_venue_name && (
-                      <span className="text-[10px] text-primary">🍷 PRO</span>
-                    )}
-                    {post.posted_as_venue_name && (
-                      <Store className="w-3 h-3 text-primary" />
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                    <MapPin className="w-2.5 h-2.5" />
-                    <span>{post.city}, {post.country}</span>
-                    {post.venue_name && (
-                      post.venue_slug ? (
-                        <Link to={`/venue/${post.venue_slug}`} className="underline font-medium text-foreground/70 hover:text-foreground" onClick={(e) => e.stopPropagation()}>· {post.venue_name}</Link>
-                      ) : (
-                        <span>· {post.venue_name}</span>
-                      )
-                    )}
-                  </div>
-                </div>
-              </div>
+          posts.map((post, index) => {
+            // Show auth wall after 10 posts for non-logged-in users
+            const showAuthWall = !userId && index === 10;
 
-              {/* Image */}
-              <div className="aspect-square bg-muted">
-                <img src={post.image_url} alt={post.wine_name || ''} className="w-full h-full object-cover" loading="lazy" />
-              </div>
-
-              {/* Actions */}
-              <div className="px-4 py-2">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-1 text-muted-foreground">
-                    <Eye className="w-4 h-4" />
-                    <span className="text-xs">{post.view_count}</span>
-                  </div>
-                  <button onClick={() => {
-                    const el = document.getElementById(`comments-${post.id}`);
-                    if (el) el.click();
-                  }} className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-                    <MessageCircle className="w-4 h-4" />
-                    <span className="text-xs">{post.comment_count || 0}</span>
-                  </button>
-                  {post.rating && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      <Star className="w-4 h-4 text-amber-500" />
-                      <span className="text-xs font-semibold">{post.rating}/100</span>
+            return (
+              <React.Fragment key={post.id}>
+                {showAuthWall && (
+                  <AuthGate feature="feed" className="border-b border-border" />
+                )}
+                {(!userId && index >= 10) ? null : (
+                  <div className="border-b border-border">
+                    {/* Post header */}
+                    <div className="flex items-center gap-2.5 px-4 py-2.5">
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                        {post.author_avatar ? (
+                          <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span className="text-xs font-bold text-muted-foreground">
+                            {(post.posted_as_venue_name || post.author_name || '?')[0].toUpperCase()}
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-sm font-semibold truncate">
+                            {post.posted_as_venue_name || post.author_name}
+                          </span>
+                          {post.is_verified && !post.posted_as_venue_name && (
+                            <span className="text-[10px] text-primary">🍷 PRO</span>
+                          )}
+                          {post.posted_as_venue_name && (
+                            <Store className="w-3 h-3 text-primary" />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                          <MapPin className="w-2.5 h-2.5" />
+                          <span>{post.city}, {post.country}</span>
+                          {post.venue_name && (
+                            post.venue_slug ? (
+                              <Link to={`/venue/${post.venue_slug}`} className="underline font-medium text-foreground/70 hover:text-foreground" onClick={(e) => e.stopPropagation()}>· {post.venue_name}</Link>
+                            ) : (
+                              <span>· {post.venue_name}</span>
+                            )
+                          )}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
 
-                {/* Wine info */}
-                {post.wine_name && (
-                  <p className="text-sm font-semibold mt-1.5">{post.wine_name}</p>
-                )}
-                {(post.winery || post.vintage || post.wine_type) && (
-                  <p className="text-xs text-muted-foreground">
-                    {[post.winery, post.vintage, post.wine_type].filter(Boolean).join(' · ')}
-                  </p>
-                )}
-                {post.caption && (
-                  <p className="text-xs mt-1">
-                    <span className="font-semibold mr-1">{post.posted_as_venue_name || post.author_name}</span>
-                    {post.caption}
-                  </p>
-                )}
-                <p className="text-[10px] text-muted-foreground mt-1">
-                  {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                </p>
-              </div>
+                    {/* Image */}
+                    <div className="aspect-square bg-muted">
+                      <img src={post.image_url} alt={post.wine_name || ''} className="w-full h-full object-cover" loading="lazy" />
+                    </div>
 
-              {/* Comments */}
-              <PostComments
-                postId={post.id}
-                userId={userId}
-                commentCount={post.comment_count || 0}
-                onCommentCountChange={(pid, delta) => {
-                  setPosts(prev => prev.map(p =>
-                    p.id === pid ? { ...p, comment_count: (p.comment_count || 0) + delta } : p
-                  ));
-                }}
-              />
-            </div>
-          ))
+                    {/* Actions */}
+                    <div className="px-4 py-2">
+                      <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-1 text-muted-foreground">
+                          <Eye className="w-4 h-4" />
+                          <span className="text-xs">{post.view_count}</span>
+                        </div>
+                        <button onClick={() => {
+                          const el = document.getElementById(`comments-${post.id}`);
+                          if (el) el.click();
+                        }} className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                          <MessageCircle className="w-4 h-4" />
+                          <span className="text-xs">{post.comment_count || 0}</span>
+                        </button>
+                        {post.rating && (
+                          <div className="flex items-center gap-1 ml-auto">
+                            <Star className="w-4 h-4 text-amber-500" />
+                            <span className="text-xs font-semibold">{post.rating}/100</span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Wine info */}
+                      {post.wine_name && (
+                        <p className="text-sm font-semibold mt-1.5">{post.wine_name}</p>
+                      )}
+                      {(post.winery || post.vintage || post.wine_type) && (
+                        <p className="text-xs text-muted-foreground">
+                          {[post.winery, post.vintage, post.wine_type].filter(Boolean).join(' · ')}
+                        </p>
+                      )}
+                      {post.caption && (
+                        <p className="text-xs mt-1">
+                          <span className="font-semibold mr-1">{post.posted_as_venue_name || post.author_name}</span>
+                          {post.caption}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+
+                    {/* Comments */}
+                    <PostComments
+                      postId={post.id}
+                      userId={userId}
+                      commentCount={post.comment_count || 0}
+                      onCommentCountChange={(pid, delta) => {
+                        setPosts(prev => prev.map(p =>
+                          p.id === pid ? { ...p, comment_count: (p.comment_count || 0) + delta } : p
+                        ));
+                      }}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
+            );
+          })
         )}
       </div>
     </div>
