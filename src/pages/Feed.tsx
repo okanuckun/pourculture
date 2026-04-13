@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
@@ -19,6 +19,7 @@ import {
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
+import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
 
 interface Post {
   id: string;
@@ -82,6 +83,28 @@ export default function Feed() {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const venueInputRef = useRef<HTMLInputElement>(null);
+  const { isLoaded: placesLoaded, onPlaceSelected } = useGooglePlacesAutocomplete(venueInputRef);
+
+  // Google Places venue callback
+  useEffect(() => {
+    if (!placesLoaded) return;
+    onPlaceSelected((place) => {
+      const name = place.name || '';
+      const address = place.formatted_address || '';
+      // Extract city from address (rough parse — usually 2nd to last comma segment)
+      const parts = address.split(',').map(s => s.trim());
+      const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || '';
+      const country = parts.length >= 1 ? parts[parts.length - 1] : '';
+
+      setNewPost(p => ({
+        ...p,
+        venue_name: name,
+        city: city.replace(/\d/g, '').trim(), // Remove postal codes
+        country: country.trim(),
+      }));
+    });
+  }, [placesLoaded]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -279,8 +302,13 @@ export default function Feed() {
       setImagePreview(null);
       fetchPosts(0);
       fetchCities();
-    } catch (err) {
-      toast.error('Failed to create post');
+    } catch (err: any) {
+      const msg = err?.message || 'Failed to create post';
+      if (msg.includes('storage') || msg.includes('bucket')) {
+        toast.error('Image upload not configured. Contact support.');
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setUploading(false);
     }
@@ -360,7 +388,7 @@ export default function Feed() {
                   <div>
                     <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">City *</label>
                     <Input
-                      placeholder="e.g. Paris"
+                      placeholder="Auto-filled from venue or type manually"
                       value={newPost.city}
                       onChange={(e) => setNewPost(p => ({ ...p, city: e.target.value }))}
                       className="h-9 text-sm"
@@ -368,11 +396,10 @@ export default function Feed() {
                     />
                   </div>
                   <div>
-                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Venue</label>
+                    <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Venue (Google search)</label>
                     <Input
-                      placeholder="e.g. Le Verre Volé"
-                      value={newPost.venue_name}
-                      onChange={(e) => setNewPost(p => ({ ...p, venue_name: e.target.value }))}
+                      ref={venueInputRef}
+                      placeholder="Search venue..."
                       className="h-9 text-sm"
                     />
                   </div>
