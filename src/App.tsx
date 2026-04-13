@@ -12,6 +12,7 @@ import BrutalistHome from "./pages/BrutalistHome";
 import NotFound from "./pages/NotFound";
 
 // Lazy: loaded on demand
+const Feed = lazy(() => import("./pages/Feed"));
 const Discover = lazy(() => import("./pages/Discover"));
 const ExploreCategory = lazy(() => import("./pages/ExploreCategory"));
 const News = lazy(() => import("./pages/News"));
@@ -65,6 +66,7 @@ const App = () => (
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<BrutalistHome />} />
+        <Route path="/feed" element={<Feed />} />
         <Route path="/discover" element={<Discover />} />
         <Route path="/explore/:category" element={<ExploreCategory />} />
         <Route path="/news" element={<News />} />
