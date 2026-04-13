@@ -370,17 +370,15 @@ const UserProfile = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="border-2 border-foreground/30 p-4 text-center">
+            <div className="text-2xl font-bold">{favoriteWines.length}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines Scanned</div>
+          </div>
           <div className="border-2 border-foreground/30 p-4 text-center">
             <div className="text-2xl font-bold">{completedRoutes.length}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Completed</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Done</div>
           </div>
-          {profile.is_verified && (
-            <div className="border-2 border-foreground/30 p-4 text-center">
-              <div className="text-2xl font-bold">{createdRoutes.length}</div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Created</div>
-            </div>
-          )}
           <div className="border-2 border-foreground/30 p-4 text-center">
             <div className="text-2xl font-bold">
               {new Date(profile.created_at).getFullYear()}
