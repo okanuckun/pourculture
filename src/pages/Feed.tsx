@@ -400,6 +400,43 @@ export default function Feed() {
     loadPosts();
   }, []);
 
+  // Handle pre-fill from Wine Scanner
+  useEffect(() => {
+    if (searchParams.get('from') === 'scan') {
+      const wine = searchParams.get('wine');
+      const wineryParam = searchParams.get('winery');
+      const type = searchParams.get('type');
+      const captionParam = searchParams.get('caption');
+
+      if (wine) setWineName(wine);
+      if (wineryParam) setWinery(wineryParam);
+      if (type) setWineType(type);
+      if (captionParam) setCaption(captionParam);
+
+      // Try to load scanned image from sessionStorage
+      try {
+        const scanImage = sessionStorage.getItem('feed_scan_image');
+        if (scanImage) {
+          setImagePreview(scanImage);
+          // Convert base64 to File for upload
+          fetch(scanImage)
+            .then(res => res.blob())
+            .then(blob => {
+              const file = new File([blob], 'wine-scan.jpg', { type: blob.type });
+              setImageFile(file);
+            });
+          sessionStorage.removeItem('feed_scan_image');
+        }
+      } catch { /* ignore */ }
+
+      // Open the dialog
+      setDialogOpen(true);
+
+      // Clean URL params
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams]);
+
   const loadOwnedVenues = async (uid: string) => {
     const { data } = await supabase
       .from('venues')
