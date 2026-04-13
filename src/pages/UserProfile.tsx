@@ -7,7 +7,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 import { WineDetailModal } from '@/components/WineDetailModal';
-import { Button } from '@/components/ui/button';
+
 
 interface Profile {
   id: string;
