@@ -40,6 +40,7 @@ const categoryOptions = [
   { value: 'bar', label: 'WINE BARS' },
   { value: 'wine_shop', label: 'WINE SHOPS' },
   { value: 'restaurant', label: 'RESTAURANTS' },
+  { value: 'events', label: 'EVENTS' },
 ];
 
 const haversine = (lat1: number, lng1: number, lat2: number | null, lng2: number | null): number => {
@@ -54,24 +55,24 @@ const haversine = (lat1: number, lng1: number, lat2: number | null, lng2: number
 const Discover = () => {
   const [searchParams] = useSearchParams();
   const initialCategory = searchParams.get('category') || 'all';
-  const initialView = searchParams.get('view') || 'venues';
 
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [events, setEvents] = useState<Event[]>([]);
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState<'venues' | 'events'>(initialView as 'venues' | 'events');
-  const [selectedCategory, setSelectedCategory] = useState(initialCategory);
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get('view') === 'events' ? 'events' : initialCategory
+  );
   const [userCoords, setUserCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [userCity, setUserCity] = useState('');
   const [showLocationBanner, setShowLocationBanner] = useState(false);
   const navigate = useNavigate();
 
-  // Check location consent on mount
+  const isEventsView = selectedCategory === 'events';
+
   useEffect(() => {
     const hasConsent = localStorage.getItem('pourculture_location_consent');
     const dismissed = localStorage.getItem('pourculture_location_dismissed');
-
     if (hasConsent) {
       requestLocation();
     } else if (!dismissed) {
@@ -81,15 +82,12 @@ const Discover = () => {
 
   const requestLocation = useCallback(() => {
     if (!('geolocation' in navigator)) return;
-
     navigator.geolocation.getCurrentPosition(
       async (position) => {
         const coords = { lat: position.coords.latitude, lng: position.coords.longitude };
         setUserCoords(coords);
         localStorage.setItem('pourculture_location_consent', 'true');
         setShowLocationBanner(false);
-
-        // Reverse geocode
         try {
           const { data: tokenData } = await supabase.functions.invoke('get-mapbox-token');
           if (tokenData?.token) {
@@ -103,27 +101,24 @@ const Discover = () => {
           }
         } catch { /* silent */ }
       },
-      () => { /* denied */ },
+      () => {},
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
     );
   }, []);
 
-  const handleLocationAllow = () => {
-    requestLocation();
-  };
-
+  const handleLocationAllow = () => requestLocation();
   const handleLocationDismiss = () => {
     setShowLocationBanner(false);
     localStorage.setItem('pourculture_location_dismissed', 'true');
   };
 
   useEffect(() => {
-    if (activeView === 'events') {
+    if (isEventsView) {
       fetchEvents();
     } else {
       fetchVenues();
     }
-  }, [activeView, selectedCategory]);
+  }, [selectedCategory]);
 
   const fetchEvents = async () => {
     setLoading(true);
@@ -163,7 +158,6 @@ const Discover = () => {
     }
   };
 
-  // Sort venues by distance
   const sortedVenues = userCoords
     ? [...venues].sort((a, b) =>
         haversine(userCoords.lat, userCoords.lng, a.latitude, a.longitude) -
@@ -189,106 +183,74 @@ const Discover = () => {
         description="Explore natural wine venues and events near you."
       />
 
-      {/* Map + Hero */}
-      <div className="border-b border-foreground/20">
-        {activeView === 'venues' && (
-          <DiscoverMap
-            venues={sortedVenues}
-            userCoords={userCoords}
-            onVenueClick={(slug) => navigate(`/venue/${slug}`)}
-          />
-        )}
-        <div className="px-4 md:px-6 py-6 md:py-12">
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-              className="text-center"
-            >
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold tracking-tight mb-2">
+      {/* Map with overlaid title */}
+      <div className="relative border-b border-foreground/20">
+        <DiscoverMap
+          venues={isEventsView ? [] : sortedVenues}
+          userCoords={userCoords}
+          onVenueClick={(slug) => navigate(`/venue/${slug}`)}
+        />
+        {/* Overlay: title + location */}
+        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
+          <div className="bg-gradient-to-t from-background/90 via-background/50 to-transparent pt-12 pb-3 px-4">
+            <div className="flex items-end gap-2">
+              <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-none">
                 Discover
               </h1>
               {userCity && (
-                <p className="text-xs tracking-wider text-muted-foreground mb-3 flex items-center justify-center gap-1">
+                <span className="text-[10px] tracking-wider text-muted-foreground flex items-center gap-1 pb-0.5">
                   <MapPin className="w-3 h-3" />
                   NEAR {userCity.toUpperCase()}
-                </p>
+                </span>
               )}
-              <p className="text-muted-foreground text-sm max-w-xl mx-auto mb-6">
-                Explore natural wine venues and upcoming events around the world.
-              </p>
-
-              {/* View Toggle */}
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => setActiveView('venues')}
-                  className={`px-6 py-2 text-[10px] tracking-wider transition-colors ${
-                    activeView === 'venues'
-                      ? 'bg-foreground text-background'
-                      : 'border border-foreground/20 hover:border-foreground/50'
-                  }`}
-                >
-                  VENUES
-                </button>
-                <button
-                  onClick={() => setActiveView('events')}
-                  className={`px-6 py-2 text-[10px] tracking-wider transition-colors ${
-                    activeView === 'events'
-                      ? 'bg-foreground text-background'
-                      : 'border border-foreground/20 hover:border-foreground/50'
-                  }`}
-                >
-                  EVENTS
-                </button>
-              </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="border-b border-foreground/20 py-4 px-4 md:px-6 sticky top-12 bg-background z-10">
-        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-4">
-          {activeView === 'venues' ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {categoryOptions.map((cat) => (
-                <button
-                  key={cat.value}
-                  onClick={() => setSelectedCategory(cat.value)}
-                  className={`px-4 py-1.5 text-[10px] tracking-wider transition-colors ${
-                    selectedCategory === cat.value
-                      ? 'bg-foreground text-background'
-                      : 'border border-foreground/20 hover:border-foreground/50'
-                  }`}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  className={cn(
-                    "flex items-center gap-2 px-4 py-1.5 text-[10px] tracking-wider border border-foreground/20 hover:border-foreground/50 transition-colors",
-                    date && "border-foreground"
-                  )}
-                >
-                  <CalendarIcon className="w-3 h-3" />
-                  {date ? format(date, "MMM d, yyyy").toUpperCase() : 'PICK A DATE'}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0 border-foreground/20" align="start">
-                <Calendar mode="single" selected={date} onSelect={setDate} />
-              </PopoverContent>
-            </Popover>
-          )}
+      <div className="border-b border-foreground/20 py-3 px-4 md:px-6 sticky top-12 bg-background z-10">
+        <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            {categoryOptions.map((cat) => (
+              <button
+                key={cat.value}
+                onClick={() => setSelectedCategory(cat.value)}
+                className={`px-4 py-1.5 text-[10px] tracking-wider transition-colors ${
+                  selectedCategory === cat.value
+                    ? 'bg-foreground text-background'
+                    : 'border border-foreground/20 hover:border-foreground/50'
+                }`}
+              >
+                {cat.label}
+              </button>
+            ))}
+
+            {/* Date picker for events */}
+            {isEventsView && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <button
+                    className={cn(
+                      "flex items-center gap-2 px-4 py-1.5 text-[10px] tracking-wider border border-foreground/20 hover:border-foreground/50 transition-colors",
+                      date && "border-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="w-3 h-3" />
+                    {date ? format(date, "MMM d, yyyy").toUpperCase() : 'PICK A DATE'}
+                  </button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0 border-foreground/20" align="start">
+                  <Calendar mode="single" selected={date} onSelect={setDate} />
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
 
           <span className="text-[10px] tracking-wider text-muted-foreground">
-            {activeView === 'venues'
-              ? `${sortedVenues.length} VENUES`
-              : `${filteredEvents.length} EVENTS`}
+            {isEventsView
+              ? `${filteredEvents.length} EVENTS`
+              : `${sortedVenues.length} VENUES`}
           </span>
         </div>
       </div>
@@ -301,7 +263,53 @@ const Discover = () => {
               <div key={i} className="border border-foreground/20 aspect-[4/3] animate-pulse bg-muted" />
             ))}
           </div>
-        ) : activeView === 'venues' ? (
+        ) : isEventsView ? (
+          filteredEvents.length === 0 ? (
+            <div className="text-center py-16 border border-foreground/20">
+              <p className="text-muted-foreground">
+                {date ? `No events on ${format(date, 'MMMM d, yyyy')}` : 'No upcoming events'}
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
+              {filteredEvents.map((event, index) => (
+                <motion.article
+                  key={event.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
+                  onClick={() => navigate(`/event/${event.id}`)}
+                  className="border border-foreground/20 cursor-pointer group"
+                >
+                  <div className="aspect-square overflow-hidden relative">
+                    <img loading="lazy"
+                      src={event.background_image_url}
+                      alt={event.title}
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    />
+                    <div className="absolute top-4 left-4 flex flex-col gap-0">
+                      <div className="bg-background border border-foreground/20 px-3 h-6 flex items-center">
+                        <span className="text-[10px] tracking-wider uppercase">{event.date}</span>
+                      </div>
+                      <div className="bg-background border border-t-0 border-foreground/20 px-3 h-6 flex items-center">
+                        <span className="text-[10px] tracking-wider">{event.time}</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="p-4">
+                    <h3 className="font-bold tracking-tight mb-1 group-hover:text-muted-foreground transition-colors">
+                      {event.title}
+                    </h3>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <MapPin className="w-3 h-3" />
+                      {event.address}
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          )
+        ) : (
           sortedVenues.length === 0 ? (
             <div className="text-center py-16 border border-foreground/20">
               <p className="text-muted-foreground">No venues found</p>
@@ -359,56 +367,9 @@ const Discover = () => {
               })}
             </div>
           )
-        ) : (
-          filteredEvents.length === 0 ? (
-            <div className="text-center py-16 border border-foreground/20">
-              <p className="text-muted-foreground">
-                {date ? `No events on ${format(date, 'MMMM d, yyyy')}` : 'No upcoming events'}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-6">
-              {filteredEvents.map((event, index) => (
-                <motion.article
-                  key={event.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: Math.min(index * 0.05, 0.5) }}
-                  onClick={() => navigate(`/event/${event.id}`)}
-                  className="border border-foreground/20 cursor-pointer group"
-                >
-                  <div className="aspect-square overflow-hidden relative">
-                    <img loading="lazy"
-                      src={event.background_image_url}
-                      alt={event.title}
-                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                    />
-                    <div className="absolute top-4 left-4 flex flex-col gap-0">
-                      <div className="bg-background border border-foreground/20 px-3 h-6 flex items-center">
-                        <span className="text-[10px] tracking-wider uppercase">{event.date}</span>
-                      </div>
-                      <div className="bg-background border border-t-0 border-foreground/20 px-3 h-6 flex items-center">
-                        <span className="text-[10px] tracking-wider">{event.time}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold tracking-tight mb-1 group-hover:text-muted-foreground transition-colors">
-                      {event.title}
-                    </h3>
-                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                      <MapPin className="w-3 h-3" />
-                      {event.address}
-                    </div>
-                  </div>
-                </motion.article>
-              ))}
-            </div>
-          )
         )}
       </div>
 
-      {/* Location Banner - fixed above bottom nav */}
       {showLocationBanner && (
         <LocationBanner onAllow={handleLocationAllow} onDismiss={handleLocationDismiss} />
       )}
