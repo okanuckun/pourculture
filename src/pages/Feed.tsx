@@ -402,7 +402,7 @@ export default function Feed() {
                 <Plus className="w-4 h-4" /> Share
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
               <DialogHeader>
                 <DialogTitle>Yeni Post</DialogTitle>
               </DialogHeader>
@@ -481,7 +481,7 @@ export default function Feed() {
                     />
                   </div>
                   {showVenueDropdown && venueResults.length > 0 && (
-                    <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto">
+                    <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto relative z-[9999]">
                       {venueResults.map(v => (
                         <button
                           key={v.id}
