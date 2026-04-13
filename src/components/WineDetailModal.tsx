@@ -1,11 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Wine, Grape, MapPin, Calendar, Thermometer, Clock, UtensilsCrossed, Star } from 'lucide-react';
+import { Wine, Grape, MapPin, Calendar, Thermometer, Clock, UtensilsCrossed, Star, Heart, StickyNote, Loader2, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface WineDetail {
   id: string;
@@ -23,6 +27,8 @@ interface WineDetail {
   aging_potential: string | null;
   food_pairing: string[] | null;
   rating: number | null;
+  is_favorite?: boolean;
+  user_notes?: string | null;
   tasting_notes: {
     aroma?: string[];
     palate?: string[];
@@ -35,15 +41,63 @@ interface WineDetailModalProps {
   wine: WineDetail | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  isOwnProfile?: boolean;
+  onUpdate?: (updatedWine: Partial<WineDetail> & { id: string }) => void;
 }
 
-export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, onOpenChange }) => {
+export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, onOpenChange, isOwnProfile = false, onUpdate }) => {
+  const [editingNotes, setEditingNotes] = useState(false);
+  const [notesValue, setNotesValue] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [togglingFav, setTogglingFav] = useState(false);
+
   if (!wine) return null;
 
   const tastingNotes = wine.tasting_notes as WineDetail['tasting_notes'];
 
+  const handleToggleFavorite = async () => {
+    setTogglingFav(true);
+    try {
+      const newVal = !wine.is_favorite;
+      const { error } = await supabase
+        .from('wine_scan_history')
+        .update({ is_favorite: newVal })
+        .eq('id', wine.id);
+      if (error) throw error;
+      onUpdate?.({ id: wine.id, is_favorite: newVal });
+      toast.success(newVal ? 'Added to favorites ❤️' : 'Removed from favorites');
+    } catch {
+      toast.error('Failed to update');
+    } finally {
+      setTogglingFav(false);
+    }
+  };
+
+  const handleSaveNotes = async () => {
+    setSavingNotes(true);
+    try {
+      const { error } = await supabase
+        .from('wine_scan_history')
+        .update({ user_notes: notesValue.trim() || null })
+        .eq('id', wine.id);
+      if (error) throw error;
+      onUpdate?.({ id: wine.id, user_notes: notesValue.trim() || null });
+      setEditingNotes(false);
+      toast.success('Notes saved');
+    } catch {
+      toast.error('Failed to save notes');
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  const startEditingNotes = () => {
+    setNotesValue(wine.user_notes || '');
+    setEditingNotes(true);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { onOpenChange(v); if (!v) setEditingNotes(false); }}>
       <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto border-2 border-foreground/30">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold pr-6">{wine.wine_name}</DialogTitle>
@@ -62,6 +116,64 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           ) : (
             <div className="aspect-video bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 flex items-center justify-center border-2 border-foreground/20">
               <Wine className="w-16 h-16 text-rose-400" />
+            </div>
+          )}
+
+          {/* Own profile actions */}
+          {isOwnProfile && (
+            <div className="flex gap-2">
+              <Button
+                onClick={handleToggleFavorite}
+                disabled={togglingFav}
+                variant={wine.is_favorite ? "secondary" : "outline"}
+                size="sm"
+                className="gap-1.5"
+              >
+                <Heart className={`w-4 h-4 ${wine.is_favorite ? 'fill-rose-500 text-rose-500' : ''}`} />
+                {wine.is_favorite ? 'Favorited' : 'Add to Favorites'}
+              </Button>
+              <Button
+                onClick={startEditingNotes}
+                variant="outline"
+                size="sm"
+                className="gap-1.5"
+              >
+                <StickyNote className="w-4 h-4" />
+                {wine.user_notes ? 'Edit Note' : 'Add Note'}
+              </Button>
+            </div>
+          )}
+
+          {/* Notes editing */}
+          {editingNotes && isOwnProfile && (
+            <div className="space-y-2">
+              <Textarea
+                value={notesValue}
+                onChange={(e) => setNotesValue(e.target.value)}
+                placeholder="Add your tasting notes, occasion, who you shared it with..."
+                rows={3}
+                className="border-2 border-foreground/30 focus:border-foreground bg-background text-sm"
+              />
+              <div className="flex gap-2">
+                <Button onClick={handleSaveNotes} disabled={savingNotes} size="sm" className="gap-1">
+                  {savingNotes ? <Loader2 className="w-3 h-3 animate-spin" /> : <Check className="w-3 h-3" />}
+                  Save
+                </Button>
+                <Button onClick={() => setEditingNotes(false)} variant="ghost" size="sm">
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Display notes (visible to everyone) */}
+          {!editingNotes && wine.user_notes && (
+            <div className="border-2 border-foreground/20 p-3">
+              <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1 flex items-center gap-1">
+                <StickyNote className="w-3 h-3" />
+                Personal Notes
+              </h4>
+              <p className="text-sm">{wine.user_notes}</p>
             </div>
           )}
 
