@@ -20,6 +20,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete';
+import { PostComments } from '@/components/PostComments';
 
 interface Post {
   id: string;
