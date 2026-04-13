@@ -214,7 +214,7 @@ export default function Feed() {
       if (userId && postIds.length > 0) {
         for (const pid of postIds) {
           try {
-            await supabase.from('post_views').insert({ post_id: pid, user_id: userId });
+            await supabase.from('post_views').insert({ post_id: pid, viewer_id: userId } as any);
             await supabase.rpc('increment_view_count', { p_post_id: pid });
           } catch {
             // duplicate view, ignore
