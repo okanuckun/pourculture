@@ -335,7 +335,9 @@ export default function Feed() {
         comment_count: commentCounts.get(p.id) || 0,
         liked_by_me: myLikedPosts.has(p.id),
         posted_as_venue_name: p.posted_as_venue_id ? venueMap.get(p.posted_as_venue_id) : undefined,
-        venue_slug: p.venue_id ? venueSlugMap.get(p.venue_id) : undefined,
+        venue_slug: p.venue_id
+          ? venueSlugMap.get(p.venue_id)
+          : (p.venue_name ? venueNameSlugMap.get(p.venue_name.toLowerCase()) : undefined),
       };
     });
 
