@@ -12,8 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface UserProfile {
+  display_name: string | null;
+  is_verified: boolean | null;
+}
+
 export const RaisinNavbar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -32,6 +38,16 @@ export const RaisinNavbar: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (!user) { setProfile(null); return; }
+    supabase
+      .from('profiles')
+      .select('display_name, is_verified')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setProfile(data); });
+  }, [user]);
+
+  useEffect(() => {
     if (user && pendingRoute) {
       navigate(pendingRoute);
       setPendingRoute(null);
@@ -44,15 +60,38 @@ export const RaisinNavbar: React.FC = () => {
       <nav className="fixed top-0 left-0 right-0 z-[2000] bg-card/95 backdrop-blur-sm border-b border-border">
         <div className="max-w-[1400px] mx-auto px-4 md:px-6">
           <div className="flex items-center justify-between h-14 md:h-16">
-            {/* Logo */}
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
-                <Wine className="w-4 h-4 text-primary-foreground" />
-              </div>
-              <span className="font-display text-xl font-bold tracking-tight text-foreground">
-                pourculture
-              </span>
-            </Link>
+            {/* Logo + User Name */}
+            <div className="flex items-center gap-3">
+              <Link to="/" className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+                  <Wine className="w-4 h-4 text-primary-foreground" />
+                </div>
+                <span className="font-display text-xl font-bold tracking-tight text-foreground hidden md:inline">
+                  pourculture
+                </span>
+              </Link>
+              {user && profile?.display_name && (
+                <Link 
+                  to={`/profile/${user.id}`}
+                  className="flex items-center gap-1.5 md:hidden"
+                >
+                  <span className="text-sm font-bold text-foreground truncate max-w-[120px]">
+                    {profile.display_name}
+                  </span>
+                  {profile.is_verified && (
+                    <span className="flex items-center justify-center w-5 h-5" title="Verified">
+                      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                        <circle cx="12" cy="12" r="10" fill="#dc2626" />
+                        <path d="M12 6C12 6 10 10 10 13C10 15.5 11 17 12 17C13 17 14 15.5 14 13C14 10 12 6 12 6Z" fill="white" />
+                        <ellipse cx="12" cy="17.5" rx="3" ry="1.5" fill="#dc2626" stroke="white" strokeWidth="0.5" />
+                        <path d="M9 17.5C9 17.5 7.5 16 7 15" stroke="white" strokeWidth="0.8" strokeLinecap="round" />
+                        <path d="M15 17.5C15 17.5 16.5 16 17 15" stroke="white" strokeWidth="0.8" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  )}
+                </Link>
+              )}
+            </div>
 
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-1">
