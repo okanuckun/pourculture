@@ -24,21 +24,22 @@ import { useGooglePlacesAutocomplete } from '@/hooks/useGooglePlacesAutocomplete
 interface Post {
   id: string;
   user_id: string;
-  image_url: string | null;
+  image_url: string;
   caption: string | null;
   wine_name: string | null;
   wine_type: string | null;
   winery: string | null;
   vintage: string | null;
   rating: number | null;
+  venue_id: string | null;
   venue_name: string | null;
-  city: string | null;
-  country: string | null;
-  region: string | null;
-  tasting_notes: string | null;
+  city: string;
+  country: string;
+  latitude: number | null;
+  longitude: number | null;
+  post_type: string;
+  view_count: number;
   created_at: string;
-  updated_at: string;
-  view_count?: number;
   author_name?: string;
   author_verified?: boolean;
   comment_count?: number;
@@ -213,7 +214,7 @@ export default function Feed() {
       if (userId && postIds.length > 0) {
         for (const pid of postIds) {
           try {
-            await supabase.from('post_views').insert({ post_id: pid, user_id: userId });
+            await supabase.from('post_views').insert({ post_id: pid, viewer_id: userId } as any);
             await supabase.rpc('increment_view_count', { p_post_id: pid });
           } catch {
             // duplicate view, ignore
