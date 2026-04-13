@@ -290,7 +290,6 @@ export default function Feed() {
         venue_name: newPost.venue_name || null,
         city: newPost.city,
         country: newPost.country || '',
-        post_type: newPost.post_type,
       });
 
       if (postError) throw postError;
