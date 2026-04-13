@@ -2,12 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus, Heart, StickyNote } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Heart, StickyNote } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 import { WineDetailModal } from '@/components/WineDetailModal';
-import { Button } from '@/components/ui/button';
+
 
 interface Profile {
   id: string;
@@ -36,16 +36,6 @@ interface CompletedRoute {
   };
 }
 
-interface CreatedRoute {
-  id: string;
-  title: string;
-  slug: string;
-  region: string;
-  country: string;
-  is_curated: boolean;
-  venue_count: number;
-}
-
 interface FavoriteWine {
   id: string;
   wine_name: string;
@@ -72,34 +62,12 @@ interface FavoriteWine {
   created_at: string;
 }
 
-interface OwnedVenue {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  city: string;
-  country: string;
-  image_url: string | null;
-}
-
-interface OwnedWinemaker {
-  id: string;
-  name: string;
-  slug: string;
-  region: string | null;
-  country: string;
-  image_url: string | null;
-}
-
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [completedRoutes, setCompletedRoutes] = useState<CompletedRoute[]>([]);
-  const [createdRoutes, setCreatedRoutes] = useState<CreatedRoute[]>([]);
   const [favoriteWines, setFavoriteWines] = useState<FavoriteWine[]>([]);
-  const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
-  const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWine, setSelectedWine] = useState<FavoriteWine | null>(null);
   const [wineModalOpen, setWineModalOpen] = useState(false);
@@ -193,20 +161,6 @@ const UserProfile = () => {
         setCompletedRoutes(completed);
       }
 
-      // Fetch created routes (if verified)
-      if (effectiveProfile.is_verified) {
-        const { data: routesData } = await supabase
-          .from('wine_routes')
-          .select('id, title, slug, region, country, is_curated, venue_count')
-          .eq('created_by', userId)
-          .eq('is_published', true)
-          .order('created_at', { ascending: false });
-
-        if (routesData) {
-          setCreatedRoutes(routesData as CreatedRoute[]);
-        }
-      }
-
       // Fetch scanned wines (visible to everyone)
       {
         const { data: winesData } = await supabase
@@ -219,27 +173,6 @@ const UserProfile = () => {
 
         if (winesData) {
           setFavoriteWines(winesData as FavoriteWine[]);
-        }
-      }
-
-      // Fetch owned venues & winemakers (only for own profile)
-      if (currentUser?.id === userId) {
-        const { data: venuesData } = await supabase
-          .from('venues')
-          .select('id, name, slug, category, city, country, image_url')
-          .eq('owner_id', userId);
-
-        if (venuesData) {
-          setOwnedVenues(venuesData as OwnedVenue[]);
-        }
-
-        const { data: winemakersData } = await supabase
-          .from('winemakers')
-          .select('id, name, slug, region, country, image_url')
-          .eq('owner_id', userId);
-
-        if (winemakersData) {
-          setOwnedWinemakers(winemakersData as OwnedWinemaker[]);
         }
       }
     } catch (error) {
@@ -370,17 +303,15 @@ const UserProfile = () => {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <div className="border-2 border-foreground/30 p-4 text-center">
+            <div className="text-2xl font-bold">{favoriteWines.length}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines Scanned</div>
+          </div>
           <div className="border-2 border-foreground/30 p-4 text-center">
             <div className="text-2xl font-bold">{completedRoutes.length}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Completed</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Done</div>
           </div>
-          {profile.is_verified && (
-            <div className="border-2 border-foreground/30 p-4 text-center">
-              <div className="text-2xl font-bold">{createdRoutes.length}</div>
-              <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Routes Created</div>
-            </div>
-          )}
           <div className="border-2 border-foreground/30 p-4 text-center">
             <div className="text-2xl font-bold">
               {new Date(profile.created_at).getFullYear()}
@@ -555,173 +486,6 @@ const UserProfile = () => {
             />
           </section>
 
-        {/* Created Routes (for verified users) */}
-        {profile.is_verified && createdRoutes.length > 0 && (
-          <section>
-            <h2 className="text-lg font-bold tracking-tight mb-4">CREATED ROUTES</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {createdRoutes.map((route, index) => (
-                <motion.div
-                  key={route.id}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.05 }}
-                >
-                  <Link
-                    to={`/wine-routes/${route.slug}`}
-                    className="block border-2 border-foreground/30 hover:border-foreground p-4 transition-colors"
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      {route.is_curated && (
-                        <span className="text-[9px] font-bold uppercase tracking-wider text-blue-500">Curated</span>
-                      )}
-                    </div>
-                    <h3 className="font-bold hover:underline">{route.title}</h3>
-                    <p className="text-sm text-muted-foreground">
-                      {route.region}, {route.country} • {route.venue_count} venues
-                    </p>
-                  </Link>
-                </motion.div>
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Owned Venues & Winemakers (only visible on own profile) */}
-        {isOwnProfile && (ownedVenues.length > 0 || ownedWinemakers.length > 0) && (
-          <section className="mb-8">
-            <div className="flex items-center gap-2 mb-4">
-              <Store className="w-5 h-5" />
-              <h2 className="text-lg font-bold tracking-tight">MY BUSINESSES</h2>
-            </div>
-
-            {/* Owned Venues */}
-            {ownedVenues.length > 0 && (
-              <div className="mb-6">
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Venues ({ownedVenues.length})</h3>
-                <div className="space-y-3">
-                  {ownedVenues.map((venue, index) => (
-                    <motion.div
-                      key={venue.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-2 border-foreground/20 hover:border-foreground transition-colors"
-                    >
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="w-16 h-16 border border-foreground/20 overflow-hidden flex-shrink-0">
-                          {venue.image_url ? (
-                            <img src={venue.image_url} alt={venue.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xl bg-muted">🍷</div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold truncate">{venue.name}</h4>
-                          <p className="text-xs text-muted-foreground capitalize">{venue.category.replace('_', ' ')}</p>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <MapPin className="w-3 h-3" />
-                            {venue.city}, {venue.country}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Link to={`/profile/venue/${venue.id}/edit`}>
-                            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
-                              <Edit className="w-4 h-4 mr-1" />
-                              EDIT
-                            </Button>
-                          </Link>
-                          <Link to={`/venue/${venue.slug}`} target="_blank">
-                            <Button size="sm" variant="outline" className="border-2 border-foreground/20 hover:border-foreground">
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Owned Winemakers */}
-            {ownedWinemakers.length > 0 && (
-              <div>
-                <h3 className="text-sm font-medium text-muted-foreground mb-3">Winemakers ({ownedWinemakers.length})</h3>
-                <div className="space-y-3">
-                  {ownedWinemakers.map((winemaker, index) => (
-                    <motion.div
-                      key={winemaker.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="border-2 border-foreground/20 hover:border-foreground transition-colors"
-                    >
-                      <div className="flex items-center gap-4 p-4">
-                        <div className="w-16 h-16 border border-foreground/20 overflow-hidden flex-shrink-0">
-                          {winemaker.image_url ? (
-                            <img src={winemaker.image_url} alt={winemaker.name} className="w-full h-full object-cover" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-xl bg-muted">🍇</div>
-                          )}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-bold truncate">{winemaker.name}</h4>
-                          <div className="flex items-center gap-1 text-xs text-muted-foreground mt-1">
-                            <MapPin className="w-3 h-3" />
-                            {winemaker.region && `${winemaker.region}, `}{winemaker.country}
-                          </div>
-                        </div>
-                        <div className="flex gap-2">
-                          <Link to={`/profile/winemaker/${winemaker.id}/edit`}>
-                            <Button size="sm" className="bg-foreground text-background hover:bg-foreground/90">
-                              <Edit className="w-4 h-4 mr-1" />
-                              EDIT
-                            </Button>
-                          </Link>
-                          <Link to={`/winemaker/${winemaker.slug}`} target="_blank">
-                            <Button size="sm" variant="outline" className="border-2 border-foreground/20 hover:border-foreground">
-                              <ExternalLink className="w-4 h-4" />
-                            </Button>
-                          </Link>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-        )}
-
-        {/* Empty state for business owners */}
-        {isOwnProfile && ownedVenues.length === 0 && ownedWinemakers.length === 0 && (
-          <section className="mb-8">
-            <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
-              <div className="w-16 h-16 mx-auto mb-4 border-2 border-foreground/20 flex items-center justify-center">
-                <Store className="w-8 h-8" />
-              </div>
-              <h3 className="font-bold text-sm mb-2">Own a business?</h3>
-              <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
-                Claim your venue or register as a winemaker to start managing your profile.
-              </p>
-              <div className="flex flex-wrap gap-3 justify-center">
-                <Link to="/claim-venue">
-                  <Button className="bg-foreground text-background hover:bg-foreground/90">
-                    <Plus className="w-4 h-4 mr-2" />
-                    CLAIM VENUE
-                  </Button>
-                </Link>
-                <Link to="/submit/winemaker">
-                  <Button variant="outline" className="border-2 border-foreground hover:bg-foreground hover:text-background">
-                    <Wine className="w-4 h-4 mr-2" />
-                    REGISTER WINEMAKER
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </section>
-        )}
       </div>
     </BrutalistLayout>
   );
