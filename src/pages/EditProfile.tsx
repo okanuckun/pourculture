@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Loader2, CheckCircle } from 'lucide-react';
+import { Loader2, CheckCircle, Camera } from 'lucide-react';
 import { toast } from 'sonner';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
@@ -28,6 +28,8 @@ const EditProfile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingAvatar, setUploadingAvatar] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const [formData, setFormData] = useState({
     display_name: '',
@@ -192,26 +194,62 @@ const EditProfile = () => {
 
           <div>
             <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground mb-2">
-              Avatar URL
+              Profile Photo
             </label>
-            <Input
-              value={formData.avatar_url}
-              onChange={(e) => setFormData({ ...formData, avatar_url: e.target.value })}
-              placeholder="https://..."
-              className="border-2 border-foreground/30 focus:border-foreground bg-background"
-            />
-            {formData.avatar_url && (
-              <div className="mt-2">
-                <img
-                  src={formData.avatar_url}
-                  alt="Avatar preview"
-                  className="w-16 h-16 object-cover border-2 border-foreground/20"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).style.display = 'none';
-                  }}
-                />
+            <div className="flex items-center gap-4">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-20 h-20 border-2 border-dashed border-foreground/30 hover:border-foreground flex items-center justify-center cursor-pointer overflow-hidden transition-colors relative group"
+              >
+                {uploadingAvatar && (
+                  <div className="absolute inset-0 bg-background/70 flex items-center justify-center z-10">
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                  </div>
+                )}
+                {formData.avatar_url ? (
+                  <>
+                    <img src={formData.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-foreground/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                      <Camera className="w-5 h-5 text-background" />
+                    </div>
+                  </>
+                ) : (
+                  <Camera className="w-6 h-6 text-muted-foreground" />
+                )}
               </div>
-            )}
+              <div className="text-xs text-muted-foreground">
+                <p>Tap to upload a photo</p>
+                <p className="text-[10px] mt-0.5">JPG, PNG — max 2MB</p>
+              </div>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file || !user) return;
+                if (file.size > 2 * 1024 * 1024) {
+                  toast.error('File too large — max 2MB');
+                  return;
+                }
+                setUploadingAvatar(true);
+                try {
+                  const ext = file.name.split('.').pop();
+                  const path = `${user.id}/avatar.${ext}`;
+                  const { error: uploadErr } = await supabase.storage.from('avatars').upload(path, file, { upsert: true });
+                  if (uploadErr) throw uploadErr;
+                  const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path);
+                  setFormData(prev => ({ ...prev, avatar_url: `${urlData.publicUrl}?t=${Date.now()}` }));
+                  toast.success('Photo uploaded!');
+                } catch (err: any) {
+                  toast.error(err.message || 'Upload failed');
+                } finally {
+                  setUploadingAvatar(false);
+                }
+              }}
+            />
           </div>
 
           <div>

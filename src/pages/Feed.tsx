@@ -776,7 +776,7 @@ export default function Feed() {
                   <div className="border-b border-border">
                     {/* Post header */}
                     <div className="flex items-center gap-2.5 px-4 py-2.5">
-                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
+                      <Link to={`/profile/${post.user_id}`} className="w-8 h-8 rounded-full bg-muted flex items-center justify-center overflow-hidden shrink-0">
                         {post.author_avatar ? (
                           <img src={post.author_avatar} alt="" className="w-full h-full object-cover" />
                         ) : (
@@ -784,12 +784,12 @@ export default function Feed() {
                             {(post.posted_as_venue_name || post.author_name || '?')[0].toUpperCase()}
                           </span>
                         )}
-                      </div>
+                      </Link>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-semibold truncate">
+                          <Link to={`/profile/${post.user_id}`} className="text-sm font-semibold truncate hover:underline">
                             {post.posted_as_venue_name || post.author_name}
-                          </span>
+                          </Link>
                           {post.is_verified && !post.posted_as_venue_name && (
                             <span className="text-[10px] text-primary">🍷 PRO</span>
                           )}
