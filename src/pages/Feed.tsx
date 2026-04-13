@@ -250,7 +250,7 @@ export default function Feed() {
     setWineName(''); setWinery(''); setVintage(''); setWineType('');
     setRating(''); setCaption(''); setCity(''); setCountry('');
     setVenueName(''); setImageFile(null); setImagePreview(null);
-    setPostAsVenueId(null);
+    setPostAsVenueId(null); setVenueSearch(''); setVenueResults([]); setShowVenueDropdown(false);
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
