@@ -273,7 +273,7 @@ export default function Feed() {
                 <Plus className="w-4 h-4" /> Paylaş
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto [&]:overflow-clip-margin-[unset]" style={{ overflowClipMargin: 'unset' }}>
+            <DialogContent className="max-w-md max-h-[90vh] overflow-visible">
               <DialogHeader>
                 <DialogTitle>Yeni Post</DialogTitle>
               </DialogHeader>
