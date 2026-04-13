@@ -207,19 +207,20 @@ const UserProfile = () => {
         }
       }
 
-      // Fetch favorite wines (only for own profile)
-      if (currentUser?.id === userId) {
+      // Fetch scanned wines (visible to everyone)
+      {
         const { data: winesData } = await supabase
           .from('wine_scan_history')
-          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, created_at')
-          .eq('user_id', userId)
-          .eq('is_favorite', true)
+          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, is_favorite, user_notes, created_at')
+          .eq('user_id', userId!)
+          .order('is_favorite', { ascending: false })
           .order('created_at', { ascending: false })
-          .limit(12);
+          .limit(50);
 
         if (winesData) {
           setFavoriteWines(winesData as FavoriteWine[]);
         }
+      }
 
         // Fetch owned venues (only for own profile)
         const { data: venuesData } = await supabase
