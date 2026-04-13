@@ -387,21 +387,26 @@ export default function Feed() {
 
               {/* Actions */}
               <div className="px-4 py-2">
-                <div className="flex items-center gap-4">
-                  <button onClick={() => handleLike(post.id)} className="flex items-center gap-1">
-                    <Heart className={`w-5 h-5 transition-colors ${post.liked_by_me ? 'fill-red-500 text-red-500' : 'text-foreground'}`} />
-                    <span className="text-xs">{post.like_count || 0}</span>
-                  </button>
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1 text-muted-foreground">
                     <Eye className="w-4 h-4" />
                     <span className="text-xs">{post.view_count}</span>
                   </div>
-                  {post.rating && (
-                    <div className="flex items-center gap-1 ml-auto">
-                      <Star className="w-4 h-4 text-amber-500" />
-                      <span className="text-xs font-semibold">{post.rating}/100</span>
-                    </div>
-                  )}
+                  <div className="flex items-center gap-3">
+                    {post.rating && (
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-amber-500" />
+                        <span className="text-xs font-semibold">{post.rating}/100</span>
+                      </div>
+                    )}
+                    <button onClick={() => {
+                      const el = document.getElementById(`comments-${post.id}`);
+                      if (el) el.click();
+                    }} className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="text-xs">{post.comment_count || 0}</span>
+                    </button>
+                  </div>
                 </div>
 
                 {/* Wine info */}
