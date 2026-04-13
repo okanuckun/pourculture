@@ -76,6 +76,9 @@ export default function Feed() {
     vintage: '',
     rating: 0,
     venue_name: '',
+    venue_address: '',
+    venue_lat: null as number | null,
+    venue_lng: null as number | null,
     city: '',
     country: '',
     post_type: 'bottle',
@@ -130,15 +133,22 @@ export default function Feed() {
     onPlaceSelected((place) => {
       const name = place.name || '';
       const address = place.formatted_address || '';
-      // Extract city from address (rough parse — usually 2nd to last comma segment)
       const parts = address.split(',').map(s => s.trim());
       const city = parts.length >= 2 ? parts[parts.length - 2] : parts[0] || '';
       const country = parts.length >= 1 ? parts[parts.length - 1] : '';
 
+      // Extract lat/lng from geometry
+      const geo = place.geometry as any;
+      const lat = geo?.location?.lat?.() ?? null;
+      const lng = geo?.location?.lng?.() ?? null;
+
       setNewPost(p => ({
         ...p,
         venue_name: name,
-        city: city.replace(/\d/g, '').trim(), // Remove postal codes
+        venue_address: address,
+        venue_lat: lat,
+        venue_lng: lng,
+        city: city.replace(/\d/g, '').trim(),
         country: country.trim(),
       }));
     });
@@ -292,6 +302,41 @@ export default function Feed() {
         .from('post-images')
         .getPublicUrl(fileName);
 
+      // Auto-create venue if selected from Google Places and not in DB
+      let venueId: string | null = null;
+      if (newPost.venue_name && newPost.city) {
+        // Check if venue already exists
+        const { data: existingVenue } = await supabase
+          .from('venues')
+          .select('id')
+          .eq('name', newPost.venue_name)
+          .eq('city', newPost.city)
+          .maybeSingle();
+
+        if (existingVenue) {
+          venueId = existingVenue.id;
+        } else if (newPost.venue_name) {
+          // Create new venue from Google Places data
+          const slug = newPost.venue_name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+          const { data: newVenue } = await supabase
+            .from('venues')
+            .insert({
+              name: newPost.venue_name,
+              slug: `${slug}-${Date.now().toString(36)}`,
+              category: 'bar', // default
+              address: newPost.venue_address || '',
+              city: newPost.city,
+              country: newPost.country || '',
+              latitude: newPost.venue_lat,
+              longitude: newPost.venue_lng,
+              source: 'community',
+            })
+            .select('id')
+            .maybeSingle();
+          if (newVenue) venueId = newVenue.id;
+        }
+      }
+
       // Create post
       const { error: postError } = await supabase.from('posts').insert({
         user_id: userId,
@@ -303,6 +348,7 @@ export default function Feed() {
         vintage: newPost.vintage || null,
         rating: newPost.rating || null,
         venue_name: newPost.venue_name || null,
+        venue_id: venueId,
         city: newPost.city,
         country: newPost.country || '',
       });
@@ -311,7 +357,7 @@ export default function Feed() {
 
       toast.success('Posted!');
       setIsCreateOpen(false);
-      setNewPost({ caption: '', wine_name: '', wine_type: 'natural', winery: '', vintage: '', rating: 0, venue_name: '', city: '', country: '', post_type: 'bottle' });
+      setNewPost({ caption: '', wine_name: '', wine_type: 'natural', winery: '', vintage: '', rating: 0, venue_name: '', venue_address: '', venue_lat: null, venue_lng: null, city: '', country: '', post_type: 'bottle' });
       setSelectedImage(null);
       setImagePreview(null);
       fetchPosts(0);
@@ -526,9 +572,21 @@ export default function Feed() {
                       </button>
                     )}
                   </div>
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {post.venue_name ? `${post.venue_name}, ${post.city}` : post.city}
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1 min-w-0">
+                    <MapPin className="w-3 h-3 shrink-0" />
+                    {post.venue_name && (post as any).venue_id ? (
+                      <Link
+                        to={`/venue/${(post as any).venue_slug || (post as any).venue_id}`}
+                        className="hover:text-foreground underline truncate"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        {post.venue_name}
+                      </Link>
+                    ) : post.venue_name ? (
+                      <span className="truncate">{post.venue_name}</span>
+                    ) : null}
+                    {post.venue_name && post.city ? ', ' : ''}
+                    <span className="truncate">{post.city}</span>
                   </span>
                 </div>
 
