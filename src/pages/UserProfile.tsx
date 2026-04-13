@@ -269,20 +269,42 @@ const UserProfile = () => {
                     Journal ({wineCount})
                   </Link>
                 )}
+                {!isOwnProfile && currentUser && (
+                  <button
+                    onClick={handleToggleFollow}
+                    disabled={togglingFollow}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 transition-colors disabled:opacity-50 ${
+                      isFollowing
+                        ? 'border-foreground/30 hover:border-destructive hover:text-destructive'
+                        : 'border-foreground bg-foreground text-background hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    {isFollowing ? <UserCheck className="w-3.5 h-3.5" /> : <UserPlus className="w-3.5 h-3.5" />}
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="border-2 border-foreground/30 p-4 text-center">
-            <div className="text-2xl font-bold">{wineCount}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines Scanned</div>
+        <div className="grid grid-cols-4 gap-3 mb-8">
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{wineCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines</div>
           </div>
-          <div className="border-2 border-foreground/30 p-4 text-center">
-            <div className="text-2xl font-bold">{new Date(profile.created_at).getFullYear()}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Member Since</div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{followerCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Followers</div>
+          </div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{followingCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Following</div>
+          </div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{new Date(profile.created_at).getFullYear()}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Since</div>
           </div>
         </div>
 
