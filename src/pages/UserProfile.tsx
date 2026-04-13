@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus, Heart, StickyNote } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -62,6 +62,8 @@ interface FavoriteWine {
   aging_potential: string | null;
   food_pairing: string[] | null;
   rating: number | null;
+  is_favorite: boolean;
+  user_notes: string | null;
   tasting_notes: {
     aroma?: string[];
     palate?: string[];
