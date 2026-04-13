@@ -175,6 +175,7 @@ const UserProfile = () => {
           setFavoriteWines(winesData as FavoriteWine[]);
         }
       }
+    } catch (error) {
       if (import.meta.env.DEV) console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
