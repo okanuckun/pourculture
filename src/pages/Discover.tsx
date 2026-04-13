@@ -40,6 +40,7 @@ const categoryOptions = [
   { value: 'bar', label: 'WINE BARS' },
   { value: 'wine_shop', label: 'WINE SHOPS' },
   { value: 'restaurant', label: 'RESTAURANTS' },
+  { value: 'events', label: 'EVENTS' },
 ];
 
 const haversine = (lat1: number, lng1: number, lat2: number | null, lng2: number | null): number => {
