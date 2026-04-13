@@ -273,9 +273,6 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                   <Camera className="h-5 w-5" />
                 </Button>
               )}
-              <Button variant="ghost" size="icon" onClick={handleClose}>
-                <X className="h-5 w-5" />
-              </Button>
             </div>
           </div>
         </SheetHeader>
