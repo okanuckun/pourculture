@@ -19,36 +19,36 @@ interface Question {
 const questions: Question[] = [
   {
     id: 'color',
-    question: 'Hangi renk şarap tercih edersin?',
+    question: 'Which wine color do you prefer?',
     options: [
-      { value: 'red', label: 'Kırmızı', emoji: '🍷', description: 'Zengin, derin ve güçlü' },
-      { value: 'white', label: 'Beyaz', emoji: '🥂', description: 'Taze, hafif ve ferah' },
-      { value: 'orange', label: 'Orange', emoji: '🧡', description: 'Farklı, kompleks ve cesur' },
-      { value: 'rose', label: 'Rosé', emoji: '🌸', description: 'Romantik ve yazlık' },
+      { value: 'red', label: 'Red', emoji: '🍷', description: 'Rich, deep and bold' },
+      { value: 'white', label: 'White', emoji: '🥂', description: 'Fresh, light and crisp' },
+      { value: 'orange', label: 'Orange', emoji: '🧡', description: 'Unique, complex and daring' },
+      { value: 'rose', label: 'Rosé', emoji: '🌸', description: 'Romantic and summery' },
     ],
   },
   {
     id: 'style',
     question: 'What wine style suits you?',
     options: [
-      { value: 'funky', label: 'Funky', emoji: '🎸', description: 'Vahşi, doğal ve spontan' },
-      { value: 'clean', label: 'Temiz', emoji: '✨', description: 'Zarif, net ve klasik' },
+      { value: 'funky', label: 'Funky', emoji: '🎸', description: 'Wild, natural and spontaneous' },
+      { value: 'clean', label: 'Clean', emoji: '✨', description: 'Elegant, precise and classic' },
     ],
   },
   {
     id: 'acidity',
-    question: 'Asitlik konusunda ne düşünüyorsun?',
+    question: 'How do you feel about acidity?',
     options: [
-      { value: 'acidic', label: 'Asidik', emoji: '🍋', description: 'Canlı ve serinletici' },
-      { value: 'soft', label: 'Yumuşak', emoji: '🍑', description: 'Yuvarlak ve kadifemsi' },
+      { value: 'acidic', label: 'Acidic', emoji: '🍋', description: 'Vibrant and refreshing' },
+      { value: 'soft', label: 'Soft', emoji: '🍑', description: 'Round and velvety' },
     ],
   },
   {
     id: 'occasion',
-    question: 'Ne için şarap arıyorsun?',
+    question: 'What are you looking for wine for?',
     options: [
-      { value: 'food', label: 'Yemek', emoji: '🍽️', description: 'Lezzetleri tamamlamak için' },
-      { value: 'conversation', label: 'Sohbet', emoji: '💬', description: 'Keyifli bir akşam için' },
+      { value: 'food', label: 'Food', emoji: '🍽️', description: 'To complement flavors' },
+      { value: 'conversation', label: 'Conversation', emoji: '💬', description: 'For a pleasant evening' },
     ],
   },
 ];
@@ -96,10 +96,10 @@ const colorEmojis: Record<string, string> = {
 };
 
 const answerLabels: Record<string, Record<string, string>> = {
-  color: { red: 'Kırmızı', white: 'Beyaz', orange: 'Orange', rose: 'Rosé' },
-  style: { funky: 'Funky', clean: 'Temiz' },
-  acidity: { acidic: 'Asidik', soft: 'Yumuşak' },
-  occasion: { food: 'Yemek', conversation: 'Sohbet' },
+  color: { red: 'Red', white: 'White', orange: 'Orange', rose: 'Rosé' },
+  style: { funky: 'Funky', clean: 'Clean' },
+  acidity: { acidic: 'Acidic', soft: 'Soft' },
+  occasion: { food: 'Food', conversation: 'Conversation' },
 };
 
 export const WineQuiz = () => {
@@ -218,7 +218,7 @@ export const WineQuiz = () => {
 
   const saveResult = async (wine: WineFromDB) => {
     if (!user) {
-      toast.info('Sonuçları kaydetmek için giriş yapmalısın', {
+      toast.info('Sign in to save your results', {
         action: {
           label: 'Sign In',
           onClick: () => navigate('/auth'),
@@ -238,7 +238,7 @@ export const WineQuiz = () => {
       });
 
       if (error) throw error;
-      toast.success('Sonuç kaydedildi!');
+      toast.success('Result saved!');
     } catch (error) {
       console.error('Error saving result:', error);
       toast.error('Failed to save');
@@ -267,7 +267,7 @@ export const WineQuiz = () => {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('tr-TR', {
+    return new Date(dateString).toLocaleDateString('en-US', {
       day: 'numeric',
       month: 'short',
       year: 'numeric',
@@ -289,7 +289,7 @@ export const WineQuiz = () => {
           </div>
           <div className="text-left">
             <h3 className="font-display text-lg font-bold text-foreground">Find Your Wine</h3>
-            <p className="text-sm text-muted-foreground">Kişisel şarap rehberin</p>
+            <p className="text-sm text-muted-foreground">Your personal wine guide</p>
           </div>
           <ArrowRight className="ml-auto h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1" />
         </div>
@@ -319,7 +319,7 @@ export const WineQuiz = () => {
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center gap-2 rounded-full bg-primary/20 px-3 py-1 text-xs font-medium text-primary">
                       <Sparkles className="h-3 w-3" />
-                      Kişisel Rehber
+                      Personal Guide
                     </span>
                     {user && (
                       <button
@@ -327,17 +327,17 @@ export const WineQuiz = () => {
                         className="flex items-center gap-1.5 rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
                       >
                         <History className="h-3 w-3" />
-                        Geçmiş
+                        History
                       </button>
                     )}
                   </div>
                   <h2 className="mt-3 font-display text-2xl font-bold text-foreground">
-                    {showHistory ? 'Geçmiş Sonuçların' : 'Find Your Wine'}
+                    {showHistory ? 'Past Results' : 'Find Your Wine'}
                   </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
                     {showHistory 
-                      ? 'Daha önce aldığın şarap önerileri' 
-                      : 'Birkaç soru ile sana en uygun şarabı bulalım'}
+                      ? 'Wine recommendations from your past quizzes'
+                      : 'Answer a few questions to find your perfect wine'}
                   </p>
                 </div>
 
@@ -375,12 +375,12 @@ export const WineQuiz = () => {
                           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-secondary">
                             <Wine className="h-8 w-8 text-muted-foreground" />
                           </div>
-                          <p className="text-muted-foreground">Henüz kayıtlı sonuç yok</p>
+                          <p className="text-muted-foreground">No saved results yet</p>
                           <button
                             onClick={reset}
                             className="mt-4 text-sm font-medium text-primary hover:underline"
                           >
-                            İlk testini yap!
+                            Take your first quiz!
                           </button>
                         </div>
                       ) : (
@@ -484,7 +484,7 @@ export const WineQuiz = () => {
                       {isLoadingWines ? (
                         <div className="flex flex-col items-center justify-center py-12">
                           <Loader2 className="h-10 w-10 animate-spin text-primary mb-4" />
-                          <p className="text-muted-foreground">Sana uygun şarapları arıyoruz...</p>
+                          <p className="text-muted-foreground">Finding wines for you...</p>
                         </div>
                       ) : recommendedWines.length === 0 ? (
                         <div className="text-center py-8">
@@ -495,24 +495,24 @@ export const WineQuiz = () => {
                             Wine not found
                           </h3>
                           <p className="text-muted-foreground text-sm mb-6">
-                            Bu kriterlere uygun şarap henüz eklenmemiş. Farklı seçenekler dene!
+                            No wines matching these criteria yet. Try different options!
                           </p>
                           <button
                             onClick={reset}
                             className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-medium text-primary-foreground"
                           >
                             <RotateCcw className="h-4 w-4" />
-                            Tekrar Dene
+                            Try Again
                           </button>
                         </div>
                       ) : (
                         <>
                           <div className="text-center mb-6">
                             <p className="text-sm font-medium text-primary mb-1">
-                              Sana özel önerilerimiz
+                              Our recommendations for you
                             </p>
                             <h3 className="font-display text-xl font-bold text-foreground">
-                              {recommendedWines.length} şarap bulduk! 🎉
+                              We found {recommendedWines.length} wines! 🎉
                             </h3>
                           </div>
 
@@ -607,13 +607,13 @@ export const WineQuiz = () => {
                               className="flex flex-1 items-center justify-center gap-2 rounded-xl border border-border px-4 py-3 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
                             >
                               <RotateCcw className="h-4 w-4" />
-                              Tekrar Dene
+                              Try Again
                             </button>
                             <button
                               onClick={() => setIsOpen(false)}
                               className="flex-1 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
                             >
-                              Harika! 🍷
+                              Great! 🍷
                             </button>
                           </div>
                         </>

@@ -45,7 +45,7 @@ export const MapNavigationDialog: React.FC<MapNavigationDialogProps> = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Navigation className="w-5 h-5 text-primary" />
-            Yol Tarifi Al
+            Get Directions
           </DialogTitle>
         </DialogHeader>
         
@@ -66,7 +66,7 @@ export const MapNavigationDialog: React.FC<MapNavigationDialogProps> = ({
                 alt="Google Maps" 
                 className="w-6 h-6"
               />
-              Google Maps ile Aç
+              Open in Google Maps
             </Button>
             
             <Button
@@ -89,7 +89,7 @@ export const MapNavigationDialog: React.FC<MapNavigationDialogProps> = ({
                   fill="#fff"
                 />
               </svg>
-              Apple Maps ile Aç
+              Open in Apple Maps
             </Button>
           </div>
         </div>

@@ -115,15 +115,15 @@ export const KnowledgeHubAdmin = () => {
   // Glossary handlers
   const handleSaveTerm = async () => {
     if (!newTerm.term || !newTerm.definition) {
-      toast({ title: 'Hata', description: 'Terim ve tanım gerekli', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Term and definition are required', variant: 'destructive' });
       return;
     }
     setSaving(true);
     const { error } = await supabase.from('glossary_terms').insert(newTerm);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Terim eklendi' });
+      toast({ title: 'Success', description: 'Term added' });
       setNewTerm({ term: '', definition: '' });
       setIsAddingTerm(false);
       fetchGlossary();
@@ -138,9 +138,9 @@ export const KnowledgeHubAdmin = () => {
       .update({ term: editingTerm.term, definition: editingTerm.definition })
       .eq('id', editingTerm.id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Terim güncellendi' });
+      toast({ title: 'Success', description: 'Term updated' });
       setEditingTerm(null);
       fetchGlossary();
     }
@@ -148,12 +148,12 @@ export const KnowledgeHubAdmin = () => {
   };
 
   const handleDeleteTerm = async (id: string) => {
-    if (!confirm('Bu terimi silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Are you sure you want to delete this term?')) return;
     const { error } = await supabase.from('glossary_terms').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Terim silindi' });
+      toast({ title: 'Success', description: 'Term deleted' });
       fetchGlossary();
     }
   };
@@ -161,15 +161,15 @@ export const KnowledgeHubAdmin = () => {
   // Guide handlers
   const handleSaveGuide = async () => {
     if (!newGuide.title || !newGuide.description) {
-      toast({ title: 'Hata', description: 'Başlık ve açıklama gerekli', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Title and description are required', variant: 'destructive' });
       return;
     }
     setSaving(true);
     const { error } = await supabase.from('guides').insert(newGuide);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Rehber eklendi' });
+      toast({ title: 'Success', description: 'Guide added' });
       setNewGuide({ title: '', description: '', content: '', read_time: '5 min read', category: 'Beginner', is_published: false });
       setIsAddingGuide(false);
       fetchGuides();
@@ -191,9 +191,9 @@ export const KnowledgeHubAdmin = () => {
       })
       .eq('id', editingGuide.id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Rehber güncellendi' });
+      toast({ title: 'Success', description: 'Guide updated' });
       setEditingGuide(null);
       fetchGuides();
     }
@@ -201,12 +201,12 @@ export const KnowledgeHubAdmin = () => {
   };
 
   const handleDeleteGuide = async (id: string) => {
-    if (!confirm('Bu rehberi silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Are you sure you want to delete this guide?')) return;
     const { error } = await supabase.from('guides').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Rehber silindi' });
+      toast({ title: 'Success', description: 'Guide deleted' });
       fetchGuides();
     }
   };
@@ -221,11 +221,11 @@ export const KnowledgeHubAdmin = () => {
     const file = e.target.files[0];
     
     if (file.type !== 'application/pdf') {
-      toast({ title: 'Geçersiz dosya', description: 'Sadece PDF dosyası yükleyebilirsiniz', variant: 'destructive' });
+      toast({ title: 'Invalid file', description: 'Only PDF files are allowed', variant: 'destructive' });
       return;
     }
     if (file.size > 20 * 1024 * 1024) {
-      toast({ title: 'Dosya çok büyük', description: 'PDF 20MB\'dan küçük olmalı', variant: 'destructive' });
+      toast({ title: 'File too large', description: 'PDF must be under 20MB', variant: 'destructive' });
       return;
     }
 
@@ -244,9 +244,9 @@ export const KnowledgeHubAdmin = () => {
 
       const fileSizeMB = (file.size / (1024 * 1024)).toFixed(1);
       setPdf({ ...pdf, file_url: publicUrl, file_size: `${fileSizeMB} MB` });
-      toast({ title: 'Başarılı', description: 'PDF yüklendi' });
+      toast({ title: 'Success', description: 'PDF uploaded' });
     } catch (error: any) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } finally {
       setUploadingPdf(false);
     }
@@ -254,15 +254,15 @@ export const KnowledgeHubAdmin = () => {
 
   const handleSavePdf = async () => {
     if (!newPdf.title || !newPdf.description) {
-      toast({ title: 'Hata', description: 'Başlık ve açıklama gerekli', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Title and description are required', variant: 'destructive' });
       return;
     }
     setSaving(true);
     const { error } = await supabase.from('pdf_resources').insert(newPdf);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'PDF kaynağı eklendi' });
+      toast({ title: 'Success', description: 'PDF resource added' });
       setNewPdf({ title: '', description: '', file_url: null, pages: null, file_size: null, is_published: false });
       setIsAddingPdf(false);
       fetchPdfs();
@@ -284,9 +284,9 @@ export const KnowledgeHubAdmin = () => {
       })
       .eq('id', editingPdf.id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'PDF güncellendi' });
+      toast({ title: 'Success', description: 'PDF updated' });
       setEditingPdf(null);
       fetchPdfs();
     }
@@ -294,12 +294,12 @@ export const KnowledgeHubAdmin = () => {
   };
 
   const handleDeletePdf = async (id: string) => {
-    if (!confirm('Bu PDF\'i silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Are you sure you want to delete this PDF?')) return;
     const { error } = await supabase.from('pdf_resources').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'PDF silindi' });
+      toast({ title: 'Success', description: 'PDF deleted' });
       fetchPdfs();
     }
   };
@@ -317,15 +317,15 @@ export const KnowledgeHubAdmin = () => {
 
   const handleSaveReport = async () => {
     if (!newReport.region || !newReport.summary) {
-      toast({ title: 'Hata', description: 'Bölge ve özet gerekli', variant: 'destructive' });
+      toast({ title: 'Error', description: 'Region and summary are required', variant: 'destructive' });
       return;
     }
     setSaving(true);
     const { error } = await supabase.from('harvest_reports').insert(newReport);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Hasat raporu eklendi' });
+      toast({ title: 'Success', description: 'Harvest report added' });
       setNewReport({ year: new Date().getFullYear(), region: '', summary: '', highlights: [], is_published: false });
       setIsAddingReport(false);
       fetchReports();
@@ -346,9 +346,9 @@ export const KnowledgeHubAdmin = () => {
       })
       .eq('id', editingReport.id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Rapor güncellendi' });
+      toast({ title: 'Success', description: 'Report updated' });
       setEditingReport(null);
       fetchReports();
     }
@@ -356,12 +356,12 @@ export const KnowledgeHubAdmin = () => {
   };
 
   const handleDeleteReport = async (id: string) => {
-    if (!confirm('Bu raporu silmek istediğinizden emin misiniz?')) return;
+    if (!confirm('Are you sure you want to delete this report?')) return;
     const { error } = await supabase.from('harvest_reports').delete().eq('id', id);
     if (error) {
-      toast({ title: 'Hata', description: error.message, variant: 'destructive' });
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Başarılı', description: 'Rapor silindi' });
+      toast({ title: 'Success', description: 'Report deleted' });
       fetchReports();
     }
   };
@@ -380,11 +380,11 @@ export const KnowledgeHubAdmin = () => {
         <TabsList className="grid w-full grid-cols-4 mb-6">
           <TabsTrigger value="glossary" className="flex items-center gap-2">
             <Book className="h-4 w-4" />
-            <span className="hidden sm:inline">Sözlük</span>
+            <span className="hidden sm:inline">Glossary</span>
           </TabsTrigger>
           <TabsTrigger value="guides" className="flex items-center gap-2">
             <FileText className="h-4 w-4" />
-            <span className="hidden sm:inline">Rehberler</span>
+            <span className="hidden sm:inline">Guides</span>
           </TabsTrigger>
           <TabsTrigger value="pdfs" className="flex items-center gap-2">
             <Download className="h-4 w-4" />
@@ -392,7 +392,7 @@ export const KnowledgeHubAdmin = () => {
           </TabsTrigger>
           <TabsTrigger value="harvest" className="flex items-center gap-2">
             <Grape className="h-4 w-4" />
-            <span className="hidden sm:inline">Hasat</span>
+            <span className="hidden sm:inline">Harvest</span>
           </TabsTrigger>
         </TabsList>
 
@@ -408,7 +408,7 @@ export const KnowledgeHubAdmin = () => {
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
               <h3 className="font-semibold text-foreground">{isAddingTerm ? 'New Term' : 'Edit Term'}</h3>
               <Input
-                placeholder="Terim"
+                placeholder="Term"
                 value={isAddingTerm ? newTerm.term : editingTerm?.term || ''}
                 onChange={(e) => isAddingTerm 
                   ? setNewTerm({ ...newTerm, term: e.target.value })
@@ -416,7 +416,7 @@ export const KnowledgeHubAdmin = () => {
                 }
               />
               <Textarea
-                placeholder="Tanım"
+                placeholder="Definition"
                 rows={3}
                 value={isAddingTerm ? newTerm.definition : editingTerm?.definition || ''}
                 onChange={(e) => isAddingTerm
@@ -436,7 +436,7 @@ export const KnowledgeHubAdmin = () => {
           {!isAddingTerm && !editingTerm && (
             <div className="space-y-2">
               {glossaryTerms.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Henüz terim eklenmemiş</p>
+                <p className="text-muted-foreground text-center py-8">No terms added yet</p>
               ) : (
                 glossaryTerms.map((term) => (
                   <div key={term.id} className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
@@ -471,7 +471,7 @@ export const KnowledgeHubAdmin = () => {
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
               <h3 className="font-semibold text-foreground">{isAddingGuide ? 'New Guide' : 'Edit Guide'}</h3>
               <Input
-                placeholder="Başlık"
+                placeholder="Title"
                 value={isAddingGuide ? newGuide.title : editingGuide?.title || ''}
                 onChange={(e) => isAddingGuide
                   ? setNewGuide({ ...newGuide, title: e.target.value })
@@ -479,7 +479,7 @@ export const KnowledgeHubAdmin = () => {
                 }
               />
               <Textarea
-                placeholder="Kısa açıklama"
+                placeholder="Short description"
                 rows={2}
                 value={isAddingGuide ? newGuide.description : editingGuide?.description || ''}
                 onChange={(e) => isAddingGuide
@@ -488,7 +488,7 @@ export const KnowledgeHubAdmin = () => {
                 }
               />
               <Textarea
-                placeholder="İçerik (opsiyonel)"
+                placeholder="Content (optional)"
                 rows={6}
                 value={isAddingGuide ? newGuide.content || '' : editingGuide?.content || ''}
                 onChange={(e) => isAddingGuide
@@ -498,7 +498,7 @@ export const KnowledgeHubAdmin = () => {
               />
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Okuma Süresi</label>
+                  <label className="text-sm font-medium mb-1 block">Read Time</label>
                   <Input
                     placeholder="5 min read"
                     value={isAddingGuide ? newGuide.read_time : editingGuide?.read_time || ''}
@@ -509,7 +509,7 @@ export const KnowledgeHubAdmin = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Kategori</label>
+                  <label className="text-sm font-medium mb-1 block">Category</label>
                   <Select
                     value={isAddingGuide ? newGuide.category : editingGuide?.category || 'Beginner'}
                     onValueChange={(value) => isAddingGuide
@@ -519,8 +519,8 @@ export const KnowledgeHubAdmin = () => {
                   >
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Beginner">Başlangıç</SelectItem>
-                      <SelectItem value="Intermediate">Orta</SelectItem>
+                      <SelectItem value="Beginner">Beginner</SelectItem>
+                      <SelectItem value="Intermediate">Intermediate</SelectItem>
                       <SelectItem value="Advanced">Advanced</SelectItem>
                     </SelectContent>
                   </Select>
@@ -536,7 +536,7 @@ export const KnowledgeHubAdmin = () => {
                   }
                   className="rounded border-border"
                 />
-                <span className="text-sm">Yayınla</span>
+                <span className="text-sm">Publish</span>
               </label>
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => { setIsAddingGuide(false); setEditingGuide(null); }}>Cancel</Button>
@@ -550,7 +550,7 @@ export const KnowledgeHubAdmin = () => {
           {!isAddingGuide && !editingGuide && (
             <div className="space-y-2">
               {guides.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Henüz rehber eklenmemiş</p>
+                <p className="text-muted-foreground text-center py-8">No guides added yet</p>
               ) : (
                 guides.map((guide) => (
                   <div key={guide.id} className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
@@ -558,7 +558,7 @@ export const KnowledgeHubAdmin = () => {
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold text-foreground">{guide.title}</h4>
                         <span className={`px-2 py-0.5 text-xs rounded-full ${guide.is_published ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-                          {guide.is_published ? 'Yayında' : 'Taslak'}
+                          {guide.is_published ? 'Published' : 'Draft'}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">{guide.description}</p>
@@ -591,7 +591,7 @@ export const KnowledgeHubAdmin = () => {
             <div className="bg-card border border-border rounded-xl p-6 space-y-4">
               <h3 className="font-semibold text-foreground">{isAddingPdf ? 'New PDF' : 'Edit PDF'}</h3>
               <Input
-                placeholder="Başlık"
+                placeholder="Title"
                 value={isAddingPdf ? newPdf.title : editingPdf?.title || ''}
                 onChange={(e) => isAddingPdf
                   ? setNewPdf({ ...newPdf, title: e.target.value })
@@ -599,7 +599,7 @@ export const KnowledgeHubAdmin = () => {
                 }
               />
               <Textarea
-                placeholder="Açıklama"
+                placeholder="Description"
                 rows={2}
                 value={isAddingPdf ? newPdf.description : editingPdf?.description || ''}
                 onChange={(e) => isAddingPdf
@@ -610,12 +610,12 @@ export const KnowledgeHubAdmin = () => {
               
               {/* PDF Upload */}
               <div>
-                <label className="text-sm font-medium mb-1 block">PDF Dosyası</label>
+                <label className="text-sm font-medium mb-1 block">PDF File</label>
                 {(isAddingPdf ? newPdf.file_url : editingPdf?.file_url) ? (
                   <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
                     <FileText className="h-8 w-8 text-primary" />
                     <div className="flex-1">
-                      <p className="text-sm font-medium">PDF yüklendi</p>
+                      <p className="text-sm font-medium">PDF uploaded</p>
                       <p className="text-xs text-muted-foreground">{isAddingPdf ? newPdf.file_size : editingPdf?.file_size}</p>
                     </div>
                     <Button
@@ -652,7 +652,7 @@ export const KnowledgeHubAdmin = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Sayfa Sayısı</label>
+                  <label className="text-sm font-medium mb-1 block">Page Count</label>
                   <Input
                     type="number"
                     placeholder="24"
@@ -677,7 +677,7 @@ export const KnowledgeHubAdmin = () => {
                   }
                   className="rounded border-border"
                 />
-                <span className="text-sm">Yayınla</span>
+                <span className="text-sm">Publish</span>
               </label>
               
               <div className="flex gap-3">
@@ -692,7 +692,7 @@ export const KnowledgeHubAdmin = () => {
           {!isAddingPdf && !editingPdf && (
             <div className="space-y-2">
               {pdfResources.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Henüz PDF eklenmemiş</p>
+                <p className="text-muted-foreground text-center py-8">No PDFs added yet</p>
               ) : (
                 pdfResources.map((pdf) => (
                   <div key={pdf.id} className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
@@ -702,12 +702,12 @@ export const KnowledgeHubAdmin = () => {
                         <div className="flex items-center gap-2 mb-1">
                           <h4 className="font-semibold text-foreground">{pdf.title}</h4>
                           <span className={`px-2 py-0.5 text-xs rounded-full ${pdf.is_published ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-                            {pdf.is_published ? 'Yayında' : 'Taslak'}
+                            {pdf.is_published ? 'Published' : 'Draft'}
                           </span>
                         </div>
                         <p className="text-sm text-muted-foreground">{pdf.description}</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          {pdf.pages && `${pdf.pages} sayfa`} {pdf.file_size && `• ${pdf.file_size}`}
+                          {pdf.pages && `${pdf.pages} pages`} {pdf.file_size && `• ${pdf.file_size}`}
                         </p>
                       </div>
                     </div>
@@ -739,7 +739,7 @@ export const KnowledgeHubAdmin = () => {
               <h3 className="font-semibold text-foreground">{isAddingReport ? 'New Harvest Report' : 'Edit Report'}</h3>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Yıl</label>
+                  <label className="text-sm font-medium mb-1 block">Year</label>
                   <Input
                     type="number"
                     value={isAddingReport ? newReport.year : editingReport?.year || new Date().getFullYear()}
@@ -752,7 +752,7 @@ export const KnowledgeHubAdmin = () => {
                   />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-1 block">Bölge</label>
+                  <label className="text-sm font-medium mb-1 block">Region</label>
                   <Input
                     placeholder="Loire Valley, France"
                     value={isAddingReport ? newReport.region : editingReport?.region || ''}
@@ -764,7 +764,7 @@ export const KnowledgeHubAdmin = () => {
                 </div>
               </div>
               <Textarea
-                placeholder="Hasat özeti"
+                placeholder="Harvest summary"
                 rows={3}
                 value={isAddingReport ? newReport.summary : editingReport?.summary || ''}
                 onChange={(e) => isAddingReport
@@ -775,10 +775,10 @@ export const KnowledgeHubAdmin = () => {
               
               {/* Highlights */}
               <div>
-                <label className="text-sm font-medium mb-1 block">Öne Çıkanlar</label>
+                <label className="text-sm font-medium mb-1 block">Highlights</label>
                 <div className="flex gap-2 mb-2">
                   <Input
-                    placeholder="Öne çıkan ekle"
+                    placeholder="Add highlight"
                     value={highlightInput}
                     onChange={(e) => setHighlightInput(e.target.value)}
                     onKeyPress={(e) => {
@@ -832,7 +832,7 @@ export const KnowledgeHubAdmin = () => {
                   }
                   className="rounded border-border"
                 />
-                <span className="text-sm">Yayınla</span>
+                <span className="text-sm">Publish</span>
               </label>
               
               <div className="flex gap-3">
@@ -847,7 +847,7 @@ export const KnowledgeHubAdmin = () => {
           {!isAddingReport && !editingReport && (
             <div className="space-y-2">
               {harvestReports.length === 0 ? (
-                <p className="text-muted-foreground text-center py-8">Henüz hasat raporu eklenmemiş</p>
+                <p className="text-muted-foreground text-center py-8">No harvest reports added yet</p>
               ) : (
                 harvestReports.map((report) => (
                   <div key={report.id} className="flex items-start justify-between p-4 bg-card border border-border rounded-xl">
@@ -856,7 +856,7 @@ export const KnowledgeHubAdmin = () => {
                         <span className="font-bold text-primary">{report.year}</span>
                         <h4 className="font-semibold text-foreground">{report.region}</h4>
                         <span className={`px-2 py-0.5 text-xs rounded-full ${report.is_published ? 'bg-green-500/10 text-green-600' : 'bg-muted text-muted-foreground'}`}>
-                          {report.is_published ? 'Yayında' : 'Taslak'}
+                          {report.is_published ? 'Published' : 'Draft'}
                         </span>
                       </div>
                       <p className="text-sm text-muted-foreground">{report.summary}</p>

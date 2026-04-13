@@ -32,13 +32,13 @@ interface VenueEvent {
 
 const DAYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DAY_LABELS: Record<string, string> = {
-  monday: 'Pazartesi',
-  tuesday: 'Salı',
-  wednesday: 'Çarşamba',
-  thursday: 'Perşembe',
-  friday: 'Cuma',
-  saturday: 'Cumartesi',
-  sunday: 'Pazar',
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
 };
 
 const EditVenueProfile: React.FC = () => {
@@ -118,14 +118,14 @@ const EditVenueProfile: React.FC = () => {
 
     if (error) {
       toast({
-        title: "Hata",
-        description: "Değişiklikler kaydedilemedi.",
+        title: "Error",
+        description: "Changes could not be saved.",
         variant: "destructive"
       });
     } else {
       toast({
-        title: "Kaydedildi",
-        description: "Profil başarıyla güncellendi."
+        title: "Saved",
+        description: "Profile updated successfully."
       });
     }
     
@@ -203,13 +203,13 @@ const EditVenueProfile: React.FC = () => {
           {/* Story */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Hikayemiz</CardTitle>
+              <CardTitle className="text-lg">Our Story</CardTitle>
             </CardHeader>
             <CardContent>
               <Textarea
                 value={story}
                 onChange={(e) => setStory(e.target.value)}
-                placeholder="İşletmenizin hikayesini anlatın..."
+                placeholder="Tell your business story..."
                 rows={5}
               />
             </CardContent>
@@ -220,7 +220,7 @@ const EditVenueProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Camera className="w-5 h-5" />
-                Fotoğraflar
+                Photos
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -238,7 +238,7 @@ const EditVenueProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Clock className="w-5 h-5" />
-                Çalışma Saatleri
+                Opening Hours
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -249,7 +249,7 @@ const EditVenueProfile: React.FC = () => {
                     <Input
                       value={openingHours[day] || ''}
                       onChange={(e) => setOpeningHours({ ...openingHours, [day]: e.target.value })}
-                      placeholder="örn: 12:00 - 23:00 veya Kapalı"
+                      placeholder="e.g. 12:00 - 23:00 or Closed"
                       className="flex-1"
                     />
                   </div>
@@ -286,36 +286,36 @@ const EditVenueProfile: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Üzüm</Label>
+                        <Label className="text-xs">Grape</Label>
                         <Input
                           value={wine.grape || ''}
                           onChange={(e) => updateWine(index, 'grape', e.target.value)}
-                          placeholder="Üzüm çeşidi"
+                          placeholder="Grape variety"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Bölge</Label>
+                        <Label className="text-xs">Region</Label>
                         <Input
                           value={wine.region || ''}
                           onChange={(e) => updateWine(index, 'region', e.target.value)}
-                          placeholder="Bölge"
+                          placeholder="Region"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Fiyat</Label>
+                        <Label className="text-xs">Price</Label>
                         <Input
                           value={wine.price || ''}
                           onChange={(e) => updateWine(index, 'price', e.target.value)}
-                          placeholder="Fiyat"
+                          placeholder="Price"
                         />
                       </div>
                     </div>
                     <div className="mt-3">
-                      <Label className="text-xs">Açıklama</Label>
+                      <Label className="text-xs">Description</Label>
                       <Input
                         value={wine.description || ''}
                         onChange={(e) => updateWine(index, 'description', e.target.value)}
-                        placeholder="Kısa açıklama"
+                        placeholder="Short description"
                       />
                     </div>
                   </div>
@@ -333,7 +333,7 @@ const EditVenueProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Calendar className="w-5 h-5" />
-                Etkinlikler
+                Events
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -348,15 +348,15 @@ const EditVenueProfile: React.FC = () => {
                     </button>
                     <div className="grid gap-3 sm:grid-cols-2">
                       <div>
-                        <Label className="text-xs">Etkinlik Adı *</Label>
+                        <Label className="text-xs">Event Name *</Label>
                         <Input
                           value={event.title}
                           onChange={(e) => updateEvent(index, 'title', e.target.value)}
-                          placeholder="Etkinlik adı"
+                          placeholder="Event name"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Tarih *</Label>
+                        <Label className="text-xs">Date *</Label>
                         <Input
                           type="date"
                           value={event.date}
@@ -364,28 +364,28 @@ const EditVenueProfile: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Saat</Label>
+                        <Label className="text-xs">Time</Label>
                         <Input
                           value={event.time || ''}
                           onChange={(e) => updateEvent(index, 'time', e.target.value)}
-                          placeholder="örn: 19:00"
+                          placeholder="e.g. 19:00"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Fiyat</Label>
+                        <Label className="text-xs">Price</Label>
                         <Input
                           value={event.price || ''}
                           onChange={(e) => updateEvent(index, 'price', e.target.value)}
-                          placeholder="örn: 45€"
+                          placeholder="e.g. 45€"
                         />
                       </div>
                     </div>
                     <div className="mt-3">
-                      <Label className="text-xs">Açıklama</Label>
+                      <Label className="text-xs">Description</Label>
                       <Textarea
                         value={event.description || ''}
                         onChange={(e) => updateEvent(index, 'description', e.target.value)}
-                        placeholder="Etkinlik detayları"
+                        placeholder="Event details"
                         rows={2}
                       />
                     </div>
@@ -404,13 +404,13 @@ const EditVenueProfile: React.FC = () => {
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <LinkIcon className="w-5 h-5" />
-                Sosyal Medya & Menü
+                Social Media & Menu
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
                 <div>
-                  <Label className="text-xs">Menü URL</Label>
+                  <Label className="text-xs">Menu URL</Label>
                   <Input
                     value={menuUrl}
                     onChange={(e) => setMenuUrl(e.target.value)}

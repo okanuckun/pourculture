@@ -89,14 +89,14 @@ const EditWinemakerProfile: React.FC = () => {
 
     if (error) {
       toast({
-        title: "Hata",
-        description: "Değişiklikler kaydedilemedi.",
+        title: "Error",
+        description: "Changes could not be saved.",
         variant: "destructive"
       });
     } else {
       toast({
-        title: "Kaydedildi",
-        description: "Profil başarıyla güncellendi."
+        title: "Saved",
+        description: "Profile updated successfully."
       });
     }
     
@@ -218,32 +218,32 @@ const EditWinemakerProfile: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Üzüm</Label>
+                        <Label className="text-xs">Grape</Label>
                         <Input
                           value={wine.grape || ''}
                           onChange={(e) => updateWine(index, 'grape', e.target.value)}
-                          placeholder="Üzüm çeşidi"
+                          placeholder="Grape variety"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Bölge</Label>
+                        <Label className="text-xs">Region</Label>
                         <Input
                           value={wine.region || ''}
                           onChange={(e) => updateWine(index, 'region', e.target.value)}
-                          placeholder="Bölge"
+                          placeholder="Region"
                         />
                       </div>
                       <div>
-                        <Label className="text-xs">Yıl</Label>
+                        <Label className="text-xs">Year</Label>
                         <Input
                           value={wine.year || ''}
                           onChange={(e) => updateWine(index, 'year', e.target.value)}
-                          placeholder="örn: 2021"
+                          placeholder="e.g. 2021"
                         />
                       </div>
                     </div>
                     <div className="mt-3">
-                      <Label className="text-xs">Açıklama</Label>
+                      <Label className="text-xs">Description</Label>
                       <Input
                         value={wine.description || ''}
                         onChange={(e) => updateWine(index, 'description', e.target.value)}

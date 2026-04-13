@@ -526,8 +526,8 @@ export default function Feed() {
 
   const handleCreatePost = async () => {
     if (!userId) return;
-    if (!imageFile) { toast.error('Fotoğraf ekleyin'); return; }
-    if (!city.trim() || !country.trim()) { toast.error('Şehir ve ülke gerekli'); return; }
+    if (!imageFile) { toast.error('Please add a photo'); return; }
+    if (!city.trim() || !country.trim()) { toast.error('City and country are required'); return; }
 
     setCreating(true);
     try {
@@ -562,7 +562,7 @@ export default function Feed() {
       resetForm();
       loadPosts();
     } catch (err: any) {
-      toast.error(err.message || 'Hata oluştu');
+      toast.error(err.message || 'Something went wrong');
     }
     setCreating(false);
   };
@@ -596,7 +596,7 @@ export default function Feed() {
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" onPointerDownOutside={(e) => e.preventDefault()}>
               <DialogHeader>
-                <DialogTitle>Yeni Post</DialogTitle>
+                <DialogTitle>New Post</DialogTitle>
               </DialogHeader>
 
               {/* Post As selector */}
@@ -613,7 +613,7 @@ export default function Feed() {
                           : 'bg-muted text-muted-foreground border-border hover:border-primary/50'
                       }`}
                     >
-                      <User className="w-3 h-3" /> Kendim
+                      <User className="w-3 h-3" /> Myself
                     </button>
                     {ownedVenues.map(v => (
                       <button
@@ -645,7 +645,7 @@ export default function Feed() {
                 ) : (
                   <label className="flex flex-col items-center justify-center h-32 border-2 border-dashed border-border rounded-lg cursor-pointer hover:border-primary/50 transition-colors">
                     <ImageIcon className="w-8 h-8 text-muted-foreground mb-1" />
-                    <span className="text-xs text-muted-foreground">Fotoğraf seç</span>
+                    <span className="text-xs text-muted-foreground">Choose photo</span>
                     <input type="file" accept="image/*" onChange={handleImageChange} className="hidden" />
                   </label>
                 )}
@@ -653,11 +653,11 @@ export default function Feed() {
 
               {/* Wine info */}
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Şarap adı" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
-                <Input placeholder="Üretici" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
-                <Input placeholder="Yıl" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
-                <Input placeholder="Tür (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
-                <Input placeholder="Puan (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
+                <Input placeholder="Wine name" value={wineName} onChange={e => setWineName(e.target.value)} className="text-sm" />
+                <Input placeholder="Producer" value={winery} onChange={e => setWinery(e.target.value)} className="text-sm" />
+                <Input placeholder="Year" value={vintage} onChange={e => setVintage(e.target.value)} className="text-sm" />
+                <Input placeholder="Type (Red, White...)" value={wineType} onChange={e => setWineType(e.target.value)} className="text-sm" />
+                <Input placeholder="Rating (0-100)" type="number" value={rating} onChange={e => setRating(e.target.value)} className="text-sm" />
               </div>
 
               {/* Venue search */}
@@ -666,7 +666,7 @@ export default function Feed() {
                   <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input
-                      placeholder="Mekan ara..."
+                      placeholder="Search venue..."
                       value={venueSearch}
                       onChange={e => handleVenueSearchChange(e.target.value)}
                       className="text-sm pl-8"
@@ -696,11 +696,11 @@ export default function Feed() {
               )}
 
               <div className="grid grid-cols-2 gap-2">
-                <Input placeholder="Şehir *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
-                <Input placeholder="Ülke *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                <Input placeholder="City *" value={city} onChange={e => setCity(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
+                <Input placeholder="Country *" value={country} onChange={e => setCountry(e.target.value)} className="text-sm" disabled={!!postAsVenueId} />
               </div>
 
-              <Textarea placeholder="Notlar..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
+              <Textarea placeholder="Notes..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
 
               <Button onClick={handleCreatePost} disabled={creating} className="w-full">
                 {creating ? 'Sharing...' : 'Share'}

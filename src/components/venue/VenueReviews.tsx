@@ -5,7 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 interface Review {
   id: string;
@@ -96,7 +96,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
     if (!userId) {
       toast({
         title: "Please sign in",
-        description: "Yorum yapmak için lütfen giriş yapın.",
+        description: "Please sign in to leave a review.",
         variant: "destructive"
       });
       return;
@@ -104,8 +104,8 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
 
     if (newRating === 0) {
       toast({
-        title: "Puan seçin",
-        description: "Lütfen 1-5 arasında bir puan seçin.",
+        title: "Select rating",
+        description: "Please select a rating between 1-5.",
         variant: "destructive"
       });
       return;
@@ -150,14 +150,14 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
 
     if (result.error) {
       toast({
-        title: "Hata",
-        description: "Yorumunuz kaydedilemedi. Lütfen tekrar deneyin.",
+        title: "Error",
+        description: "Your review could not be saved. Please try again.",
         variant: "destructive"
       });
     } else {
       toast({
         title: userReview ? "Updated" : "Review added",
-        description: userReview ? "Yorumunuz güncellendi." : "Yorumunuz başarıyla eklendi."
+        description: userReview ? "Your review has been updated." : "Your review has been added."
       });
       fetchReviews();
     }
@@ -173,12 +173,12 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <MessageSquare className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Müşteri Yorumları</h2>
+        <h2 className="text-lg font-semibold text-foreground">Customer Reviews</h2>
         {reviews.length > 0 && (
           <div className="flex items-center gap-1 ml-2">
             <Star className="w-4 h-4 fill-yellow-500 text-yellow-500" />
             <span className="font-medium">{averageRating.toFixed(1)}</span>
-            <span className="text-muted-foreground text-sm">({reviews.length} yorum)</span>
+            <span className="text-muted-foreground text-sm">({reviews.length} reviews)</span>
           </div>
         )}
       </div>
@@ -186,7 +186,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
       {userId && (
         <div className="p-4 rounded-lg bg-muted/50 mb-4">
           <p className="text-sm font-medium text-foreground mb-2">
-            {userReview ? 'Yorumunuzu güncelleyin' : 'Yorum ekleyin'}
+            {userReview ? 'Update your review' : 'Leave a review'}
           </p>
           
           <div className="flex gap-1 mb-3">
@@ -229,11 +229,11 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
       )}
 
       {loading ? (
-        <div className="text-muted-foreground text-sm">Yükeniyor...</div>
+        <div className="text-muted-foreground text-sm">Loading...</div>
       ) : reviews.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground">
           <MessageSquare className="w-12 h-12 mx-auto mb-2 opacity-50" />
-          <p>Henüz yorum yok. İlk yorumu siz yapın!</p>
+          <p>No reviews yet. Be the first to leave one!</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -246,10 +246,10 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
                   </div>
                   <div>
                     <p className="font-medium text-foreground text-sm">
-                      {review.profile?.display_name || 'Anonim'}
+                      {review.profile?.display_name || 'Anonymous'}
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: tr })}
+                      {formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: enUS })}
                     </p>
                   </div>
                 </div>

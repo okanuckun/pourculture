@@ -2,7 +2,7 @@ import React from 'react';
 import { Calendar, Clock, MapPin, Ticket } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { format } from 'date-fns';
-import { tr } from 'date-fns/locale';
+import { enUS } from 'date-fns/locale';
 
 interface VenueEvent {
   title: string;
@@ -37,7 +37,7 @@ export const VenueEvents: React.FC<VenueEventsProps> = ({ events }) => {
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <Calendar className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Yaklaşan Etkinlikler</h2>
+        <h2 className="text-lg font-semibold text-foreground">Upcoming Events</h2>
         <span className="text-muted-foreground text-sm">({upcomingEvents.length})</span>
       </div>
       
@@ -57,7 +57,7 @@ export const VenueEvents: React.FC<VenueEventsProps> = ({ events }) => {
                   <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="w-3.5 h-3.5" />
-                      {format(eventDate, 'd MMMM yyyy', { locale: tr })}
+                      {format(eventDate, 'd MMMM yyyy', { locale: enUS })}
                     </span>
                     {event.time && (
                       <span className="inline-flex items-center gap-1">
@@ -81,7 +81,7 @@ export const VenueEvents: React.FC<VenueEventsProps> = ({ events }) => {
                 {event.ticket_url && (
                   <a href={event.ticket_url} target="_blank" rel="noopener noreferrer">
                     <Button size="sm" variant="outline">
-                      Bilet Al
+                      Get Tickets
                     </Button>
                   </a>
                 )}

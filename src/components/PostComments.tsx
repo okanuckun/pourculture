@@ -71,7 +71,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
 
   const handleSubmit = async () => {
     if (!newComment.trim() || !userId) {
-      if (!userId) toast.error('Yorum yapmak için giriş yapın');
+      if (!userId) toast.error('Sign in to comment');
       return;
     }
 
@@ -83,7 +83,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
     } as any);
 
     if (error) {
-      toast.error('Yorum gönderilemedi');
+      toast.error('Failed to send comment');
       console.error(error);
     } else {
       setNewComment('');
@@ -96,7 +96,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
   const handleDelete = async (commentId: string) => {
     const { error } = await supabase.from('post_comments').delete().eq('id', commentId);
     if (error) {
-      toast.error('Yorum silinemedi');
+      toast.error('Failed to delete comment');
     } else {
       setComments(prev => prev.filter(c => c.id !== commentId));
       onCommentCountChange(postId, -1);
@@ -112,7 +112,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
         className="flex items-center gap-1.5 w-full px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
         <MessageCircle className="w-3.5 h-3.5" />
-        <span>{commentCount} yorum</span>
+        <span>{commentCount} comments</span>
         {expanded ? <ChevronUp className="w-3 h-3 ml-auto" /> : <ChevronDown className="w-3 h-3 ml-auto" />}
       </button>
 
@@ -120,9 +120,9 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
         <div className="px-4 pb-3 space-y-2">
           {/* Comments list */}
           {loading ? (
-            <p className="text-[10px] text-muted-foreground">Yükleniyor...</p>
+            <p className="text-[10px] text-muted-foreground">Loading...</p>
           ) : comments.length === 0 ? (
-            <p className="text-[10px] text-muted-foreground">Henüz yorum yok</p>
+            <p className="text-[10px] text-muted-foreground">No comments yet</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {comments.map(c => (
@@ -154,7 +154,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
             <Input
               value={newComment}
               onChange={e => setNewComment(e.target.value)}
-              placeholder={userId ? "Yorum yaz..." : "Giriş yapın"}
+              placeholder={userId ? "Write a comment..." : "Sign in"}
               className="h-8 text-xs"
               disabled={!userId || submitting}
               onKeyDown={e => e.key === 'Enter' && handleSubmit()}

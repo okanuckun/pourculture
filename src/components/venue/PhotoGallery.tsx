@@ -30,7 +30,7 @@ export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, venueName })
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <Camera className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Fotoğraf Galerisi</h2>
+        <h2 className="text-lg font-semibold text-foreground">Photo Gallery</h2>
         <span className="text-muted-foreground text-sm">({photos.length})</span>
       </div>
       

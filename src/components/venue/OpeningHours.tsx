@@ -7,13 +7,13 @@ interface OpeningHoursProps {
 
 const DAY_ORDER = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
 const DAY_NAMES: Record<string, string> = {
-  monday: 'Pazartesi',
-  tuesday: 'Salı',
-  wednesday: 'Çarşamba',
-  thursday: 'Perşembe',
-  friday: 'Cuma',
-  saturday: 'Cumartesi',
-  sunday: 'Pazar',
+  monday: 'Monday',
+  tuesday: 'Tuesday',
+  wednesday: 'Wednesday',
+  thursday: 'Thursday',
+  friday: 'Friday',
+  saturday: 'Saturday',
+  sunday: 'Sunday',
 };
 
 export const OpeningHours: React.FC<OpeningHoursProps> = ({ hours }) => {
@@ -46,7 +46,7 @@ export const OpeningHours: React.FC<OpeningHoursProps> = ({ hours }) => {
     <section className="mb-8">
       <div className="flex items-center gap-2 mb-4">
         <Clock className="w-5 h-5 text-primary" />
-        <h2 className="text-lg font-semibold text-foreground">Çalışma Saatleri</h2>
+        <h2 className="text-lg font-semibold text-foreground">Opening Hours</h2>
       </div>
       
       <div className="rounded-lg bg-muted/50 overflow-hidden">
@@ -73,12 +73,12 @@ export const OpeningHours: React.FC<OpeningHoursProps> = ({ hours }) => {
                       ? 'bg-status-open/10 text-status-open' 
                       : 'bg-status-closed/10 text-status-closed'
                   }`}>
-                    {isCurrentlyOpen ? 'Açık' : 'Kapalı'}
+                    {isCurrentlyOpen ? 'Open' : 'Closed'}
                   </span>
                 )}
               </div>
               <span className={`text-sm ${isClosed ? 'text-muted-foreground' : 'text-foreground'}`}>
-                {isClosed ? 'Kapalı' : dayHours}
+                {isClosed ? 'Closed' : dayHours}
               </span>
             </div>
           );

@@ -168,13 +168,13 @@ const RaisinHome = () => {
             className="text-center mb-8"
           >
             <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent/10 text-accent text-xs font-medium mb-3">
-              <Sparkles className="w-3 h-3" /> Kişisel Rehber
+              <Sparkles className="w-3 h-3" /> Personal Guide
             </span>
             <h2 className="text-3xl md:text-4xl font-display font-bold text-foreground">
-              Hangi şarap <span className="text-primary">sana göre?</span>
+              Which wine is <span className="text-primary">right for you?</span>
             </h2>
             <p className="text-muted-foreground mt-2 max-w-lg mx-auto">
-              Birkaç basit soruyla damak tadına en uygun şarabı keşfet.
+              Discover the wine that suits your palate with a few simple questions.
             </p>
           </motion.div>
 

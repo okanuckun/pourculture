@@ -70,8 +70,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     const remainingSlots = maxPhotos - photos.length;
     if (remainingSlots <= 0) {
       toast({
-        title: "Limit aşıldı",
-        description: `Maksimum ${maxPhotos} fotoğraf yükleyebilirsiniz.`,
+        title: "Limit reached",
+        description: `You can upload a maximum of ${maxPhotos} photos.`,
         variant: "destructive"
       });
       return;
@@ -84,12 +84,12 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       const uploadPromises = filesToUpload.map(async (file) => {
         // Validate file type
         if (!file.type.startsWith('image/')) {
-          throw new Error(`${file.name} bir resim dosyası değil.`);
+          throw new Error(`${file.name} is not an image file.`);
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-          throw new Error(`${file.name} 5MB'dan büyük.`);
+          throw new Error(`${file.name} exceeds 5MB.`);
         }
 
         // Generate unique filename
@@ -119,13 +119,13 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       
       toast({
         title: "Uploaded",
-        description: `${uploadedUrls.length} fotoğraf başarıyla yüklendi.`
+        description: `${uploadedUrls.length} photos uploaded successfully.`
       });
     } catch (error: any) {
       console.error('Upload error:', error);
       toast({
         title: "Upload error",
-        description: error.message || "Fotoğraf yüklenirken bir hata oluştu.",
+        description: error.message || "An error occurred while uploading photos.",
         variant: "destructive"
       });
     } finally {
@@ -141,8 +141,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
     
     if (photos.length >= maxPhotos) {
       toast({
-        title: "Limit aşıldı",
-        description: `Maksimum ${maxPhotos} fotoğraf ekleyebilirsiniz.`,
+        title: "Limit reached",
+        description: `You can add a maximum of ${maxPhotos} photos.`,
         variant: "destructive"
       });
       return;
@@ -155,8 +155,8 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
       setUrlInput('');
     } catch {
       toast({
-        title: "Geçersiz URL",
-        description: "Lütfen geçerli bir URL girin.",
+        title: "Invalid URL",
+        description: "Please enter a valid URL.",
         variant: "destructive"
       });
     }
@@ -267,7 +267,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
           <Input
             value={urlInput}
             onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="veya URL yapıştırın..."
+            placeholder="or paste URL..."
             disabled={photos.length >= maxPhotos}
             onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addUrlPhoto())}
           />
@@ -283,7 +283,7 @@ export const PhotoUploader: React.FC<PhotoUploaderProps> = ({
 
         {/* Photo count */}
         <p className="text-xs text-muted-foreground text-center">
-          {photos.length} / {maxPhotos} fotoğraf
+          {photos.length} / {maxPhotos} photos
         </p>
       </div>
     </div>
