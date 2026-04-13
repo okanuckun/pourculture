@@ -77,11 +77,12 @@ export default function Feed() {
 
   const searchVenues = async (query: string) => {
     if (query.length < 2) { setVenueResults([]); setShowVenueDropdown(false); return; }
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('venues')
       .select('id, name, city, country')
       .ilike('name', `%${query}%`)
       .limit(5);
+    console.log('Venue search results:', query, data, error);
     setVenueResults(data || []);
     setShowVenueDropdown((data || []).length > 0);
   };
@@ -341,25 +342,23 @@ export default function Feed() {
 
               {/* Venue search */}
               {!postAsVenueId && (
-                <div className="relative">
+                <div>
                   <div className="relative">
                     <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                     <Input
                       placeholder="Mekan ara..."
                       value={venueSearch}
                       onChange={e => handleVenueSearchChange(e.target.value)}
-                      onFocus={() => venueResults.length > 0 && setShowVenueDropdown(true)}
-                      onBlur={() => setTimeout(() => setShowVenueDropdown(false), 200)}
                       className="text-sm pl-8"
                     />
                   </div>
-                  {showVenueDropdown && (
-                    <div className="absolute z-50 w-full mt-1 bg-background border border-border rounded-md shadow-lg max-h-40 overflow-y-auto">
+                  {showVenueDropdown && venueResults.length > 0 && (
+                    <div className="mt-1 bg-muted/50 border border-border rounded-md max-h-40 overflow-y-auto">
                       {venueResults.map(v => (
                         <button
                           key={v.id}
                           type="button"
-                          onMouseDown={() => selectSearchedVenue(v)}
+                          onClick={() => selectSearchedVenue(v)}
                           className="w-full text-left px-3 py-2 text-xs hover:bg-muted transition-colors flex items-center gap-2"
                         >
                           <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
