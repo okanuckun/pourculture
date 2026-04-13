@@ -47,6 +47,7 @@ const UserProfile = lazy(() => import("./pages/UserProfile"));
 const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Index = lazy(() => import("./pages/Index"));
 const SEOAdmin = lazy(() => import("./pages/admin/SEOAdmin"));
+const Journal = lazy(() => import("./pages/Journal"));
 
 function PageLoader() {
   return (
@@ -74,6 +75,7 @@ const App = () => (
         <Route path="/wine-routes/:slug/edit" element={<EditRoute />} />
         <Route path="/profile/:userId" element={<UserProfile />} />
         <Route path="/profile/edit" element={<EditProfile />} />
+        <Route path="/journal" element={<Journal />} />
         <Route path="/knowledge" element={<KnowledgeHub />} />
         <Route path="/people" element={<People />} />
         <Route path="/forum" element={<Forum />} />

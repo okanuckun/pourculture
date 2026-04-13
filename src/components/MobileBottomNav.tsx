@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-const baseTabs = [
+const publicTabs = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/wine-routes', label: 'Routes', icon: Route },
   { path: '/knowledge', label: 'Learn', icon: BookOpen },
@@ -12,22 +12,22 @@ const baseTabs = [
 
 export function MobileBottomNav() {
   const location = useLocation();
-  const [userId, setUserId] = useState<string | null>(null);
+  const [loggedIn, setLoggedIn] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setUserId(session?.user?.id ?? null);
+      setLoggedIn(!!session?.user);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUserId(session?.user?.id ?? null);
+      setLoggedIn(!!session?.user);
     });
     return () => subscription.unsubscribe();
   }, []);
 
   const tabs = [
-    ...baseTabs.slice(0, 2),
-    ...(userId ? [{ path: `/profile/${userId}`, label: 'Journal', icon: Wine }] : []),
-    ...baseTabs.slice(2),
+    ...publicTabs.slice(0, 2),
+    ...(loggedIn ? [{ path: '/journal', label: 'Journal', icon: Wine }] : []),
+    ...publicTabs.slice(2),
   ];
 
   return (
