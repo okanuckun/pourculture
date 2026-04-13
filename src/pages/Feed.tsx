@@ -591,7 +591,7 @@ export default function Feed() {
                     <span>{post.city}, {post.country}</span>
                     {post.venue_name && (
                       post.venue_slug ? (
-                        <Link to={`/venue/${post.venue_slug}`} className="hover:underline">· {post.venue_name}</Link>
+                        <Link to={`/venue/${post.venue_slug}`} className="underline font-medium text-foreground/70 hover:text-foreground" onClick={(e) => e.stopPropagation()}>· {post.venue_name}</Link>
                       ) : (
                         <span>· {post.venue_name}</span>
                       )
