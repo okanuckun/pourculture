@@ -161,20 +161,6 @@ const UserProfile = () => {
         setCompletedRoutes(completed);
       }
 
-      // Fetch created routes (if verified)
-      if (effectiveProfile.is_verified) {
-        const { data: routesData } = await supabase
-          .from('wine_routes')
-          .select('id, title, slug, region, country, is_curated, venue_count')
-          .eq('created_by', userId)
-          .eq('is_published', true)
-          .order('created_at', { ascending: false });
-
-        if (routesData) {
-          setCreatedRoutes(routesData as CreatedRoute[]);
-        }
-      }
-
       // Fetch scanned wines (visible to everyone)
       {
         const { data: winesData } = await supabase
@@ -189,28 +175,6 @@ const UserProfile = () => {
           setFavoriteWines(winesData as FavoriteWine[]);
         }
       }
-
-      // Fetch owned venues & winemakers (only for own profile)
-      if (currentUser?.id === userId) {
-        const { data: venuesData } = await supabase
-          .from('venues')
-          .select('id, name, slug, category, city, country, image_url')
-          .eq('owner_id', userId);
-
-        if (venuesData) {
-          setOwnedVenues(venuesData as OwnedVenue[]);
-        }
-
-        const { data: winemakersData } = await supabase
-          .from('winemakers')
-          .select('id, name, slug, region, country, image_url')
-          .eq('owner_id', userId);
-
-        if (winemakersData) {
-          setOwnedWinemakers(winemakersData as OwnedWinemaker[]);
-        }
-      }
-    } catch (error) {
       if (import.meta.env.DEV) console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
