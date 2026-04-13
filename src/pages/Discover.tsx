@@ -183,28 +183,24 @@ const Discover = () => {
         description="Explore natural wine venues and events near you."
       />
 
-      {/* Map with overlaid title */}
-      <div className="relative border-b border-foreground/20">
+      {/* Map section */}
+      <div className="border-b border-foreground/20">
         <DiscoverMap
           venues={isEventsView ? [] : sortedVenues}
           userCoords={userCoords}
           onVenueClick={(slug) => navigate(`/venue/${slug}`)}
         />
-        {/* Overlay: title + location */}
-        <div className="absolute bottom-0 left-0 right-0 pointer-events-none">
-          <div className="bg-gradient-to-t from-background/90 via-background/50 to-transparent pt-12 pb-3 px-4">
-            <div className="flex items-end gap-2">
-              <h1 className="text-2xl md:text-4xl font-bold tracking-tight leading-none">
-                Discover
-              </h1>
-              {userCity && (
-                <span className="text-[10px] tracking-wider text-muted-foreground flex items-center gap-1 pb-0.5">
-                  <MapPin className="w-3 h-3" />
-                  NEAR {userCity.toUpperCase()}
-                </span>
-              )}
-            </div>
-          </div>
+        {/* Title bar below map */}
+        <div className="px-4 py-3 flex items-center gap-2">
+          <h1 className="text-xl md:text-3xl font-bold tracking-tight leading-none">
+            Discover
+          </h1>
+          {userCity && (
+            <span className="text-[10px] tracking-wider text-muted-foreground flex items-center gap-1">
+              <MapPin className="w-3 h-3" />
+              NEAR {userCity.toUpperCase()}
+            </span>
+          )}
         </div>
       </div>
 
