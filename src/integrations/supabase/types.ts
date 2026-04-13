@@ -1307,6 +1307,7 @@ export type Database = {
           terroir: Json | null
           updated_at: string
           user_id: string
+          user_notes: string | null
           vintage: string | null
           wine_name: string
           wine_type: string | null
@@ -1331,6 +1332,7 @@ export type Database = {
           terroir?: Json | null
           updated_at?: string
           user_id: string
+          user_notes?: string | null
           vintage?: string | null
           wine_name: string
           wine_type?: string | null
@@ -1355,6 +1357,7 @@ export type Database = {
           terroir?: Json | null
           updated_at?: string
           user_id?: string
+          user_notes?: string | null
           vintage?: string | null
           wine_name?: string
           wine_type?: string | null

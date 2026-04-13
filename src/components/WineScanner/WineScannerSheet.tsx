@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, Share2 } from 'lucide-react';
+import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, Share2, ImageIcon } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -51,6 +51,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
   const [user, setUser] = useState<any>(null);
   const [currentSavedId, setCurrentSavedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -70,6 +71,10 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
 
   const handleCapture = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleGallery = () => {
+    galleryInputRef.current?.click();
   };
 
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -198,9 +203,8 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     setWineInfo(null);
     setCurrentSavedId(null);
     
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (galleryInputRef.current) galleryInputRef.current.value = '';
   };
 
   const handleClose = () => {
@@ -233,8 +237,15 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                   onChange={handleFileChange}
                   className="hidden"
                 />
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFileChange}
+                  className="hidden"
+                />
 
-                {/* Initial State - Show Camera Button */}
+                {/* Initial State - Show Camera & Gallery Buttons */}
                 {!capturedImage && !isAnalyzing && (
                   <div className="flex flex-col items-center justify-center py-8 space-y-6">
                     <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
@@ -243,13 +254,19 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     <div className="text-center space-y-2">
                       <h3 className="text-lg font-bold tracking-tight">Scan Wine Label</h3>
                       <p className="text-sm text-muted-foreground max-w-[250px]">
-                        Point your camera at any wine bottle — AI will identify it instantly.
+                        Take a photo or upload an existing one — AI will identify it instantly.
                       </p>
                     </div>
-                    <Button onClick={handleCapture} size="lg" className="gap-2 w-full max-w-xs h-12">
-                      <Camera className="h-5 w-5" />
-                      Open Camera
-                    </Button>
+                    <div className="flex flex-col gap-3 w-full max-w-xs">
+                      <Button onClick={handleCapture} size="lg" className="gap-2 w-full h-12">
+                        <Camera className="h-5 w-5" />
+                        Open Camera
+                      </Button>
+                      <Button onClick={handleGallery} size="lg" variant="outline" className="gap-2 w-full h-12">
+                        <ImageIcon className="h-5 w-5" />
+                        Upload Photo
+                      </Button>
+                    </div>
                   </div>
                 )}
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Calendar, Trophy, Loader2, Award, Star, Wine, Grape, Camera, Store, Edit, ExternalLink, Plus, Heart, StickyNote } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -62,6 +62,8 @@ interface FavoriteWine {
   aging_potential: string | null;
   food_pairing: string[] | null;
   rating: number | null;
+  is_favorite: boolean;
+  user_notes: string | null;
   tasting_notes: {
     aroma?: string[];
     palate?: string[];
@@ -205,21 +207,23 @@ const UserProfile = () => {
         }
       }
 
-      // Fetch favorite wines (only for own profile)
-      if (currentUser?.id === userId) {
+      // Fetch scanned wines (visible to everyone)
+      {
         const { data: winesData } = await supabase
           .from('wine_scan_history')
-          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, created_at')
-          .eq('user_id', userId)
-          .eq('is_favorite', true)
+          .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, is_favorite, user_notes, created_at')
+          .eq('user_id', userId!)
+          .order('is_favorite', { ascending: false })
           .order('created_at', { ascending: false })
-          .limit(12);
+          .limit(50);
 
         if (winesData) {
           setFavoriteWines(winesData as FavoriteWine[]);
         }
+      }
 
-        // Fetch owned venues (only for own profile)
+      // Fetch owned venues & winemakers (only for own profile)
+      if (currentUser?.id === userId) {
         const { data: venuesData } = await supabase
           .from('venues')
           .select('id, name, slug, category, city, country, image_url')
@@ -229,7 +233,6 @@ const UserProfile = () => {
           setOwnedVenues(venuesData as OwnedVenue[]);
         }
 
-        // Fetch owned winemakers (only for own profile)
         const { data: winemakersData } = await supabase
           .from('winemakers')
           .select('id, name, slug, region, country, image_url')
@@ -440,44 +443,58 @@ const UserProfile = () => {
         )}
 
         {/* Favorite Wines (only visible on own profile - always show section) */}
-        {isOwnProfile && (
-          <section className="mb-8">
+        <section className="mb-8">
             <div className="flex items-center gap-2 mb-4">
               <Wine className="w-5 h-5 text-rose-500" />
-              <h2 className="text-lg font-bold tracking-tight">MY FAVORITE WINES</h2>
+              <h2 className="text-lg font-bold tracking-tight">
+                {isOwnProfile ? 'MY WINE JOURNAL' : 'WINE JOURNAL'}
+              </h2>
               {favoriteWines.length > 0 && (
                 <span className="text-sm text-muted-foreground">({favoriteWines.length} wines)</span>
               )}
             </div>
             
             {favoriteWines.length === 0 ? (
-              <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
-                <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 rounded-full flex items-center justify-center">
-                  <Wine className="w-8 h-8 text-rose-400" />
+              isOwnProfile ? (
+                <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
+                  <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-rose-100 to-rose-200 dark:from-rose-900/30 dark:to-rose-800/30 rounded-full flex items-center justify-center">
+                    <Wine className="w-8 h-8 text-rose-400" />
+                  </div>
+                  <h3 className="font-bold text-sm mb-2">No scanned wines yet</h3>
+                  <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
+                    Use the Wine Scanner to scan wine labels and build your journal.
+                  </p>
+                  <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium">
+                    <Camera className="w-4 h-4" />
+                    Use the Wine Scanner button
+                  </div>
                 </div>
-                <h3 className="font-bold text-sm mb-2">No favorite wines yet</h3>
-                <p className="text-xs text-muted-foreground mb-4 max-w-xs mx-auto">
-                  Use the Wine Scanner to scan wine labels and add your favorites.
-                </p>
-                <div className="inline-flex items-center gap-2 px-3 py-2 bg-primary text-primary-foreground text-xs font-medium">
-                  <Camera className="w-4 h-4" />
-                  Use the Wine Scanner button
+              ) : (
+                <div className="border-2 border-dashed border-foreground/20 p-6 text-center">
+                  <p className="text-sm text-muted-foreground">No wines scanned yet.</p>
                 </div>
-              </div>
+              )
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                 {favoriteWines.map((wine, index) => (
                   <motion.div
                     key={wine.id}
                     initial={{ opacity: 0, scale: 0.9 }}
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: index * 0.05 }}
-                    className="border-2 border-foreground/20 hover:border-foreground/40 p-3 transition-colors cursor-pointer"
+                    className={`border-2 ${wine.is_favorite ? 'border-rose-500/40' : 'border-foreground/20'} hover:border-foreground/40 p-3 transition-colors cursor-pointer relative`}
                     onClick={() => {
                       setSelectedWine(wine);
                       setWineModalOpen(true);
                     }}
                   >
+                    {/* Favorite indicator */}
+                    {wine.is_favorite && (
+                      <div className="absolute top-2 right-2 z-10">
+                        <Heart className="w-4 h-4 text-rose-500 fill-rose-500" />
+                      </div>
+                    )}
+
                     {wine.image_url ? (
                       <div className="aspect-square mb-2 bg-muted overflow-hidden">
                         <img 
@@ -513,6 +530,13 @@ const UserProfile = () => {
                         {wine.vintage}
                       </span>
                     )}
+                    {/* Show note preview */}
+                    {wine.user_notes && (
+                      <div className="mt-2 flex items-start gap-1 text-[10px] text-muted-foreground bg-muted/50 p-1.5 rounded">
+                        <StickyNote className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                        <p className="line-clamp-2">{wine.user_notes}</p>
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>
@@ -523,9 +547,13 @@ const UserProfile = () => {
               wine={selectedWine}
               open={wineModalOpen}
               onOpenChange={setWineModalOpen}
+              isOwnProfile={isOwnProfile}
+              onUpdate={(updatedWine) => {
+                setFavoriteWines(prev => prev.map(w => w.id === updatedWine.id ? { ...w, ...updatedWine } : w));
+                setSelectedWine(prev => prev ? { ...prev, ...updatedWine } : prev);
+              }}
             />
           </section>
-        )}
 
         {/* Created Routes (for verified users) */}
         {profile.is_verified && createdRoutes.length > 0 && (
