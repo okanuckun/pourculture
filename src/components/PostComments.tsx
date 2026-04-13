@@ -107,6 +107,7 @@ export function PostComments({ postId, userId, commentCount, onCommentCountChang
     <div className="border-t border-border">
       {/* Toggle button */}
       <button
+        id={`comments-${postId}`}
         onClick={() => setExpanded(!expanded)}
         className="flex items-center gap-1.5 w-full px-4 py-2 text-xs text-muted-foreground hover:text-foreground transition-colors"
       >
