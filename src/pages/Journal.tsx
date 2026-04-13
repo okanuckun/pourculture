@@ -106,8 +106,6 @@ const Journal = () => {
   useEffect(() => {
     if (user) {
       fetchJournalData();
-    } else if (user === null && !loading) {
-      navigate('/auth');
     }
   }, [user]);
 
