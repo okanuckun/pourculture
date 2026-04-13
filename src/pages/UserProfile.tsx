@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Loader2, Wine, Store, Edit, ExternalLink, Plus } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Loader2, Wine, Store, Edit, ExternalLink, Plus, UserPlus, UserCheck } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -49,6 +49,10 @@ const UserProfile = () => {
   const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [wineCount, setWineCount] = useState(0);
   const [favoriteWines, setFavoriteWines] = useState<any[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [togglingFollow, setTogglingFollow] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
