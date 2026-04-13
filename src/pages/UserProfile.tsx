@@ -48,6 +48,7 @@ const UserProfile = () => {
   const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
   const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [wineCount, setWineCount] = useState(0);
+  const [favoriteWines, setFavoriteWines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -95,12 +96,21 @@ const UserProfile = () => {
       if (!effectiveProfile) return;
       setProfile(effectiveProfile);
 
-      // Wine count
+      // Wine count + favorites
       const { count } = await supabase
         .from('wine_scan_history')
         .select('id', { count: 'exact', head: true })
         .eq('user_id', userId!);
       setWineCount(count ?? 0);
+
+      const { data: favWines } = await supabase
+        .from('wine_scan_history')
+        .select('id, wine_name, winery, region, country, wine_type, vintage, rating, image_url, created_at')
+        .eq('user_id', userId!)
+        .eq('is_favorite', true)
+        .order('created_at', { ascending: false })
+        .limit(12);
+      setFavoriteWines(favWines || []);
 
       // Owned venues & winemakers (only for own profile)
       if (currentUser?.id === userId) {
@@ -321,6 +331,51 @@ const UserProfile = () => {
                 </div>
               </div>
             )}
+          </section>
+        )}
+
+        {/* Favorite Wines */}
+        {favoriteWines.length > 0 && (
+          <section className="mb-8">
+            <div className="border-2 border-foreground/30 p-6">
+              <h2 className="text-[10px] uppercase tracking-wider text-muted-foreground mb-4">
+                Favorite Wines ({favoriteWines.length})
+              </h2>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                {favoriteWines.map((wine) => (
+                  <motion.div
+                    key={wine.id}
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="border border-foreground/10 overflow-hidden"
+                  >
+                    {wine.image_url ? (
+                      <div className="aspect-square bg-muted overflow-hidden">
+                        <img loading="lazy" src={wine.image_url} alt={wine.wine_name} className="w-full h-full object-cover" />
+                      </div>
+                    ) : (
+                      <div className="aspect-square bg-muted/30 flex items-center justify-center">
+                        <Wine className="w-8 h-8 text-muted-foreground/30" />
+                      </div>
+                    )}
+                    <div className="p-2">
+                      <p className="text-xs font-medium truncate">{wine.wine_name}</p>
+                      {wine.winery && (
+                        <p className="text-[10px] text-muted-foreground truncate">{wine.winery}</p>
+                      )}
+                      <div className="flex items-center gap-1.5 mt-1">
+                        {wine.wine_type && (
+                          <span className="text-[8px] uppercase tracking-wider border border-foreground/20 px-1 py-0.5">{wine.wine_type}</span>
+                        )}
+                        {wine.vintage && (
+                          <span className="text-[8px] text-muted-foreground">{wine.vintage}</span>
+                        )}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </div>
           </section>
         )}
 
