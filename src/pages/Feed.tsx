@@ -201,10 +201,12 @@ export default function Feed() {
       // Track views for these posts
       if (userId && postIds.length > 0) {
         for (const pid of postIds) {
-          supabase.from('post_views').insert({ post_id: pid, viewer_id: userId }).then(() => {
-            // Also increment denormalized count
-            supabase.rpc('increment_view_count', { p_post_id: pid }).catch(() => {});
-          }).catch(() => { /* duplicate view, ignore */ });
+          try {
+            await supabase.from('post_views').insert({ post_id: pid, user_id: userId });
+            await supabase.rpc('increment_view_count', { p_post_id: pid });
+          } catch {
+            // duplicate view, ignore
+          }
         }
       }
 
