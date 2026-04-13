@@ -171,26 +171,35 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
         imageUrl = await uploadImage(capturedImage, user.id);
       }
 
+      // Parse rating safely - AI might return string like "85/100" or number
+      let parsedRating: number | null = null;
+      if (wineInfo.rating != null) {
+        const r = typeof wineInfo.rating === 'string' 
+          ? parseInt(String(wineInfo.rating).replace(/[^0-9]/g, ''), 10)
+          : wineInfo.rating;
+        if (!isNaN(r) && r >= 1 && r <= 100) parsedRating = r;
+      }
+
       const { data, error } = await supabase
         .from('wine_scan_history')
         .insert({
           user_id: user.id,
           wine_name: wineInfo.wineName || 'Unknown Wine',
-          winery: wineInfo.winery,
-          region: wineInfo.region,
-          country: wineInfo.country,
-          grape_variety: wineInfo.grapeVariety,
-          vintage: wineInfo.vintage,
-          wine_type: wineInfo.type,
+          winery: wineInfo.winery || null,
+          region: wineInfo.region || null,
+          country: wineInfo.country || null,
+          grape_variety: wineInfo.grapeVariety || null,
+          vintage: wineInfo.vintage || null,
+          wine_type: wineInfo.type || null,
           terroir: wineInfo.terroir || {},
           tasting_notes: wineInfo.tastingNotes || {},
           food_pairing: wineInfo.foodPairing || [],
-          serving_temperature: wineInfo.servingTemperature,
-          aging_potential: wineInfo.agingPotential,
-          quick_summary: wineInfo.quickSummary,
-          detailed_description: wineInfo.detailedDescription,
-          price_range: wineInfo.priceRange,
-          rating: wineInfo.rating,
+          serving_temperature: wineInfo.servingTemperature || null,
+          aging_potential: wineInfo.agingPotential || null,
+          quick_summary: wineInfo.quickSummary || null,
+          detailed_description: wineInfo.detailedDescription || null,
+          price_range: wineInfo.priceRange || null,
+          rating: parsedRating,
           is_favorite: true,
           image_url: imageUrl,
         })
