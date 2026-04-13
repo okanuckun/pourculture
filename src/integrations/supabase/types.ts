@@ -534,6 +534,35 @@ export type Database = {
           },
         ]
       }
+      post_views: {
+        Row: {
+          id: string
+          post_id: string
+          user_id: string | null
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          post_id: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          post_id?: string
+          user_id?: string | null
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_views_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       posts: {
         Row: {
           caption: string | null
@@ -548,6 +577,7 @@ export type Database = {
           updated_at: string
           user_id: string
           venue_name: string | null
+          view_count: number
           vintage: string | null
           wine_name: string | null
           wine_type: string | null
@@ -566,6 +596,7 @@ export type Database = {
           updated_at?: string
           user_id: string
           venue_name?: string | null
+          view_count?: number
           vintage?: string | null
           wine_name?: string | null
           wine_type?: string | null
@@ -584,6 +615,7 @@ export type Database = {
           updated_at?: string
           user_id?: string
           venue_name?: string | null
+          view_count?: number
           vintage?: string | null
           wine_name?: string | null
           wine_type?: string | null
@@ -1755,6 +1787,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_view_count: { Args: { p_post_id: string }; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
