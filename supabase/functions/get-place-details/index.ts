@@ -9,6 +9,11 @@ interface PlaceDetails {
   place_id: string;
   name: string;
   formatted_address?: string;
+  address_components?: Array<{
+    long_name: string;
+    short_name: string;
+    types: string[];
+  }>;
   formatted_phone_number?: string;
   international_phone_number?: string;
   website?: string;
@@ -67,7 +72,7 @@ serve(async (req) => {
 
     const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
     url.searchParams.set('place_id', placeId);
-    url.searchParams.set('fields', 'place_id,name,formatted_address,formatted_phone_number,international_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,url,reviews');
+    url.searchParams.set('fields', 'place_id,name,formatted_address,address_components,formatted_phone_number,international_phone_number,website,rating,user_ratings_total,price_level,opening_hours,photos,geometry,types,url,reviews');
     url.searchParams.set('key', apiKey);
 
     const response = await fetch(url.toString());
@@ -82,6 +87,12 @@ serve(async (req) => {
     }
 
     const place = data.result as PlaceDetails;
+    const city = place.address_components?.find(component =>
+      ['locality', 'postal_town', 'administrative_area_level_2', 'sublocality', 'sublocality_level_1'].some(type =>
+        component.types.includes(type)
+      )
+    )?.long_name;
+    const country = place.address_components?.find(component => component.types.includes('country'))?.long_name;
 
     // Convert photo references to usable URLs
     const photoUrls = place.photos?.slice(0, 5).map(photo => 
@@ -92,6 +103,8 @@ serve(async (req) => {
       id: place.place_id,
       name: place.name,
       address: place.formatted_address,
+      city,
+      country,
       phone: place.formatted_phone_number || place.international_phone_number,
       website: place.website,
       rating: place.rating,
