@@ -46,25 +46,7 @@ interface HarvestReport {
   highlights: string[];
 }
 
-const fallbackGlossary: GlossaryTerm[] = [
-  { id: '1', term: 'Biodynamic', definition: 'A holistic approach to farming that treats the vineyard as a self-sustaining ecosystem.' },
-  { id: '2', term: 'Natural Wine', definition: 'Wine made with minimal intervention and additives.' },
-  { id: '3', term: 'Orange Wine', definition: 'White wine made with extended skin contact.' },
-  { id: '4', term: 'Pét-Nat', definition: 'Pétillant Naturel - a naturally sparkling wine.' },
-  { id: '5', term: 'Terroir', definition: 'The complete natural environment where wine is produced.' },
-];
-
-const fallbackGuides: Guide[] = [
-  { id: '1', title: 'How to Taste Natural Wine', description: "A beginner's guide to understanding natural wine.", read_time: '5 min read', category: 'Beginner' },
-];
-
-const fallbackPdfs: PdfResource[] = [
-  { id: '1', title: 'Natural Wine 101', description: 'Everything you need to know about natural wine.', pages: 24, file_size: '2.4 MB', file_url: null },
-];
-
-const fallbackReports: HarvestReport[] = [
-  { id: '1', year: 2024, region: 'Loire Valley, France', summary: 'A challenging vintage with excellent results.', highlights: ['Early harvest', 'Low yields'] },
-];
+// No fallbacks — real data comes from database
 
 const categories = ['All', 'Beginner', 'Intermediate', 'Advanced'];
 const alphabet = ['All', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')];
@@ -99,10 +81,10 @@ const KnowledgeHub = () => {
       supabase.from('harvest_reports').select('*').eq('is_published', true).order('year', { ascending: false }),
     ]);
 
-    setGlossaryTerms(glossaryRes.data?.length ? glossaryRes.data : fallbackGlossary);
-    setGuides(guidesRes.data?.length ? guidesRes.data : fallbackGuides);
-    setPdfResources(pdfsRes.data?.length ? pdfsRes.data : fallbackPdfs);
-    setHarvestReports(reportsRes.data?.length ? reportsRes.data : fallbackReports);
+    setGlossaryTerms(glossaryRes.data || []);
+    setGuides(guidesRes.data || []);
+    setPdfResources(pdfsRes.data || []);
+    setHarvestReports(reportsRes.data || []);
     
     setLoading(false);
   };
