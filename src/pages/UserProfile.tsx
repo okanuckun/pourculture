@@ -36,16 +36,6 @@ interface CompletedRoute {
   };
 }
 
-interface CreatedRoute {
-  id: string;
-  title: string;
-  slug: string;
-  region: string;
-  country: string;
-  is_curated: boolean;
-  venue_count: number;
-}
-
 interface FavoriteWine {
   id: string;
   wine_name: string;
@@ -72,34 +62,12 @@ interface FavoriteWine {
   created_at: string;
 }
 
-interface OwnedVenue {
-  id: string;
-  name: string;
-  slug: string;
-  category: string;
-  city: string;
-  country: string;
-  image_url: string | null;
-}
-
-interface OwnedWinemaker {
-  id: string;
-  name: string;
-  slug: string;
-  region: string | null;
-  country: string;
-  image_url: string | null;
-}
-
 const UserProfile = () => {
   const { userId } = useParams<{ userId: string }>();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [completedRoutes, setCompletedRoutes] = useState<CompletedRoute[]>([]);
-  const [createdRoutes, setCreatedRoutes] = useState<CreatedRoute[]>([]);
   const [favoriteWines, setFavoriteWines] = useState<FavoriteWine[]>([]);
-  const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
-  const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedWine, setSelectedWine] = useState<FavoriteWine | null>(null);
   const [wineModalOpen, setWineModalOpen] = useState(false);
