@@ -472,27 +472,24 @@ export type Database = {
       }
       post_comments: {
         Row: {
-          content: string
+          comment_text: string
           created_at: string
           id: string
           post_id: string
-          updated_at: string
           user_id: string
         }
         Insert: {
-          content: string
+          comment_text: string
           created_at?: string
           id?: string
           post_id: string
-          updated_at?: string
           user_id: string
         }
         Update: {
-          content?: string
+          comment_text?: string
           created_at?: string
           id?: string
           post_id?: string
-          updated_at?: string
           user_id?: string
         }
         Relationships: [
@@ -536,22 +533,22 @@ export type Database = {
       }
       post_views: {
         Row: {
+          created_at: string
           id: string
           post_id: string
-          user_id: string | null
-          viewed_at: string
+          viewer_id: string | null
         }
         Insert: {
+          created_at?: string
           id?: string
           post_id: string
-          user_id?: string | null
-          viewed_at?: string
+          viewer_id?: string | null
         }
         Update: {
+          created_at?: string
           id?: string
           post_id?: string
-          user_id?: string | null
-          viewed_at?: string
+          viewer_id?: string | null
         }
         Relationships: [
           {
@@ -566,16 +563,17 @@ export type Database = {
       posts: {
         Row: {
           caption: string | null
-          city: string | null
-          country: string | null
+          city: string
+          country: string
           created_at: string
           id: string
-          image_url: string | null
+          image_url: string
+          latitude: number | null
+          longitude: number | null
+          post_type: string
           rating: number | null
-          region: string | null
-          tasting_notes: string | null
-          updated_at: string
           user_id: string
+          venue_id: string | null
           venue_name: string | null
           view_count: number
           vintage: string | null
@@ -585,16 +583,17 @@ export type Database = {
         }
         Insert: {
           caption?: string | null
-          city?: string | null
-          country?: string | null
+          city: string
+          country: string
           created_at?: string
           id?: string
-          image_url?: string | null
+          image_url: string
+          latitude?: number | null
+          longitude?: number | null
+          post_type?: string
           rating?: number | null
-          region?: string | null
-          tasting_notes?: string | null
-          updated_at?: string
           user_id: string
+          venue_id?: string | null
           venue_name?: string | null
           view_count?: number
           vintage?: string | null
@@ -604,16 +603,17 @@ export type Database = {
         }
         Update: {
           caption?: string | null
-          city?: string | null
-          country?: string | null
+          city?: string
+          country?: string
           created_at?: string
           id?: string
-          image_url?: string | null
+          image_url?: string
+          latitude?: number | null
+          longitude?: number | null
+          post_type?: string
           rating?: number | null
-          region?: string | null
-          tasting_notes?: string | null
-          updated_at?: string
           user_id?: string
+          venue_id?: string | null
           venue_name?: string | null
           view_count?: number
           vintage?: string | null
@@ -621,7 +621,15 @@ export type Database = {
           wine_type?: string | null
           winery?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "posts_venue_id_fkey"
+            columns: ["venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -1220,6 +1228,7 @@ export type Database = {
           photos: Json | null
           slug: string
           social_links: Json | null
+          source: string
           story: string | null
           updated_at: string
           website: string | null
@@ -1252,6 +1261,7 @@ export type Database = {
           photos?: Json | null
           slug: string
           social_links?: Json | null
+          source?: string
           story?: string | null
           updated_at?: string
           website?: string | null
@@ -1284,6 +1294,7 @@ export type Database = {
           photos?: Json | null
           slug?: string
           social_links?: Json | null
+          source?: string
           story?: string | null
           updated_at?: string
           website?: string | null
