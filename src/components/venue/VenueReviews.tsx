@@ -210,7 +210,7 @@ export const VenueReviews: React.FC<VenueReviewsProps> = ({ venueId, venueType, 
           </div>
           
           <Textarea
-            placeholder="Deneyiminizi paylaşın..."
+            placeholder="Share your experience..."
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
             rows={3}
