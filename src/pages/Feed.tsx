@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PostComments } from '@/components/PostComments';
+import { Link } from 'react-router-dom';
 
 interface Post {
   id: string;
@@ -35,6 +36,7 @@ interface Post {
   comment_count?: number;
   liked_by_me?: boolean;
   posted_as_venue_name?: string;
+  venue_slug?: string;
 }
 
 interface OwnedVenue {
@@ -267,7 +269,7 @@ export default function Feed() {
 
     // Gather user IDs + venue IDs
     const userIds = [...new Set(postsData.map(p => p.user_id))];
-    const venueIds = [...new Set(postsData.filter(p => p.posted_as_venue_id).map(p => p.posted_as_venue_id!))];
+    const venueIds = [...new Set(postsData.flatMap(p => [p.posted_as_venue_id, p.venue_id].filter(Boolean) as string[]))];
     const postIds = postsData.map(p => p.id);
 
     const [profilesRes, likesRes, commentsRes, myLikesRes, venuesRes] = await Promise.all([
@@ -278,7 +280,7 @@ export default function Feed() {
         ? supabase.from('post_likes').select('post_id').eq('user_id', userId).in('post_id', postIds)
         : Promise.resolve({ data: [] }),
       venueIds.length > 0
-        ? supabase.from('venues').select('id, name').in('id', venueIds)
+        ? supabase.from('venues').select('id, name, slug').in('id', venueIds)
         : Promise.resolve({ data: [] }),
     ]);
 
@@ -286,7 +288,11 @@ export default function Feed() {
     (profilesRes.data || []).forEach(p => profileMap.set(p.user_id, p));
 
     const venueMap = new Map<string, string>();
-    (venuesRes.data || []).forEach((v: any) => venueMap.set(v.id, v.name));
+    const venueSlugMap = new Map<string, string>();
+    (venuesRes.data || []).forEach((v: any) => {
+      venueMap.set(v.id, v.name);
+      if (v.slug) venueSlugMap.set(v.id, v.slug);
+    });
 
     const likeCounts = new Map<string, number>();
     (likesRes.data || []).forEach((l: any) => likeCounts.set(l.post_id, (likeCounts.get(l.post_id) || 0) + 1));
@@ -307,6 +313,7 @@ export default function Feed() {
         comment_count: commentCounts.get(p.id) || 0,
         liked_by_me: myLikedPosts.has(p.id),
         posted_as_venue_name: p.posted_as_venue_id ? venueMap.get(p.posted_as_venue_id) : undefined,
+        venue_slug: p.venue_id ? venueSlugMap.get(p.venue_id) : undefined,
       };
     });
 
@@ -558,7 +565,13 @@ export default function Feed() {
                   <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
                     <MapPin className="w-2.5 h-2.5" />
                     <span>{post.city}, {post.country}</span>
-                    {post.venue_name && <span>· {post.venue_name}</span>}
+                    {post.venue_name && (
+                      post.venue_slug ? (
+                        <Link to={`/venue/${post.venue_slug}`} className="hover:underline">· {post.venue_name}</Link>
+                      ) : (
+                        <span>· {post.venue_name}</span>
+                      )
+                    )}
                   </div>
                 </div>
               </div>
