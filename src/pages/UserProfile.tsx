@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Loader2, Wine, Store, Edit, ExternalLink, Plus } from 'lucide-react';
+import { MapPin, Link as LinkIcon, Instagram, Twitter, CheckCircle, Loader2, Wine, Store, Edit, ExternalLink, Plus, UserPlus, UserCheck } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
@@ -49,6 +49,10 @@ const UserProfile = () => {
   const [ownedWinemakers, setOwnedWinemakers] = useState<OwnedWinemaker[]>([]);
   const [wineCount, setWineCount] = useState(0);
   const [favoriteWines, setFavoriteWines] = useState<any[]>([]);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [togglingFollow, setTogglingFollow] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -112,6 +116,25 @@ const UserProfile = () => {
         .limit(12);
       setFavoriteWines(favWines || []);
 
+      // Follow counts
+      const [{ count: followers }, { count: following }] = await Promise.all([
+        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', userId!),
+        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId!),
+      ]);
+      setFollowerCount(followers ?? 0);
+      setFollowingCount(following ?? 0);
+
+      // Am I following this user?
+      if (currentUser?.id && currentUser.id !== userId) {
+        const { data: followRow } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', userId!)
+          .maybeSingle();
+        setIsFollowing(!!followRow);
+      }
+
       // Owned venues & winemakers (only for own profile)
       if (currentUser?.id === userId) {
         const { data: venuesData } = await supabase
@@ -130,6 +153,26 @@ const UserProfile = () => {
       if (import.meta.env.DEV) console.error('Error fetching profile:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleFollow = async () => {
+    if (!currentUser?.id || !userId) return;
+    setTogglingFollow(true);
+    try {
+      if (isFollowing) {
+        await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
+        setIsFollowing(false);
+        setFollowerCount(prev => Math.max(0, prev - 1));
+      } else {
+        await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+        setIsFollowing(true);
+        setFollowerCount(prev => prev + 1);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTogglingFollow(false);
     }
   };
 
@@ -226,20 +269,42 @@ const UserProfile = () => {
                     Journal ({wineCount})
                   </Link>
                 )}
+                {!isOwnProfile && currentUser && (
+                  <button
+                    onClick={handleToggleFollow}
+                    disabled={togglingFollow}
+                    className={`inline-flex items-center gap-1.5 px-4 py-2 text-[10px] font-bold uppercase tracking-wider border-2 transition-colors disabled:opacity-50 ${
+                      isFollowing
+                        ? 'border-foreground/30 hover:border-destructive hover:text-destructive'
+                        : 'border-foreground bg-foreground text-background hover:bg-background hover:text-foreground'
+                    }`}
+                  >
+                    {isFollowing ? <UserCheck className="w-3.5 h-3.5" /> : <UserPlus className="w-3.5 h-3.5" />}
+                    {isFollowing ? 'Following' : 'Follow'}
+                  </button>
+                )}
               </div>
             </div>
           </div>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-2 gap-4 mb-8">
-          <div className="border-2 border-foreground/30 p-4 text-center">
-            <div className="text-2xl font-bold">{wineCount}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines Scanned</div>
+        <div className="grid grid-cols-4 gap-3 mb-8">
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{wineCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Wines</div>
           </div>
-          <div className="border-2 border-foreground/30 p-4 text-center">
-            <div className="text-2xl font-bold">{new Date(profile.created_at).getFullYear()}</div>
-            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Member Since</div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{followerCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Followers</div>
+          </div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{followingCount}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Following</div>
+          </div>
+          <div className="border-2 border-foreground/30 p-3 text-center">
+            <div className="text-xl font-bold">{new Date(profile.created_at).getFullYear()}</div>
+            <div className="text-[10px] text-muted-foreground uppercase tracking-wider">Since</div>
           </div>
         </div>
 
