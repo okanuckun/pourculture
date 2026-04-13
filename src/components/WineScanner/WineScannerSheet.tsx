@@ -128,6 +128,30 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     }
   };
 
+  const uploadImage = async (base64: string, userId: string): Promise<string | null> => {
+    try {
+      const res = await fetch(base64);
+      const blob = await res.blob();
+      const ext = blob.type.split('/')[1] || 'jpg';
+      const fileName = `${userId}/${Date.now()}.${ext}`;
+      
+      const { error } = await supabase.storage
+        .from('wine-images')
+        .upload(fileName, blob, { contentType: blob.type, upsert: false });
+
+      if (error) throw error;
+
+      const { data: urlData } = supabase.storage
+        .from('wine-images')
+        .getPublicUrl(fileName);
+
+      return urlData.publicUrl;
+    } catch (err) {
+      console.error('Image upload failed:', err);
+      return null;
+    }
+  };
+
   const saveToFavorites = async () => {
     if (!user) {
       toast.error('Please sign in to save favorites');
@@ -141,6 +165,12 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     setIsSaving(true);
 
     try {
+      // Upload image to storage
+      let imageUrl: string | null = null;
+      if (capturedImage) {
+        imageUrl = await uploadImage(capturedImage, user.id);
+      }
+
       const { data, error } = await supabase
         .from('wine_scan_history')
         .insert({
@@ -162,6 +192,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
           price_range: wineInfo.priceRange,
           rating: wineInfo.rating,
           is_favorite: true,
+          image_url: imageUrl,
         })
         .select()
         .single();
@@ -169,7 +200,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
       if (error) throw error;
 
       setCurrentSavedId(data.id);
-      toast.success('Wine saved to favorites! 🍷');
+      toast.success('Wine saved to your journal! 🍷');
     } catch (error: any) {
       console.error('Error saving wine:', error);
       toast.error('Failed to save wine');
