@@ -13,7 +13,7 @@ const publicTabs = [
 const authTabs = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/feed', label: 'Feed', icon: Wine },
-  { path: '/journal', label: 'Journal', icon: BookOpen },
+  { path: '/journal', label: 'Journal', icon: Notebook },
   { path: '/knowledge', label: 'Learn', icon: BookOpen },
 ];
 
