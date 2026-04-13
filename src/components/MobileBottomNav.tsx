@@ -1,16 +1,34 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, Route, MessageSquare, User } from 'lucide-react';
+import { Compass, Route, Wine, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
-const tabs = [
+const baseTabs = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/wine-routes', label: 'Routes', icon: Route },
-  { path: '/forum', label: 'Forum', icon: MessageSquare },
-  { path: '/knowledge', label: 'Learn', icon: User },
+  { path: '/knowledge', label: 'Learn', icon: BookOpen },
 ];
 
 export function MobileBottomNav() {
   const location = useLocation();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUserId(session?.user?.id ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const tabs = [
+    ...baseTabs.slice(0, 2),
+    ...(userId ? [{ path: `/profile/${userId}`, label: 'Journal', icon: Wine }] : []),
+    ...baseTabs.slice(2),
+  ];
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-foreground/20 bg-background/95 backdrop-blur-sm">
