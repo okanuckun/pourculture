@@ -116,6 +116,25 @@ const UserProfile = () => {
         .limit(12);
       setFavoriteWines(favWines || []);
 
+      // Follow counts
+      const [{ count: followers }, { count: following }] = await Promise.all([
+        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', userId!),
+        supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId!),
+      ]);
+      setFollowerCount(followers ?? 0);
+      setFollowingCount(following ?? 0);
+
+      // Am I following this user?
+      if (currentUser?.id && currentUser.id !== userId) {
+        const { data: followRow } = await supabase
+          .from('follows')
+          .select('id')
+          .eq('follower_id', currentUser.id)
+          .eq('following_id', userId!)
+          .maybeSingle();
+        setIsFollowing(!!followRow);
+      }
+
       // Owned venues & winemakers (only for own profile)
       if (currentUser?.id === userId) {
         const { data: venuesData } = await supabase
