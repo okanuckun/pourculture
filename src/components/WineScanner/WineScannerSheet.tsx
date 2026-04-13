@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, History, Share2 } from 'lucide-react';
+import { Camera, X, Loader2, Wine, MapPin, Grape, Thermometer, UtensilsCrossed, Star, RotateCcw, Heart, Share2 } from 'lucide-react';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -37,17 +37,6 @@ interface WineInfo {
   rating?: number;
 }
 
-interface SavedWine {
-  id: string;
-  wine_name: string;
-  winery: string | null;
-  region: string | null;
-  country: string | null;
-  wine_type: string | null;
-  vintage: string | null;
-  is_favorite: boolean;
-  created_at: string;
-}
 
 interface WineScannerSheetProps {
   open: boolean;
@@ -60,8 +49,6 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
   const [wineInfo, setWineInfo] = useState<WineInfo | null>(null);
   const [capturedImage, setCapturedImage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
-  const [savedWines, setSavedWines] = useState<SavedWine[]>([]);
-  const [showHistory, setShowHistory] = useState(false);
   const [currentSavedId, setCurrentSavedId] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
@@ -80,28 +67,6 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     return () => subscription.unsubscribe();
   }, []);
 
-  useEffect(() => {
-    if (user && showHistory) {
-      fetchSavedWines();
-    }
-  }, [user, showHistory]);
-
-  const fetchSavedWines = async () => {
-    if (!user) return;
-
-    const { data, error } = await supabase
-      .from('wine_scan_history')
-      .select('id, wine_name, winery, region, country, wine_type, vintage, is_favorite, created_at')
-      .eq('user_id', user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) {
-      console.error('Error fetching saved wines:', error);
-      return;
-    }
-
-    setSavedWines(data || []);
-  };
 
   const handleCapture = () => {
     fileInputRef.current?.click();
@@ -220,7 +185,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
       if (id === currentSavedId) {
         setCurrentSavedId(null);
       }
-      setSavedWines(prev => prev.filter(w => w.id !== id));
+      
       toast.success('Wine removed from favorites');
     } catch (error: any) {
       console.error('Error removing wine:', error);
@@ -232,7 +197,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     setCapturedImage(null);
     setWineInfo(null);
     setCurrentSavedId(null);
-    setShowHistory(false);
+    
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -245,93 +210,21 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     }, 300);
   };
 
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
 
   return (
     <Sheet open={open} onOpenChange={handleClose}>
       <SheetContent side="bottom" className="h-[90vh] rounded-t-3xl p-0">
         <SheetHeader className="p-4 border-b">
-          <div className="flex items-center justify-between">
-            <SheetTitle className="flex items-center gap-2">
-              <Wine className="h-5 w-5 text-primary" />
-              {showHistory ? 'Scan History' : 'Wine Scanner'}
-            </SheetTitle>
-            <div className="flex items-center gap-2">
-              {user && !showHistory && (
-                <Button variant="ghost" size="icon" onClick={() => setShowHistory(true)}>
-                  <History className="h-5 w-5" />
-                </Button>
-              )}
-              {showHistory && (
-                <Button variant="ghost" size="icon" onClick={() => setShowHistory(false)}>
-                  <Camera className="h-5 w-5" />
-                </Button>
-              )}
-            </div>
-          </div>
+          <SheetTitle className="flex items-center gap-2">
+            <Wine className="h-5 w-5 text-primary" />
+            Wine Scanner
+          </SheetTitle>
         </SheetHeader>
 
         <ScrollArea className="h-[calc(90vh-80px)]">
           <div className="p-4 space-y-4">
-            {/* History View */}
-            {showHistory && (
-              <div className="space-y-4">
-                {savedWines.length === 0 ? (
-                  <div className="flex flex-col items-center py-12 space-y-4">
-                    <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
-                      <Wine className="h-10 w-10 text-muted-foreground" />
-                    </div>
-                    <p className="text-muted-foreground text-center">
-                      No saved wines yet.<br />Start by scanning a wine!
-                    </p>
-                    <Button onClick={() => setShowHistory(false)} className="gap-2">
-                      <Camera className="h-4 w-4" />
-                      Scan Wine
-                    </Button>
-                  </div>
-                ) : (
-                  savedWines.map((wine) => (
-                    <div key={wine.id} className="flex items-start gap-3 p-3 bg-muted/30 rounded-lg">
-                      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                        <Wine className="h-5 w-5 text-primary" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm truncate">{wine.wine_name}</h4>
-                        <p className="text-xs text-muted-foreground truncate">
-                          {[wine.winery, wine.region, wine.country].filter(Boolean).join(' • ')}
-                        </p>
-                        <div className="flex items-center gap-2 mt-1">
-                          {wine.wine_type && (
-                            <Badge variant="secondary" className="text-xs">{wine.wine_type}</Badge>
-                          )}
-                          {wine.vintage && (
-                            <Badge variant="outline" className="text-xs">{wine.vintage}</Badge>
-                          )}
-                        </div>
-                        <p className="text-xs text-muted-foreground mt-1">{formatDate(wine.created_at)}</p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="flex-shrink-0 text-destructive hover:text-destructive"
-                        onClick={() => removeFromFavorites(wine.id)}
-                      >
-                        <Heart className="h-4 w-4 fill-current" />
-                      </Button>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
             {/* Camera Input */}
-            {!showHistory && (
+            {(
               <>
                 <input
                   ref={fileInputRef}
