@@ -252,16 +252,20 @@ export const WineDetailModal: React.FC<WineDetailModalProps> = ({ wine, open, on
           {tastingNotes && (
             <div className="border-2 border-foreground/20 p-3 space-y-2">
               <h4 className="text-[10px] uppercase tracking-wider text-muted-foreground">Tasting Notes</h4>
-              {tastingNotes.aroma && tastingNotes.aroma.length > 0 && (
+              {tastingNotes.aroma && (
                 <div>
                   <span className="text-xs font-medium">Aroma: </span>
-                  <span className="text-xs text-muted-foreground">{tastingNotes.aroma.join(', ')}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {Array.isArray(tastingNotes.aroma) ? tastingNotes.aroma.join(', ') : String(tastingNotes.aroma)}
+                  </span>
                 </div>
               )}
-              {tastingNotes.palate && tastingNotes.palate.length > 0 && (
+              {tastingNotes.palate && (
                 <div>
                   <span className="text-xs font-medium">Palate: </span>
-                  <span className="text-xs text-muted-foreground">{tastingNotes.palate.join(', ')}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {Array.isArray(tastingNotes.palate) ? tastingNotes.palate.join(', ') : String(tastingNotes.palate)}
+                  </span>
                 </div>
               )}
               {tastingNotes.finish && (
