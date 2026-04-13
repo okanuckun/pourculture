@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Heart, MessageCircle, MapPin, Wine, Camera, Loader2, Plus, X, Send, ChevronDown, UserPlus, UserCheck,
+  Eye, MessageCircle, MapPin, Wine, Camera, Loader2, Plus, X, Send, ChevronDown, UserPlus, UserCheck,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -38,10 +38,9 @@ interface Post {
   tasting_notes: string | null;
   created_at: string;
   updated_at: string;
+  view_count?: number;
   author_name?: string;
-  like_count?: number;
   comment_count?: number;
-  is_liked?: boolean;
   is_following?: boolean;
 }
 
@@ -199,23 +198,14 @@ export default function Feed() {
         .in('user_id', userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p.display_name]));
 
-      const { data: likes } = await supabase
-        .from('post_likes')
-        .select('post_id')
-        .in('post_id', postIds);
-      const likeCountMap = new Map<string, number>();
-      (likes || []).forEach(l => {
-        likeCountMap.set(l.post_id, (likeCountMap.get(l.post_id) || 0) + 1);
-      });
-
-      let userLikeSet = new Set<string>();
-      if (userId) {
-        const { data: userLikes } = await supabase
-          .from('post_likes')
-          .select('post_id')
-          .eq('user_id', userId)
-          .in('post_id', postIds);
-        userLikeSet = new Set((userLikes || []).map(l => l.post_id));
+      // Track views for these posts
+      if (userId && postIds.length > 0) {
+        for (const pid of postIds) {
+          supabase.from('post_views').insert({ post_id: pid, viewer_id: userId }).then(() => {
+            // Also increment denormalized count
+            supabase.rpc('increment_view_count', { p_post_id: pid }).catch(() => {});
+          }).catch(() => { /* duplicate view, ignore */ });
+        }
       }
 
       const { data: comments } = await supabase
@@ -241,9 +231,8 @@ export default function Feed() {
       const enriched: Post[] = items.map(post => ({
         ...post,
         author_name: profileMap.get(post.user_id) || 'Anonymous',
-        like_count: likeCountMap.get(post.id) || 0,
+        view_count: post.view_count || 0,
         comment_count: commentCountMap.get(post.id) || 0,
-        is_liked: userLikeSet.has(post.id),
         is_following: followingSet.has(post.user_id),
       }));
 
@@ -266,22 +255,6 @@ export default function Feed() {
 
     setPosts(prev => prev.map(p =>
       p.user_id === targetUserId ? { ...p, is_following: !isFollowing } : p
-    ));
-  };
-
-  const handleLike = async (postId: string, isLiked: boolean) => {
-    if (!userId) { toast.error('Sign in to like posts'); return; }
-
-    if (isLiked) {
-      await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
-    } else {
-      await supabase.from('post_likes').insert({ post_id: postId, user_id: userId });
-    }
-
-    setPosts(prev => prev.map(p =>
-      p.id === postId
-        ? { ...p, is_liked: !isLiked, like_count: (p.like_count || 0) + (isLiked ? -1 : 1) }
-        : p
     ));
   };
 
@@ -525,18 +498,15 @@ export default function Feed() {
                 </div>
 
                 <div className="p-4">
-                  {/* Actions */}
+                  {/* Stats */}
                   <div className="flex items-center gap-4 mb-3">
-                    <button
-                      onClick={() => handleLike(post.id, !!post.is_liked)}
-                      className={`flex items-center gap-1 transition-colors ${post.is_liked ? 'text-red-500' : 'text-muted-foreground hover:text-foreground'}`}
-                    >
-                      <Heart className={`w-5 h-5 ${post.is_liked ? 'fill-current' : ''}`} />
-                      {(post.like_count || 0) > 0 && <span className="text-xs">{post.like_count}</span>}
-                    </button>
                     <div className="flex items-center gap-1 text-muted-foreground">
-                      <MessageCircle className="w-5 h-5" />
-                      {(post.comment_count || 0) > 0 && <span className="text-xs">{post.comment_count}</span>}
+                      <Eye className="w-4 h-4" />
+                      <span className="text-xs">{post.view_count || 0}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <MessageCircle className="w-4 h-4" />
+                      <span className="text-xs">{post.comment_count || 0}</span>
                     </div>
                   </div>
 
