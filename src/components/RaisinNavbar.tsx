@@ -12,8 +12,14 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
+interface UserProfile {
+  display_name: string | null;
+  is_verified: boolean | null;
+}
+
 export const RaisinNavbar: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
@@ -30,6 +36,16 @@ export const RaisinNavbar: React.FC = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user) { setProfile(null); return; }
+    supabase
+      .from('profiles')
+      .select('display_name, is_verified')
+      .eq('user_id', user.id)
+      .maybeSingle()
+      .then(({ data }) => { if (data) setProfile(data); });
+  }, [user]);
 
   useEffect(() => {
     if (user && pendingRoute) {
