@@ -335,11 +335,29 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                 {/* Analyzing State */}
                 {isAnalyzing && (
                   <div className="flex flex-col items-center py-6 space-y-3">
-                    <div className="relative">
-                      <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                        <Wine className="h-8 w-8 text-primary" />
+                    <div className="relative w-20 h-20 flex items-center justify-center">
+                      {/* Spinning orbital ring */}
+                      <div 
+                        className="absolute inset-0 rounded-full animate-[spin_2s_linear_infinite]"
+                        style={{
+                          background: 'conic-gradient(from 0deg, transparent 0%, hsl(var(--primary)) 30%, hsl(var(--wine-rose)) 60%, transparent 100%)',
+                          mask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))',
+                          WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px))',
+                        }}
+                      />
+                      {/* Second ring, slower, opposite direction */}
+                      <div 
+                        className="absolute inset-1 rounded-full animate-[spin_3s_linear_infinite_reverse]"
+                        style={{
+                          background: 'conic-gradient(from 180deg, transparent 0%, hsl(var(--wine-rose) / 0.5) 25%, transparent 50%)',
+                          mask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))',
+                          WebkitMask: 'radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))',
+                        }}
+                      />
+                      {/* Static center with icon */}
+                      <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+                        <Wine className="h-7 w-7 text-primary" />
                       </div>
-                      <Loader2 className="h-6 w-6 text-primary animate-spin absolute -bottom-1 -right-1" />
                     </div>
                     <div className="text-center">
                       <p className="text-sm font-medium">Analyzing wine...</p>

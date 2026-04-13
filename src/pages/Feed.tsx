@@ -365,7 +365,7 @@ export default function Feed() {
 
       if (insertErr) throw insertErr;
 
-      toast.success('Post paylaşıldı!');
+      toast.success('Post shared!');
       setDialogOpen(false);
       resetForm();
       loadPosts();
@@ -399,7 +399,7 @@ export default function Feed() {
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger asChild>
               <Button size="sm" className="gap-1.5">
-                <Plus className="w-4 h-4" /> Paylaş
+                <Plus className="w-4 h-4" /> Share
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
@@ -410,7 +410,7 @@ export default function Feed() {
               {/* Post As selector */}
               {ownedVenues.length > 0 && (
                 <div className="space-y-2">
-                  <label className="text-xs font-medium text-muted-foreground">Olarak paylaş</label>
+                  <label className="text-xs font-medium text-muted-foreground">Post as</label>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="button"
@@ -511,7 +511,7 @@ export default function Feed() {
               <Textarea placeholder="Notlar..." value={caption} onChange={e => setCaption(e.target.value)} className="text-sm" rows={2} />
 
               <Button onClick={handleCreatePost} disabled={creating} className="w-full">
-                {creating ? 'Paylaşılıyor...' : 'Paylaş'}
+                {creating ? 'Sharing...' : 'Share'}
               </Button>
             </DialogContent>
           </Dialog>
@@ -526,8 +526,8 @@ export default function Feed() {
           </div>
         ) : posts.length === 0 ? (
           <div className="text-center py-20 text-muted-foreground">
-            <p className="text-sm">Henüz post yok</p>
-            <p className="text-xs mt-1">İlk postu sen paylaş!</p>
+            <p className="text-sm">No posts yet</p>
+            <p className="text-xs mt-1">Be the first to share!</p>
           </div>
         ) : (
           posts.map(post => (
