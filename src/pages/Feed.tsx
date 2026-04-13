@@ -156,19 +156,7 @@ export default function Feed() {
     setLoading(false);
   };
 
-  const handleLike = async (postId: string) => {
-    if (!userId) { toast.error('Giriş yapın'); return; }
-    const post = posts.find(p => p.id === postId);
-    if (!post) return;
 
-    if (post.liked_by_me) {
-      await supabase.from('post_likes').delete().eq('post_id', postId).eq('user_id', userId);
-      setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked_by_me: false, like_count: (p.like_count || 1) - 1 } : p));
-    } else {
-      await supabase.from('post_likes').insert({ post_id: postId, user_id: userId } as any);
-      setPosts(prev => prev.map(p => p.id === postId ? { ...p, liked_by_me: true, like_count: (p.like_count || 0) + 1 } : p));
-    }
-  };
 
   const selectVenueForPost = (venue: OwnedVenue | null) => {
     if (venue) {
