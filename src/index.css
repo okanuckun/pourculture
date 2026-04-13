@@ -219,3 +219,9 @@
     @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
 }
+
+/* Google Places Autocomplete dropdown fix — ensure it appears above dialogs */
+.pac-container {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
