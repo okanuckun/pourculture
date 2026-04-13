@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, Route, Wine, BookOpen } from 'lucide-react';
+import { Compass, Wine, BookOpen, Notebook } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +7,13 @@ import { supabase } from '@/integrations/supabase/client';
 const publicTabs = [
   { path: '/discover', label: 'Discover', icon: Compass },
   { path: '/feed', label: 'Feed', icon: Wine },
-  { path: '/wine-routes', label: 'Routes', icon: Route },
+  { path: '/knowledge', label: 'Learn', icon: BookOpen },
+];
+
+const authTabs = [
+  { path: '/discover', label: 'Discover', icon: Compass },
+  { path: '/feed', label: 'Feed', icon: Wine },
+  { path: '/journal', label: 'Journal', icon: Notebook },
   { path: '/knowledge', label: 'Learn', icon: BookOpen },
 ];
 
@@ -25,7 +31,7 @@ export function MobileBottomNav() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const tabs = publicTabs;
+  const tabs = loggedIn ? authTabs : publicTabs;
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-foreground/20 bg-background/95 backdrop-blur-sm">
