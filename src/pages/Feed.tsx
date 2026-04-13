@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { Plus, Heart, Eye, MapPin, Star, Image as ImageIcon, X, Store, User } from 'lucide-react';
+import { Plus, Eye, MapPin, Star, Image as ImageIcon, X, Store, User, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
