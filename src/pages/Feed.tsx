@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 import { motion, AnimatePresence } from 'framer-motion';
 import { formatDistanceToNow } from 'date-fns';
 import {
-  Heart, MessageCircle, MapPin, Wine, Camera, Loader2, Plus, X, Send, ChevronDown,
+  Heart, MessageCircle, MapPin, Wine, Camera, Loader2, Plus, X, Send, ChevronDown, UserPlus, UserCheck,
 } from 'lucide-react';
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger,
@@ -40,6 +40,7 @@ interface Post {
   like_count?: number;
   comment_count?: number;
   is_liked?: boolean;
+  is_following?: boolean;
 }
 
 const WINE_TYPES = [
@@ -164,12 +165,24 @@ export default function Feed() {
         commentCountMap.set(c.post_id, (commentCountMap.get(c.post_id) || 0) + 1);
       });
 
+      // Fetch who user follows (from post authors)
+      let followingSet = new Set<string>();
+      if (userId) {
+        const { data: following } = await supabase
+          .from('follows')
+          .select('following_id')
+          .eq('follower_id', userId)
+          .in('following_id', userIds);
+        followingSet = new Set((following || []).map(f => f.following_id));
+      }
+
       const enriched: Post[] = items.map(post => ({
         ...post,
         author_name: profileMap.get(post.user_id) || 'Anonymous',
         like_count: likeCountMap.get(post.id) || 0,
         comment_count: commentCountMap.get(post.id) || 0,
         is_liked: userLikeSet.has(post.id),
+        is_following: followingSet.has(post.user_id),
       }));
 
       setPosts(prev => append ? [...prev, ...enriched] : enriched);
@@ -177,6 +190,21 @@ export default function Feed() {
       setLoading(false);
       setLoadingMore(false);
     }
+  };
+
+  const handleFollow = async (targetUserId: string, isFollowing: boolean) => {
+    if (!userId) { toast.error('Sign in to follow'); return; }
+    if (targetUserId === userId) return;
+
+    if (isFollowing) {
+      await supabase.from('follows').delete().eq('follower_id', userId).eq('following_id', targetUserId);
+    } else {
+      await supabase.from('follows').insert({ follower_id: userId, following_id: targetUserId });
+    }
+
+    setPosts(prev => prev.map(p =>
+      p.user_id === targetUserId ? { ...p, is_following: !isFollowing } : p
+    ));
   };
 
   const handleLike = async (postId: string, isLiked: boolean) => {
@@ -448,7 +476,21 @@ export default function Feed() {
 
                   {/* Author + location */}
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-medium">{post.author_name}</span>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium">{post.author_name}</span>
+                      {post.is_following && (
+                        <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">Following</span>
+                      )}
+                      {userId && post.user_id !== userId && !post.is_following && (
+                        <button
+                          onClick={() => handleFollow(post.user_id, false)}
+                          className="text-[9px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
+                        >
+                          <UserPlus className="w-3 h-3" />
+                          Follow
+                        </button>
+                      )}
+                    </div>
                     <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                       <MapPin className="w-3 h-3" />
                       {post.venue_name ? `${post.venue_name}, ${post.city}` : post.city}
