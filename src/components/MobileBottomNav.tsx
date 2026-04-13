@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Compass, Route, Wine, User, BookOpen } from 'lucide-react';
+import { Compass, Route, Wine, BookOpen } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,9 +29,6 @@ export function MobileBottomNav() {
     ...(userId ? [{ path: `/profile/${userId}`, label: 'Journal', icon: Wine }] : []),
     ...baseTabs.slice(2),
   ];
-
-export function MobileBottomNav() {
-  const location = useLocation();
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 md:hidden border-t border-foreground/20 bg-background/95 backdrop-blur-sm">
