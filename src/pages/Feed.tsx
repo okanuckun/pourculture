@@ -23,19 +23,20 @@ import {
 interface Post {
   id: string;
   user_id: string;
-  image_url: string;
+  image_url: string | null;
   caption: string | null;
   wine_name: string | null;
   wine_type: string | null;
   winery: string | null;
   vintage: string | null;
   rating: number | null;
-  venue_id: string | null;
   venue_name: string | null;
-  city: string;
-  country: string;
-  post_type: string;
+  city: string | null;
+  country: string | null;
+  region: string | null;
+  tasting_notes: string | null;
   created_at: string;
+  updated_at: string;
   author_name?: string;
   like_count?: number;
   comment_count?: number;
