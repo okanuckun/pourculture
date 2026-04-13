@@ -40,6 +40,7 @@ interface Post {
   updated_at: string;
   view_count?: number;
   author_name?: string;
+  author_verified?: boolean;
   comment_count?: number;
   is_following?: boolean;
 }
@@ -194,9 +195,9 @@ export default function Feed() {
 
       const { data: profiles } = await supabase
         .from('profiles')
-        .select('user_id, display_name')
+        .select('user_id, display_name, is_verified')
         .in('user_id', userIds);
-      const profileMap = new Map((profiles || []).map(p => [p.user_id, p.display_name]));
+      const profileMap = new Map((profiles || []).map(p => [p.user_id, { name: p.display_name, verified: p.is_verified }]));
 
       // Track views for these posts
       if (userId && postIds.length > 0) {
@@ -232,7 +233,8 @@ export default function Feed() {
 
       const enriched: Post[] = items.map(post => ({
         ...post,
-        author_name: profileMap.get(post.user_id) || 'Anonymous',
+        author_name: profileMap.get(post.user_id)?.name || 'Anonymous',
+        author_verified: profileMap.get(post.user_id)?.verified || false,
         view_count: post.view_count || 0,
         comment_count: commentCountMap.get(post.id) || 0,
         is_following: followingSet.has(post.user_id),
@@ -494,6 +496,42 @@ export default function Feed() {
                 animate={{ opacity: 1, y: 0 }}
                 className="border border-foreground/10"
               >
+                {/* Author header - Instagram style */}
+                <div className="flex items-center justify-between px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <Link to={`/profile/${post.user_id}`} className="flex items-center gap-1.5">
+                      <span className="text-sm font-bold text-foreground">{post.author_name}</span>
+                      {post.author_verified && (
+                        <span className="flex items-center justify-center w-5 h-5" title="Verified">
+                          <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none">
+                            <circle cx="12" cy="12" r="10" fill="#dc2626" />
+                            <path d="M12 6C12 6 10 10 10 13C10 15.5 11 17 12 17C13 17 14 15.5 14 13C14 10 12 6 12 6Z" fill="white" />
+                            <ellipse cx="12" cy="17.5" rx="3" ry="1.5" fill="#dc2626" stroke="white" strokeWidth="0.5" />
+                            <path d="M9 17.5C9 17.5 7.5 16 7 15" stroke="white" strokeWidth="0.8" strokeLinecap="round" />
+                            <path d="M15 17.5C15 17.5 16.5 16 17 15" stroke="white" strokeWidth="0.8" strokeLinecap="round" />
+                          </svg>
+                        </span>
+                      )}
+                    </Link>
+                    {post.is_following && (
+                      <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">Following</span>
+                    )}
+                    {userId && post.user_id !== userId && !post.is_following && (
+                      <button
+                        onClick={() => handleFollow(post.user_id, false)}
+                        className="text-[9px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
+                      >
+                        <UserPlus className="w-3 h-3" />
+                        Follow
+                      </button>
+                    )}
+                  </div>
+                  <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" />
+                    {post.venue_name ? `${post.venue_name}, ${post.city}` : post.city}
+                  </span>
+                </div>
+
                 {/* Post image */}
                 <div className="aspect-square overflow-hidden">
                   <img loading="lazy" src={post.image_url} alt={post.wine_name || 'Wine post'} className="w-full h-full object-cover" />
@@ -510,29 +548,6 @@ export default function Feed() {
                       <MessageCircle className="w-4 h-4" />
                       <span className="text-xs">{post.comment_count || 0}</span>
                     </div>
-                  </div>
-
-                  {/* Author + location */}
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium">{post.author_name}</span>
-                      {post.is_following && (
-                        <span className="text-[8px] bg-primary/10 text-primary px-1.5 py-0.5 rounded-full font-medium">Following</span>
-                      )}
-                      {userId && post.user_id !== userId && !post.is_following && (
-                        <button
-                          onClick={() => handleFollow(post.user_id, false)}
-                          className="text-[9px] text-muted-foreground hover:text-foreground flex items-center gap-0.5 transition-colors"
-                        >
-                          <UserPlus className="w-3 h-3" />
-                          Follow
-                        </button>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-muted-foreground flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {post.venue_name ? `${post.venue_name}, ${post.city}` : post.city}
-                    </span>
                   </div>
 
                   {/* Wine info */}
