@@ -8,7 +8,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
-type AuthMode = 'login' | 'signup' | 'forgot' | 'reset';
+type AuthMode = 'login' | 'signup' | 'forgot' | 'reset' | 'verify';
 
 const Auth = () => {
   const [searchParams] = useSearchParams();
@@ -59,7 +59,7 @@ const Auth = () => {
           options: { emailRedirectTo: `${window.location.origin}/` },
         });
         if (error) throw error;
-        toast({ title: 'Account created', description: 'Check your email to confirm your account' });
+        setMode('verify');
 
       } else if (mode === 'forgot') {
         const { error } = await supabase.functions.invoke('reset-password', {
@@ -98,6 +98,7 @@ const Auth = () => {
       case 'signup': return 'Sign Up';
       case 'forgot': return 'Reset Password';
       case 'reset': return 'New Password';
+      case 'verify': return 'Check Your Email';
     }
   };
 
@@ -107,6 +108,7 @@ const Auth = () => {
       case 'signup': return 'Join the natural wine community';
       case 'forgot': return 'Enter your email to receive a reset link';
       case 'reset': return 'Choose a new password for your account';
+      case 'verify': return '';
     }
   };
 
@@ -142,11 +144,52 @@ const Auth = () => {
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight mb-2">
             {getTitle()}
           </h1>
-          <p className="text-muted-foreground mb-8">
-            {getSubtitle()}
-          </p>
+          {getSubtitle() && (
+            <p className="text-muted-foreground mb-8">
+              {getSubtitle()}
+            </p>
+          )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Email Verification Screen */}
+          {mode === 'verify' && (
+            <div className="space-y-6">
+              <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
+                <span className="text-4xl">📧</span>
+              </div>
+              <div className="text-center space-y-2">
+                <p className="text-sm">
+                  We've sent a verification link to
+                </p>
+                <p className="font-medium">{email}</p>
+                <p className="text-sm text-muted-foreground">
+                  Click the link in the email to activate your account. Check your spam folder if you don't see it.
+                </p>
+              </div>
+              <div className="space-y-3 pt-4">
+                <Button
+                  onClick={() => setMode('login')}
+                  className="w-full h-12 bg-foreground text-background hover:bg-foreground/90 text-sm tracking-wider"
+                >
+                  BACK TO SIGN IN
+                </Button>
+                <button
+                  onClick={async () => {
+                    try {
+                      await supabase.auth.resend({ type: 'signup', email });
+                      toast({ title: 'Email resent', description: 'Check your inbox again' });
+                    } catch {
+                      toast({ title: 'Error', description: 'Failed to resend email', variant: 'destructive' });
+                    }
+                  }}
+                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Didn't receive it? Resend email
+                </button>
+              </div>
+            </div>
+          )}
+
+          {mode !== 'verify' && <form onSubmit={handleSubmit} className="space-y-4">
             {mode !== 'reset' && (
               <div>
                 <label className="text-[10px] tracking-wider text-muted-foreground mb-2 block">
@@ -224,9 +267,9 @@ const Auth = () => {
                 : mode === 'forgot' ? 'SEND RESET LINK'
                 : 'UPDATE PASSWORD'}
             </Button>
-          </form>
+          </form>}
 
-          <div className="mt-6 text-center space-y-2">
+          {mode !== 'verify' && <div className="mt-6 text-center space-y-2">
             {mode === 'login' && (
               <>
                 <button
@@ -251,7 +294,7 @@ const Auth = () => {
                 Already have an account? <span className="font-medium text-foreground">Sign in</span>
               </button>
             )}
-          </div>
+          </div>}
         </motion.div>
       </div>
 
