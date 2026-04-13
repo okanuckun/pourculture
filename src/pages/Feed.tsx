@@ -77,11 +77,12 @@ export default function Feed() {
 
   const searchVenues = async (query: string) => {
     if (query.length < 2) { setVenueResults([]); setShowVenueDropdown(false); return; }
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('venues')
       .select('id, name, city, country')
       .ilike('name', `%${query}%`)
       .limit(5);
+    console.log('Venue search results:', query, data, error);
     setVenueResults(data || []);
     setShowVenueDropdown((data || []).length > 0);
   };
