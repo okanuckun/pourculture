@@ -1,13 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Trophy, Loader2, Award, Star, Wine, Grape, Camera, Heart, StickyNote } from 'lucide-react';
+import { Trophy, Loader2, Award, Star, Wine, Grape, Camera, Heart, StickyNote, Filter, X } from 'lucide-react';
 import { SEOHead } from '@/components/SEOHead';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 import { WineDetailModal } from '@/components/WineDetailModal';
+import { Badge } from '@/components/ui/badge';
 
+// ... keep existing code (interfaces)
 interface CompletedRoute {
   id: string;
   route_id: string;
@@ -47,6 +49,16 @@ interface FavoriteWine {
   created_at: string;
 }
 
+const TYPE_FILTERS = [
+  { label: 'All', value: 'all' },
+  { label: 'Red', value: 'Red' },
+  { label: 'White', value: 'White' },
+  { label: 'Orange', value: 'Orange' },
+  { label: 'Rosé', value: 'Rosé' },
+  { label: 'Sparkling', value: 'Sparkling' },
+  { label: '❤️ Favorites', value: 'favorites' },
+];
+
 const Journal = () => {
   const navigate = useNavigate();
   const [user, setUser] = useState<User | null>(null);
@@ -55,6 +67,31 @@ const Journal = () => {
   const [loading, setLoading] = useState(true);
   const [selectedWine, setSelectedWine] = useState<FavoriteWine | null>(null);
   const [wineModalOpen, setWineModalOpen] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('all');
+  const [regionFilter, setRegionFilter] = useState<string | null>(null);
+
+  // Derive unique regions from wines
+  const uniqueRegions = useMemo(() => {
+    const regions = new Set<string>();
+    wines.forEach(w => {
+      if (w.region) regions.add(w.region);
+    });
+    return Array.from(regions).sort();
+  }, [wines]);
+
+  // Filtered wines
+  const filteredWines = useMemo(() => {
+    return wines.filter(w => {
+      if (typeFilter === 'favorites') return w.is_favorite;
+      if (typeFilter !== 'all') {
+        const wt = (w.wine_type || '').toLowerCase();
+        if (typeFilter === 'Orange' && !wt.includes('orange') && !wt.includes('skin contact') && !wt.includes('amber')) return false;
+        else if (typeFilter !== 'Orange' && !wt.toLowerCase().includes(typeFilter.toLowerCase())) return false;
+      }
+      if (regionFilter && w.region !== regionFilter) return false;
+      return true;
+    });
+  }, [wines, typeFilter, regionFilter]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -78,7 +115,6 @@ const Journal = () => {
     if (!user) return;
     setLoading(true);
     try {
-      // Fetch completed routes
       const { data: progressData } = await supabase
         .from('user_route_progress')
         .select(`
@@ -102,7 +138,6 @@ const Journal = () => {
         );
       }
 
-      // Fetch scanned wines
       const { data: winesData } = await supabase
         .from('wine_scan_history')
         .select('id, wine_name, winery, region, country, grape_variety, wine_type, vintage, image_url, quick_summary, detailed_description, serving_temperature, aging_potential, food_pairing, rating, tasting_notes, is_favorite, user_notes, created_at')
@@ -130,6 +165,8 @@ const Journal = () => {
       </BrutalistLayout>
     );
   }
+
+  const hasActiveFilter = typeFilter !== 'all' || regionFilter !== null;
 
   return (
     <BrutalistLayout>
@@ -194,9 +231,61 @@ const Journal = () => {
             <Wine className="w-5 h-5 text-rose-500" />
             <h2 className="text-lg font-bold tracking-tight">SCANNED WINES</h2>
             {wines.length > 0 && (
-              <span className="text-sm text-muted-foreground">({wines.length})</span>
+              <span className="text-sm text-muted-foreground">({filteredWines.length})</span>
             )}
           </div>
+
+          {/* Filters */}
+          {wines.length > 0 && (
+            <div className="space-y-3 mb-4">
+              {/* Type filters */}
+              <div className="flex flex-wrap gap-1.5">
+                {TYPE_FILTERS.map(f => (
+                  <button
+                    key={f.value}
+                    onClick={() => setTypeFilter(f.value === typeFilter ? 'all' : f.value)}
+                    className={`px-2.5 py-1 text-[11px] font-medium border transition-colors ${
+                      typeFilter === f.value
+                        ? 'bg-foreground text-background border-foreground'
+                        : 'border-foreground/20 hover:border-foreground/40'
+                    }`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Region filter */}
+              {uniqueRegions.length > 1 && (
+                <div className="flex flex-wrap gap-1.5">
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider self-center mr-1">Region:</span>
+                  {uniqueRegions.map(r => (
+                    <button
+                      key={r}
+                      onClick={() => setRegionFilter(regionFilter === r ? null : r)}
+                      className={`px-2 py-0.5 text-[10px] font-medium border transition-colors ${
+                        regionFilter === r
+                          ? 'bg-foreground text-background border-foreground'
+                          : 'border-foreground/15 hover:border-foreground/30'
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Clear filters */}
+              {hasActiveFilter && (
+                <button
+                  onClick={() => { setTypeFilter('all'); setRegionFilter(null); }}
+                  className="flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground"
+                >
+                  <X className="w-3 h-3" /> Clear filters
+                </button>
+              )}
+            </div>
+          )}
 
           {wines.length === 0 ? (
             <div className="border-2 border-dashed border-foreground/20 p-8 text-center">
@@ -212,9 +301,13 @@ const Journal = () => {
                 Use the Wine Scanner button
               </div>
             </div>
+          ) : filteredWines.length === 0 ? (
+            <div className="border-2 border-dashed border-foreground/20 p-6 text-center">
+              <p className="text-sm text-muted-foreground">No wines match this filter.</p>
+            </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {wines.map((wine, index) => (
+              {filteredWines.map((wine, index) => (
                 <motion.div
                   key={wine.id}
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -244,23 +337,24 @@ const Journal = () => {
                   {wine.winery && (
                     <p className="text-[11px] text-muted-foreground line-clamp-1">{wine.winery}</p>
                   )}
-                  <div className="flex items-center gap-1 mt-1">
-                    {wine.grape_variety && (
-                      <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground">
-                        <Grape className="w-3 h-3" />
-                        {wine.grape_variety}
-                      </span>
+                  <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                    {wine.wine_type && (
+                      <span className="px-1.5 py-0.5 bg-muted text-[9px] font-medium">{wine.wine_type}</span>
+                    )}
+                    {wine.vintage && (
+                      <span className="px-1.5 py-0.5 bg-muted text-[9px] font-medium">{wine.vintage}</span>
                     )}
                   </div>
+                  {wine.grape_variety && (
+                    <span className="inline-flex items-center gap-0.5 text-[9px] text-muted-foreground mt-1">
+                      <Grape className="w-3 h-3" />
+                      {wine.grape_variety}
+                    </span>
+                  )}
                   {wine.region && (
                     <p className="text-[10px] text-muted-foreground mt-1">
                       {wine.region}{wine.country ? `, ${wine.country}` : ''}
                     </p>
-                  )}
-                  {wine.vintage && (
-                    <span className="inline-block mt-1 px-1.5 py-0.5 bg-muted text-[9px] font-medium">
-                      {wine.vintage}
-                    </span>
                   )}
                   {wine.user_notes && (
                     <div className="mt-2 flex items-start gap-1 text-[10px] text-muted-foreground bg-muted/50 p-1.5 rounded">
