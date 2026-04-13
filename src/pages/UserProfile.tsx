@@ -222,7 +222,8 @@ const UserProfile = () => {
         }
       }
 
-        // Fetch owned venues (only for own profile)
+      // Fetch owned venues & winemakers (only for own profile)
+      if (currentUser?.id === userId) {
         const { data: venuesData } = await supabase
           .from('venues')
           .select('id, name, slug, category, city, country, image_url')
@@ -232,7 +233,6 @@ const UserProfile = () => {
           setOwnedVenues(venuesData as OwnedVenue[]);
         }
 
-        // Fetch owned winemakers (only for own profile)
         const { data: winemakersData } = await supabase
           .from('winemakers')
           .select('id, name, slug, region, country, image_url')
