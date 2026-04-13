@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AuthGate } from '@/components/AuthGate';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Trophy, Loader2, Award, Star, Wine, Grape, Camera, Heart, StickyNote, Filter, X } from 'lucide-react';
