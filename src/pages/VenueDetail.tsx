@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { SEOHead } from '@/components/SEOHead';
-import { MapPin, Clock, Phone, Globe, Mail, Star, Navigation } from 'lucide-react';
+import { MapPin, Clock, Phone, Globe, Mail, Star, Navigation, Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapNavigationDialog } from '@/components/MapNavigationDialog';
@@ -233,14 +233,43 @@ const VenueDetail: React.FC = () => {
           
           {/* Action Buttons */}
           <div className="flex flex-wrap gap-3 mt-6">
-            <Button 
+            <Button
               onClick={() => setNavigationDialogOpen(true)}
               className="bg-foreground text-background hover:bg-foreground/90"
             >
               <Navigation className="w-4 h-4 mr-2" />
               Get Directions
             </Button>
+            {!venue.is_claimed && (
+              <Link to={`/claim-venue?venueId=${venue.id}&name=${encodeURIComponent(venue.name)}&city=${encodeURIComponent(venue.city)}&country=${encodeURIComponent(venue.country)}`}>
+                <Button variant="outline" className="border-foreground/20 hover:bg-foreground hover:text-background">
+                  <Star className="w-4 h-4 mr-2" />
+                  Claim This Business
+                </Button>
+              </Link>
+            )}
+            {venue.is_claimed && venue.owner_id === user?.id && (
+              <Link to={`/profile/venue/${venue.id}/edit`}>
+                <Button variant="outline">
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Venue
+                </Button>
+              </Link>
+            )}
           </div>
+
+          {/* Claim CTA for unclaimed */}
+          {!venue.is_claimed && (
+            <div className="mt-4 border border-dashed border-foreground/20 p-4 text-center">
+              <p className="text-xs text-muted-foreground">
+                Is this your business?{' '}
+                <Link to={`/claim-venue?venueId=${venue.id}&name=${encodeURIComponent(venue.name)}&city=${encodeURIComponent(venue.city)}&country=${encodeURIComponent(venue.country)}`} className="underline hover:text-foreground">
+                  Claim it for free
+                </Link>
+                {' '}to manage photos, hours, and more.
+              </p>
+            </div>
+          )}
         </motion.div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-12">

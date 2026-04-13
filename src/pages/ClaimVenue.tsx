@@ -28,7 +28,10 @@ const ClaimVenue: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const placeId = searchParams.get('placeId');
+  const venueId = searchParams.get('venueId');
   const placeName = searchParams.get('name') || '';
+  const placeCity = searchParams.get('city') || '';
+  const placeCountry = searchParams.get('country') || '';
   
   const [loading, setLoading] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -41,8 +44,8 @@ const ClaimVenue: React.FC = () => {
     roleAtVenue: 'owner',
     message: '',
     address: '',
-    city: '',
-    country: '',
+    city: decodeURIComponent(placeCity),
+    country: decodeURIComponent(placeCountry),
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -76,7 +79,7 @@ const ClaimVenue: React.FC = () => {
       return;
     }
 
-    if (!placeId) {
+    if (!placeId && !venueId) {
       toast.error('Invalid venue reference');
       return;
     }
@@ -86,7 +89,8 @@ const ClaimVenue: React.FC = () => {
     try {
       const { error } = await supabase.from('venue_claims').insert({
         user_id: user.id,
-        google_place_id: placeId,
+        google_place_id: placeId || null,
+        venue_id: venueId || null,
         business_name: formData.businessName,
         business_email: formData.businessEmail,
         business_phone: formData.businessPhone || null,
