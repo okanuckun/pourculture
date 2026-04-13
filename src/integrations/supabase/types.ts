@@ -571,6 +571,7 @@ export type Database = {
           latitude: number | null
           longitude: number | null
           post_type: string
+          posted_as_venue_id: string | null
           rating: number | null
           user_id: string
           venue_id: string | null
@@ -591,6 +592,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           post_type?: string
+          posted_as_venue_id?: string | null
           rating?: number | null
           user_id: string
           venue_id?: string | null
@@ -611,6 +613,7 @@ export type Database = {
           latitude?: number | null
           longitude?: number | null
           post_type?: string
+          posted_as_venue_id?: string | null
           rating?: number | null
           user_id?: string
           venue_id?: string | null
@@ -622,6 +625,13 @@ export type Database = {
           winery?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "posts_posted_as_venue_id_fkey"
+            columns: ["posted_as_venue_id"]
+            isOneToOne: false
+            referencedRelation: "venues"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "posts_venue_id_fkey"
             columns: ["venue_id"]
