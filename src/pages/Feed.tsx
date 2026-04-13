@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { AuthGate } from '@/components/AuthGate';
 import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
@@ -622,11 +623,10 @@ export default function Feed() {
   };
 
   return (
-    <div className="min-h-screen bg-background pb-24">
-      {/* Header */}
-      <div className="sticky top-0 z-30 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-3">
-        <div className="flex items-center justify-between max-w-lg mx-auto">
-          <h1 className="text-lg font-bold tracking-tight">POURCULTURE<span className="text-primary">.</span></h1>
+    <BrutalistLayout>
+      {/* Share button bar */}
+      <div className="sticky top-12 z-20 bg-background/95 backdrop-blur-sm border-b border-border px-4 py-2">
+        <div className="flex items-center justify-end max-w-lg mx-auto">
           {userId && (
             <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
               <DialogTrigger asChild>
@@ -876,6 +876,6 @@ export default function Feed() {
           })
         )}
       </div>
-    </div>
+    </BrutalistLayout>
   );
 }
