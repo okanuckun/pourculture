@@ -169,12 +169,12 @@ export default function Feed() {
       // Fetch who user follows (from post authors)
       let followingSet = new Set<string>();
       if (userId) {
-        const { data: following } = await supabase
+        const { data: following } = await (supabase as any)
           .from('follows')
           .select('following_id')
           .eq('follower_id', userId)
           .in('following_id', userIds);
-        followingSet = new Set((following || []).map(f => f.following_id));
+        followingSet = new Set((following || []).map((f: any) => f.following_id));
       }
 
       const enriched: Post[] = items.map(post => ({
