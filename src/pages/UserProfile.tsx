@@ -156,6 +156,26 @@ const UserProfile = () => {
     }
   };
 
+  const handleToggleFollow = async () => {
+    if (!currentUser?.id || !userId) return;
+    setTogglingFollow(true);
+    try {
+      if (isFollowing) {
+        await supabase.from('follows').delete().eq('follower_id', currentUser.id).eq('following_id', userId);
+        setIsFollowing(false);
+        setFollowerCount(prev => Math.max(0, prev - 1));
+      } else {
+        await supabase.from('follows').insert({ follower_id: currentUser.id, following_id: userId });
+        setIsFollowing(true);
+        setFollowerCount(prev => prev + 1);
+      }
+    } catch {
+      // ignore
+    } finally {
+      setTogglingFollow(false);
+    }
+  };
+
   if (loading) {
     return (
       <BrutalistLayout>
