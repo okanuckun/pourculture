@@ -35,7 +35,7 @@ You MUST respond in the following JSON format only (no other text):
   "winery": "Producer/Chateau name",
   "region": "Region (e.g., Bordeaux, Tuscany, Napa Valley)",
   "country": "Country",
-  "grapeVariety": "Grape variety/varieties",
+  "grapeVariety": "Grape variety/varieties. IMPORTANT: If the wine is a blend of multiple grapes, list ALL grape varieties separated by commas (e.g. 'Grenache, Syrah, Mourvèdre') and do NOT pick just one. If it is a single varietal, state that one grape.",
   "vintage": "Year (if visible)",
   "type": "Red/White/Rosé/Sparkling/Orange",
   "terroir": {
