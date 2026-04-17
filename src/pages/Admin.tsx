@@ -9,10 +9,11 @@ import { z } from 'zod';
 import { SEOHead } from '@/components/SEOHead';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle, LogOut, Users, UserCheck } from 'lucide-react';
+import { Plus, Pencil, Trash2, Wine, Calendar, Loader2, Upload, X, Book, Shield, MapPin, FileText, Check, XCircle, LogOut, Users, UserCheck, Compass } from 'lucide-react';
 import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 import { UserVerificationAdmin } from '@/components/admin/UserVerificationAdmin';
 import { PeopleAdmin } from '@/components/admin/PeopleAdmin';
+import { VenueDiscovery } from '@/components/admin/VenueDiscovery';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 
@@ -766,8 +767,12 @@ const Admin = () => {
           </Button>
         </motion.div>
 
-        <Tabs defaultValue="submissions" className="w-full">
-          <TabsList className="grid w-full grid-cols-7 mb-6 bg-background border-2 border-foreground p-1">
+        <Tabs defaultValue="discover" className="w-full">
+          <TabsList className="grid w-full grid-cols-8 mb-6 bg-background border-2 border-foreground p-1">
+            <TabsTrigger value="discover" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
+              <Compass className="h-4 w-4" />
+              Discover
+            </TabsTrigger>
             <TabsTrigger value="submissions" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <FileText className="h-4 w-4" />
               Submissions
@@ -797,6 +802,11 @@ const Admin = () => {
               Events
             </TabsTrigger>
           </TabsList>
+
+          {/* Discover Tab */}
+          <TabsContent value="discover">
+            <VenueDiscovery />
+          </TabsContent>
 
           {/* Submissions Tab */}
           <TabsContent value="submissions" className="space-y-6">

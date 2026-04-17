@@ -10,6 +10,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { HomeWineMap } from '@/components/WineMap';
 import { WineQuiz } from '@/components/WineQuiz';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveVenueImage } from '@/lib/venuePhoto';
 import { ArrowRight, Wine, Sparkles, Globe, Heart, MapPin } from 'lucide-react';
 
 const RaisinHome = () => {
@@ -262,7 +263,7 @@ const RaisinHome = () => {
                   category={venue.category}
                   address={venue.address}
                   city={venue.city}
-                  imageUrl={venue.image_url}
+                  imageUrl={resolveVenueImage(venue, 800)}
                   isOpen={venue.is_open}
                   isClaimed={venue.is_claimed}
                   googleRating={venue.google_rating}
