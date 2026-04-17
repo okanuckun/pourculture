@@ -10,6 +10,7 @@ import { SEOHead } from '@/components/SEOHead';
 import { HomeWineMap } from '@/components/WineMap';
 import { WineQuiz } from '@/components/WineQuiz';
 import { supabase } from '@/integrations/supabase/client';
+import { resolveVenueImage } from '@/lib/venuePhoto';
 import { ArrowRight, Wine, Sparkles, Globe, Heart, MapPin } from 'lucide-react';
 
 const RaisinHome = () => {

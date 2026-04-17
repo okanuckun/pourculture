@@ -8,6 +8,7 @@ import { WinemakerCard } from '@/components/WinemakerCard';
 import { WineFairCard } from '@/components/WineFairCard';
 import { motion } from 'framer-motion';
 import { Store, Wine, Utensils, Home, Grape, Calendar } from 'lucide-react';
+import { resolveVenueImage } from '@/lib/venuePhoto';
 import type { Database } from '@/integrations/supabase/types';
 
 type VenueCategory = Database['public']['Enums']['venue_category'];
