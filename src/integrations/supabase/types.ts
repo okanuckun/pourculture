@@ -1221,6 +1221,7 @@ export type Database = {
           description: string | null
           email: string | null
           events: Json | null
+          google_photo_references: string[]
           google_place_id: string | null
           google_rating: number | null
           id: string
@@ -1254,6 +1255,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           events?: Json | null
+          google_photo_references?: string[]
           google_place_id?: string | null
           google_rating?: number | null
           id?: string
@@ -1287,6 +1289,7 @@ export type Database = {
           description?: string | null
           email?: string | null
           events?: Json | null
+          google_photo_references?: string[]
           google_place_id?: string | null
           google_rating?: number | null
           id?: string
