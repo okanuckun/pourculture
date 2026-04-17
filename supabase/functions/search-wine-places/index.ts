@@ -87,7 +87,7 @@ serve(async (req) => {
       const data = await response.json();
 
       if (data.status === 'OK' && data.results) {
-        const places = data.results.slice(0, 10).map((place: any) => mapGooglePlace(place));
+        const places = data.results.slice(0, 20).map((place: any) => mapGooglePlace(place));
 
         return new Response(
           JSON.stringify({ places, count: places.length }),

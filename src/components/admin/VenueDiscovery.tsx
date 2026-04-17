@@ -77,7 +77,9 @@ const slugify = (s: string) =>
 
 export const VenueDiscovery = () => {
   const { toast } = useToast();
+  const [searchMode, setSearchMode] = useState<'city' | 'venue'>('venue');
   const [city, setCity] = useState('');
+  const [venueQuery, setVenueQuery] = useState('');
   const [category, setCategory] = useState<DiscoveryCategory>('wine_bar');
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<DiscoveredPlace[]>([]);
@@ -88,14 +90,22 @@ export const VenueDiscovery = () => {
   const [addedPlaceIds, setAddedPlaceIds] = useState<Set<string>>(new Set());
 
   const handleSearch = async () => {
-    const trimmedCity = city.trim();
-    if (!trimmedCity) {
-      toast({
-        title: 'City required',
-        description: 'Enter a city to search.',
-        variant: 'destructive',
-      });
-      return;
+    let queryStr = '';
+
+    if (searchMode === 'city') {
+      const trimmedCity = city.trim();
+      if (!trimmedCity) {
+        toast({ title: 'City required', description: 'Enter a city to search.', variant: 'destructive' });
+        return;
+      }
+      queryStr = `natural wine ${CATEGORY_LABEL[category]} ${trimmedCity}`;
+    } else {
+      const trimmedVenue = venueQuery.trim();
+      if (!trimmedVenue) {
+        toast({ title: 'Venue name required', description: 'Enter a venue name to search.', variant: 'destructive' });
+        return;
+      }
+      queryStr = trimmedVenue;
     }
 
     setSearching(true);
@@ -104,7 +114,6 @@ export const VenueDiscovery = () => {
     setDetail(null);
 
     try {
-      const queryStr = `natural wine ${CATEGORY_LABEL[category]} ${trimmedCity}`;
       const { data, error } = await supabase.functions.invoke('search-wine-places', {
         body: { query: queryStr },
       });
@@ -242,43 +251,87 @@ export const VenueDiscovery = () => {
           Discover Venues from Google
         </h2>
         <p className="text-sm text-muted-foreground">
-          Search natural wine places by city and category, then add them to the database.
+          Search natural wine places by city or find a specific venue by name.
         </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_auto] gap-3">
-          <Input
-            placeholder="City (e.g. Paris, Istanbul, Tokyo)"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            className="border-2 border-foreground/30 focus:border-foreground"
-          />
-          <Select
-            value={category}
-            onValueChange={(v) => setCategory(v as DiscoveryCategory)}
-          >
-            <SelectTrigger className="border-2 border-foreground/30">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="wine_bar">Wine Bar</SelectItem>
-              <SelectItem value="wine_shop">Wine Shop</SelectItem>
-              <SelectItem value="restaurant">Restaurant</SelectItem>
-            </SelectContent>
-          </Select>
+        {/* Search Mode Toggle */}
+        <div className="flex gap-2">
           <Button
-            onClick={handleSearch}
-            disabled={searching}
-            className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase"
+            variant={searchMode === 'venue' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => { setSearchMode('venue'); setResults([]); setSelected(null); setDetail(null); }}
+            className={searchMode === 'venue' ? 'bg-foreground text-background' : 'border-2 border-foreground/30'}
           >
-            {searching ? (
-              <Loader2 className="h-4 w-4 animate-spin mr-2" />
-            ) : (
-              <Search className="h-4 w-4 mr-2" />
-            )}
-            Search
+            Search Venue
+          </Button>
+          <Button
+            variant={searchMode === 'city' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => { setSearchMode('city'); setResults([]); setSelected(null); setDetail(null); }}
+            className={searchMode === 'city' ? 'bg-foreground text-background' : 'border-2 border-foreground/30'}
+          >
+            Browse by City
           </Button>
         </div>
+
+        {searchMode === 'venue' ? (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+            <Input
+              placeholder="Venue name (e.g. Ten Bells NYC, Le Verre Volé Paris)"
+              value={venueQuery}
+              onChange={(e) => setVenueQuery(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="border-2 border-foreground/30 focus:border-foreground"
+            />
+            <Button
+              onClick={handleSearch}
+              disabled={searching}
+              className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase"
+            >
+              {searching ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Search className="h-4 w-4 mr-2" />
+              )}
+              Search
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_auto] gap-3">
+            <Input
+              placeholder="City (e.g. Paris, Istanbul, Tokyo)"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              className="border-2 border-foreground/30 focus:border-foreground"
+            />
+            <Select
+              value={category}
+              onValueChange={(v) => setCategory(v as DiscoveryCategory)}
+            >
+              <SelectTrigger className="border-2 border-foreground/30">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="wine_bar">Wine Bar</SelectItem>
+                <SelectItem value="wine_shop">Wine Shop</SelectItem>
+                <SelectItem value="restaurant">Restaurant</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              onClick={handleSearch}
+              disabled={searching}
+              className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase"
+            >
+              {searching ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Search className="h-4 w-4 mr-2" />
+              )}
+              Search
+            </Button>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-6">
