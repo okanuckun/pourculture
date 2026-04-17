@@ -198,10 +198,14 @@ export const VenueDiscovery = () => {
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      // Map UI category to DB enum (venue_category): wine_bar -> bar
+      const dbCategory: 'bar' | 'wine_shop' | 'restaurant' =
+        category === 'wine_bar' ? 'bar' : category;
+
       const { error: insertErr } = await supabase.from('venues').insert({
         name: place.name,
         slug,
-        category: category as 'wine_bar' | 'wine_shop' | 'restaurant',
+        category: dbCategory,
         address: d.address ?? place.address ?? '',
         city: d.city ?? city.trim(),
         country: d.country ?? '',
