@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -67,6 +67,13 @@ const CATEGORY_LABEL: Record<DiscoveryCategory, string> = {
   restaurant: 'Restaurant',
 };
 
+interface AutocompletePrediction {
+  placeId: string;
+  description: string;
+  mainText: string;
+  secondaryText: string;
+}
+
 const slugify = (s: string) =>
   s
     .toLowerCase()
@@ -88,6 +95,96 @@ export const VenueDiscovery = () => {
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [addingId, setAddingId] = useState<string | null>(null);
   const [addedPlaceIds, setAddedPlaceIds] = useState<Set<string>>(new Set());
+  const [predictions, setPredictions] = useState<AutocompletePrediction[]>([]);
+  const [showPredictions, setShowPredictions] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const predictionBoxRef = useRef<HTMLDivElement>(null);
+
+  const fetchAutocomplete = useCallback(async (input: string) => {
+    if (input.trim().length < 2) {
+      setPredictions([]);
+      return;
+    }
+    try {
+      const { data, error } = await supabase.functions.invoke('autocomplete-places', {
+        body: { input },
+      });
+      if (!error && data?.predictions) {
+        setPredictions(data.predictions);
+        setShowPredictions(true);
+      }
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  const handleVenueInputChange = (value: string) => {
+    setVenueQuery(value);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchAutocomplete(value), 300);
+  };
+
+  const handlePredictionSelect = async (prediction: AutocompletePrediction) => {
+    setVenueQuery(prediction.mainText);
+    setShowPredictions(false);
+    setPredictions([]);
+
+    // Directly fetch details and show as result
+    setSearching(true);
+    setResults([]);
+    setSelected(null);
+    setDetail(null);
+
+    try {
+      const { data, error } = await supabase.functions.invoke('get-place-details', {
+        body: { placeId: prediction.placeId },
+      });
+      if (error) throw error;
+
+      const place: DiscoveredPlace = {
+        id: `google_${prediction.placeId}`,
+        placeId: prediction.placeId,
+        name: data.name || prediction.mainText,
+        lat: data.lat || 0,
+        lng: data.lng || 0,
+        address: data.address,
+        category: 'wine_bar',
+        rating: data.rating,
+        website: data.website,
+        phone: data.phone,
+        photoReference: data.photos?.[0]?.match?.(/photo_reference=([^&]+)/)?.[1],
+      };
+
+      setResults([place]);
+      setSelected(place);
+      setDetail(data);
+
+      // Check if already in DB
+      const { data: existing } = await supabase
+        .from('venues')
+        .select('google_place_id')
+        .eq('google_place_id', prediction.placeId)
+        .maybeSingle();
+      if (existing) {
+        setAddedPlaceIds(prev => new Set(prev).add(prediction.placeId));
+      }
+    } catch (e: any) {
+      toast({ title: 'Error', description: e?.message ?? 'Could not load venue details', variant: 'destructive' });
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  // Close predictions on outside click
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (predictionBoxRef.current && !predictionBoxRef.current.contains(e.target as Node)) {
+        setShowPredictions(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const handleSearch = async () => {
     let queryStr = '';
@@ -275,26 +372,43 @@ export const VenueDiscovery = () => {
         </div>
 
         {searchMode === 'venue' ? (
-          <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
-            <Input
-              placeholder="Venue name (e.g. Ten Bells NYC, Le Verre Volé Paris)"
-              value={venueQuery}
-              onChange={(e) => setVenueQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              className="border-2 border-foreground/30 focus:border-foreground"
-            />
-            <Button
-              onClick={handleSearch}
-              disabled={searching}
-              className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase"
-            >
-              {searching ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Search className="h-4 w-4 mr-2" />
-              )}
-              Search
-            </Button>
+          <div className="relative" ref={predictionBoxRef}>
+            <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-3">
+              <Input
+                placeholder="Start typing venue name (e.g. Ten Bells, Le Verre Volé)"
+                value={venueQuery}
+                onChange={(e) => handleVenueInputChange(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                onFocus={() => predictions.length > 0 && setShowPredictions(true)}
+                className="border-2 border-foreground/30 focus:border-foreground"
+              />
+              <Button
+                onClick={handleSearch}
+                disabled={searching}
+                className="bg-foreground text-background hover:bg-foreground/90 border-2 border-foreground uppercase"
+              >
+                {searching ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Search
+              </Button>
+            </div>
+            {showPredictions && predictions.length > 0 && (
+              <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-card border-2 border-foreground rounded-md shadow-lg max-h-64 overflow-y-auto">
+                {predictions.map((p) => (
+                  <button
+                    key={p.placeId}
+                    onClick={() => handlePredictionSelect(p)}
+                    className="w-full text-left px-4 py-3 hover:bg-muted transition-colors border-b border-border last:border-0"
+                  >
+                    <p className="text-sm font-medium">{p.mainText}</p>
+                    <p className="text-xs text-muted-foreground">{p.secondaryText}</p>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-[1fr_200px_auto] gap-3">
