@@ -20,3 +20,9 @@ verify_jwt = false
 
 [functions.analyze-wine]
 verify_jwt = false
+
+[functions.google-place-photo]
+verify_jwt = false
+
+[functions.get-place-details]
+verify_jwt = false

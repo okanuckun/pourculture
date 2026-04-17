@@ -7,6 +7,7 @@ const corsHeaders = {
 
 interface PlaceResult {
   id: string;
+  placeId: string;
   name: string;
   lat: number;
   lng: number;
@@ -17,6 +18,7 @@ interface PlaceResult {
   isOpen?: boolean;
   website?: string;
   phone?: string;
+  photoReference?: string;
 }
 
 function getCategoryFromTypes(
@@ -37,6 +39,7 @@ function mapGooglePlace(
 ): PlaceResult {
   return {
     id: `google_${place.place_id}`,
+    placeId: place.place_id,
     name: place.name,
     lat: place.geometry.location.lat,
     lng: place.geometry.location.lng,
@@ -45,6 +48,7 @@ function mapGooglePlace(
     rating: place.rating,
     priceLevel: place.price_level,
     isOpen: place.opening_hours?.open_now,
+    photoReference: place.photos?.[0]?.photo_reference,
   };
 }
 
