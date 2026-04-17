@@ -189,7 +189,7 @@ const ExploreCategory = () => {
                     address={venue.address}
                     city={venue.city}
                     category={venue.category}
-                    imageUrl={venue.image_url}
+                    imageUrl={resolveVenueImage(venue, 800)}
                     isOpen={venue.is_open}
                     isClaimed={venue.is_claimed}
                     googleRating={venue.google_rating}
