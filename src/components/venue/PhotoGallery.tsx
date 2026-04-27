@@ -1,16 +1,32 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronLeft, ChevronRight, X, Camera } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { normalizePhotoUrl } from '@/lib/venuePhoto';
 
 interface PhotoGalleryProps {
-  photos: string[];
+  // Accept anything photo-like; we normalize below.
+  photos: unknown;
   venueName: string;
 }
 
-export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos, venueName }) => {
+export const PhotoGallery: React.FC<PhotoGalleryProps> = ({ photos: rawPhotos, venueName }) => {
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
 
-  if (!photos || photos.length === 0) {
+  const photos = useMemo<string[]>(() => {
+    if (!Array.isArray(rawPhotos)) return [];
+    const out: string[] = [];
+    for (const item of rawPhotos) {
+      if (typeof item === 'string' && item.length > 0) {
+        out.push(normalizePhotoUrl(item));
+      } else if (item && typeof item === 'object' && 'url' in (item as object)) {
+        const url = (item as { url?: unknown }).url;
+        if (typeof url === 'string' && url.length > 0) out.push(normalizePhotoUrl(url));
+      }
+    }
+    return out;
+  }, [rawPhotos]);
+
+  if (photos.length === 0) {
     return null;
   }
 
