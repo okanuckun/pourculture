@@ -162,12 +162,20 @@ serve(async (req) => {
       url.searchParams.set('fields', FSQ_FIELDS);
 
       const response = await fetch(url.toString(), { headers });
-      const data = await response.json();
+      const rawText = await response.text();
+      let data: any = {};
+      try { data = JSON.parse(rawText); } catch { /* keep raw */ }
 
       if (!response.ok) {
         console.warn(`Foursquare text search error: ${response.status}`, data?.message);
+        // TEMP debug: surface upstream status until we confirm Service API
+        // is reliable. Strip after migration verification.
         return new Response(
-          JSON.stringify({ places: [], count: 0 }),
+          JSON.stringify({
+            places: [],
+            count: 0,
+            _debug: { status: response.status, url: url.toString(), body: rawText.slice(0, 400) },
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -176,7 +184,11 @@ serve(async (req) => {
       const places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
 
       return new Response(
-        JSON.stringify({ places, count: places.length }),
+        JSON.stringify({
+          places,
+          count: places.length,
+          _debug: { status: response.status, url: url.toString(), resultsRaw: results.length, sample: rawText.slice(0, 300) },
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
