@@ -105,27 +105,73 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     loadDbVenues();
   }, [mapBounds]);
 
-  // Fetch venues - moved up to be used by getUserLocationAndSearch
+  // Fetch venues from Foursquare AND silently auto-import them to the DB
+  // (organic growth). Only triggered explicitly via the "Search this area"
+  // button — never on map pan or page load.
   const fetchVenues = useCallback(async (bounds: MapBounds) => {
     setLoading(true);
     try {
       const centerLat = (bounds.north + bounds.south) / 2;
       const centerLng = (bounds.east + bounds.west) / 2;
-      
+
       const latDiff = bounds.north - bounds.south;
       const lngDiff = bounds.east - bounds.west;
       const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
       const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
-      
+
       const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, true);
       setGoogleVenues(venues);
       setHasSearched(true);
+
+      // Fire-and-forget DB import. We re-shape to the payload the edge
+      // function expects (placeId without the `foursquare_` prefix the client
+      // helper adds).
+      if (venues.length > 0) {
+        const importPayload = venues.map((v) => ({
+          placeId: v.googlePlaceId?.replace(/^foursquare_/, '') ?? v.id.replace(/^foursquare_/, ''),
+          name: v.name,
+          lat: v.lat,
+          lng: v.lng,
+          address: v.address,
+          category: v.category,
+          website: v.website,
+          phone: v.phone,
+        }));
+        supabase.functions
+          .invoke('auto-import-foursquare-venues', { body: { places: importPayload } })
+          .then(({ data, error }) => {
+            if (error) {
+              console.warn('auto-import failed:', error);
+              return;
+            }
+            const inserted = (data as any)?.inserted ?? 0;
+            if (inserted > 0) {
+              // Refresh DB venues so freshly imported rows appear as
+              // "verified-style" markers and survive the next page load.
+              fetchAllDatabaseVenues(mapBounds || undefined).then(setDbVenues).catch(() => {});
+              toast.success(`Added ${inserted} new ${inserted === 1 ? 'venue' : 'venues'} to the map`);
+            }
+          });
+      }
     } catch (error) {
       console.error('Error fetching venues:', error);
+      toast.error('Could not load venues for this area');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [mapBounds]);
+
+  // Manual "Search this area" trigger — uses the map's current bounds.
+  const handleSearchThisArea = useCallback(() => {
+    if (!map.current) return;
+    const bounds = map.current.getBounds();
+    fetchVenues({
+      south: bounds.getSouth(),
+      west: bounds.getWest(),
+      north: bounds.getNorth(),
+      east: bounds.getEast(),
+    });
+  }, [fetchVenues]);
 
   // Get user location and auto-search
   const getUserLocationAndSearch = useCallback(() => {
