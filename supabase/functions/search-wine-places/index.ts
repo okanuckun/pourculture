@@ -211,6 +211,20 @@ serve(async (req) => {
         for (const place of results) {
           const fsqId = place.fsq_place_id ?? place.fsq_id;
           if (!fsqId || seenIds.has(fsqId)) continue;
+
+          // Hard filter: name OR category must mention wine / vineyard / winery.
+          // Foursquare's text search is too permissive ("natural wine bar"
+          // returns hair salons, juice bars, etc.) — only keep results that
+          // are clearly wine-related.
+          const name = String(place.name ?? '').toLowerCase();
+          const catNames = (place.categories ?? [])
+            .flatMap((c: any) => [c.name, c.short_name, c.plural_name].filter(Boolean))
+            .map((s: string) => s.toLowerCase())
+            .join(' ');
+          const haystack = `${name} ${catNames}`;
+          const wineRelated = /\b(wine|vineyard|winery|cave|enoteca|vinothek|bottle shop|liquor)\b/.test(haystack);
+          if (!wineRelated) continue;
+
           seenIds.add(fsqId);
           allPlaces.push(mapFoursquarePlace(place, category));
         }
