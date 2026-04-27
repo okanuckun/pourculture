@@ -299,12 +299,12 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     };
   }, [mapboxToken]);
 
-  // Auto-detect location and search on first load
+  // On first map load, only re-center on the user — never auto-fetch.
   useEffect(() => {
-    if (mapReady && !hasSearched) {
-      getUserLocationAndSearch();
+    if (mapReady) {
+      flyToUserLocation();
     }
-  }, [mapReady, hasSearched, getUserLocationAndSearch]);
+  }, [mapReady, flyToUserLocation]);
 
   // Combine venues
   const allVenues = useMemo(() => {
