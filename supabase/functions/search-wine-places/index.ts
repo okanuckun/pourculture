@@ -135,14 +135,19 @@ serve(async (req) => {
       );
     }
 
+    // Foursquare Service API (post-2025 migration).
+    // Auth is Bearer + a required version header. The legacy v3 endpoint
+    // (api.foursquare.com/v3) rejects new-tier keys with 401 "Invalid
+    // request token", so we always hit the new host.
     const headers = {
-      Authorization: apiKey,
+      Authorization: `Bearer ${apiKey}`,
       Accept: 'application/json',
+      'X-Places-Api-Version': '2025-06-17',
     };
 
     if (trimmedQuery) {
       // Text search mode (admin Discovery + Feed venue picker).
-      const url = new URL('https://api.foursquare.com/v3/places/search');
+      const url = new URL('https://places-api.foursquare.com/places/search');
       url.searchParams.set('query', naturalWineOnly ? `natural ${trimmedQuery}` : trimmedQuery);
       // Bias toward wine venues but don't lock the search out of restaurants
       // that may serve as wine bars in some cities.
@@ -185,7 +190,7 @@ serve(async (req) => {
 
     for (const { query: q, category } of searchQueries) {
       try {
-        const url = new URL('https://api.foursquare.com/v3/places/search');
+        const url = new URL('https://places-api.foursquare.com/places/search');
         url.searchParams.set('query', q);
         url.searchParams.set('ll', `${lat},${lng}`);
         url.searchParams.set('radius', String(safeRadius));

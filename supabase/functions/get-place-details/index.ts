@@ -136,17 +136,20 @@ serve(async (req) => {
       );
     }
 
+    // Foursquare Service API (post-2025 migration). Bearer auth + version
+    // header are mandatory; legacy /v3 host rejects new keys.
     const fsqHeaders = {
-      Authorization: apiKey,
+      Authorization: `Bearer ${apiKey}`,
       Accept: 'application/json',
+      'X-Places-Api-Version': '2025-06-17',
     };
 
-    // Place details + photos endpoints. Photos and tips have separate routes
-    // in Foursquare v3 — fetch them in parallel to keep latency reasonable.
-    const detailUrl = new URL(`https://api.foursquare.com/v3/places/${encodeURIComponent(placeId)}`);
+    // Place details + photos endpoints. Photos and tips have separate routes —
+    // fetch them in parallel to keep latency reasonable.
+    const detailUrl = new URL(`https://places-api.foursquare.com/places/${encodeURIComponent(placeId)}`);
     detailUrl.searchParams.set('fields', FSQ_FIELDS);
 
-    const photosUrl = new URL(`https://api.foursquare.com/v3/places/${encodeURIComponent(placeId)}/photos`);
+    const photosUrl = new URL(`https://places-api.foursquare.com/places/${encodeURIComponent(placeId)}/photos`);
     photosUrl.searchParams.set('limit', '10');
 
     const [detailRes, photosRes] = await Promise.all([

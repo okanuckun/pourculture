@@ -29,16 +29,18 @@ serve(async (req) => {
       );
     }
 
-    const url = new URL('https://api.foursquare.com/v3/autocomplete');
+    const url = new URL('https://places-api.foursquare.com/autocomplete');
     url.searchParams.set('query', input.trim());
     // We only care about places (not addresses, geographies, or queries).
     url.searchParams.set('types', 'place');
     url.searchParams.set('limit', '10');
 
+    // Foursquare Service API (post-2025 migration): Bearer + version header.
     const response = await fetch(url.toString(), {
       headers: {
-        Authorization: apiKey,
+        Authorization: `Bearer ${apiKey}`,
         Accept: 'application/json',
+        'X-Places-Api-Version': '2025-06-17',
       },
     });
 
