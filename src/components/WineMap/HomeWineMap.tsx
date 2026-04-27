@@ -119,7 +119,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       const radiusKm = Math.max(latDiff, lngDiff) * 111 / 2;
       const radiusM = Math.min(Math.max(radiusKm * 1000, 1000), 50000);
 
-      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, true);
+      const venues = await fetchWineVenuesFromGoogle(centerLat, centerLng, radiusM, false);
       setGoogleVenues(venues);
       setHasSearched(true);
 
