@@ -393,6 +393,7 @@ export const BrutalistHero: React.FC<BrutalistHeroProps> = ({
           filterCategories={mapCategories}
           wineFairs={wineFairs}
           showEvents={showEvents}
+          userCoords={userCoords}
         />
       </div>
 
