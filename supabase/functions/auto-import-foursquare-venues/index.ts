@@ -14,6 +14,12 @@ const corsHeaders = {
 type AllowedCategory = 'wine_bar' | 'wine_shop' | 'winery';
 const ALLOWED: AllowedCategory[] = ['wine_bar', 'wine_shop', 'winery'];
 
+function toDatabaseCategory(category: string): 'bar' | 'wine_shop' | 'winemaker' {
+  if (category === 'wine_shop') return 'wine_shop';
+  if (category === 'winery') return 'winemaker';
+  return 'bar';
+}
+
 interface IncomingPlace {
   placeId: string;            // raw Foursquare fsq_place_id
   name: string;
@@ -123,7 +129,7 @@ serve(async (req) => {
         country,
         latitude: p.lat,
         longitude: p.lng,
-        category: p.category,
+        category: toDatabaseCategory(p.category),
         source: 'foursquare',
         google_place_id: `fsq_${p.placeId}`,
         website: p.website ?? null,
