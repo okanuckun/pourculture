@@ -24,10 +24,32 @@ interface HomeWineMapProps {
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lng, lat]
 const TOKEN_FETCH_TIMEOUT = 10000;
 
+const OSM_FALLBACK_STYLE: mapboxgl.StyleSpecification = {
+  version: 8,
+  sources: {
+    'osm-tiles': {
+      type: 'raster',
+      tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
+      tileSize: 256,
+      attribution: '© OpenStreetMap',
+    },
+  },
+  layers: [
+    {
+      id: 'osm-tiles',
+      type: 'raster',
+      source: 'osm-tiles',
+      minzoom: 0,
+      maxzoom: 19,
+    },
+  ],
+};
+
 export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories, wineFairs = [], showEvents = false }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const usingFallbackStyleRef = useRef(false);
   
   const [mapboxToken, setMapboxToken] = useState<string | null>(null);
   const [tokenLoading, setTokenLoading] = useState(true);
