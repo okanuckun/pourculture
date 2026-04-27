@@ -244,6 +244,16 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       antialias: true,
     });
 
+    map.current.on('error', (event) => {
+      const message = event.error?.message || '';
+      const isStyleFailure = /style|sprite|glyph|tile|source|unauthorized|forbidden|access token|not authorized/i.test(message);
+
+      if (!usingFallbackStyleRef.current && isStyleFailure && map.current) {
+        usingFallbackStyleRef.current = true;
+        map.current.setStyle(OSM_FALLBACK_STYLE);
+      }
+    });
+
     // Add navigation controls
     map.current.addControl(
       new mapboxgl.NavigationControl({
@@ -265,7 +275,9 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
     map.current.on('style.load', () => {
       if (map.current) {
-        if (minimalStyle) {
+        if (usingFallbackStyleRef.current) {
+          map.current.setPitch(0);
+        } else if (minimalStyle) {
           // Minimal white/clean style - no fog
           map.current.setFog({
             color: 'rgb(255, 255, 255)',
