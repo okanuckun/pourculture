@@ -4,8 +4,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Routes, Route } from "react-router-dom";
 import { Loader2 } from "lucide-react";
+import { Capacitor } from "@capacitor/core";
 import { WineScanButton } from "@/components/WineScanner";
 import { MobileBottomNav } from "@/components/MobileBottomNav";
+
+// Admin / SEO surfaces are web-only. Apple and Google reject native
+// builds that bundle internal-tool surfaces (their reviewers will trip
+// over them and flag the app as unfinished or as containing hidden
+// features). On native builds these routes simply don't get registered,
+// so the URL falls through to NotFound.
+const isNative = Capacitor.isNativePlatform();
 
 // Eager: critical pages
 import BrutalistHome from "./pages/BrutalistHome";
@@ -49,6 +57,7 @@ const EditProfile = lazy(() => import("./pages/EditProfile"));
 const Index = lazy(() => import("./pages/Index"));
 const SEOAdmin = lazy(() => import("./pages/admin/SEOAdmin"));
 const Journal = lazy(() => import("./pages/Journal"));
+const Privacy = lazy(() => import("./pages/Privacy"));
 
 function PageLoader() {
   return (
@@ -96,13 +105,16 @@ const App = () => (
         <Route path="/my-events" element={<MyEvents />} />
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/auth" element={<Auth />} />
-        <Route path="/admin" element={<Admin />} />
-        <Route path="/admin/claims" element={<AdminClaims />} />
-        <Route path="/admin/seo" element={<SEOAdmin />} />
+        {!isNative && <Route path="/admin" element={<Admin />} />}
+        {!isNative && <Route path="/admin/claims" element={<AdminClaims />} />}
+        {!isNative && <Route path="/admin/seo" element={<SEOAdmin />} />}
         <Route path="/profile/venue/:id/edit" element={<EditVenueProfile />} />
         <Route path="/profile/winemaker/:id/edit" element={<EditWinemakerProfile />} />
         <Route path="/claim-venue" element={<ClaimVenue />} />
         <Route path="/place/google/:placeId" element={<GooglePlaceDetail />} />
+        {/* Required for App Store + Google Play submission. Available on
+           every platform (web + native) — store listings link to it. */}
+        <Route path="/privacy" element={<Privacy />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>
