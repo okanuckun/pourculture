@@ -158,6 +158,8 @@ export default function Feed() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Post as venue
   const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
