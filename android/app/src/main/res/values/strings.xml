@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PourCulture</string>
+    <string name="title_activity_main">PourCulture</string>
+    <string name="package_name">app.pourculture</string>
+    <string name="custom_url_scheme">app.pourculture</string>
+</resources>
