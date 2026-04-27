@@ -173,58 +173,33 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     });
   }, [fetchVenues]);
 
-  // Get user location and auto-search
-  const getUserLocationAndSearch = useCallback(() => {
+  // On first map load, fly to the user's location if we can — but DO NOT
+  // auto-fetch venues. The user must explicitly press "Search this area"
+  // to trigger Foursquare calls. This dramatically reduces API usage.
+  const flyToUserLocation = useCallback(() => {
     if (!map.current || !mapReady) return;
-    
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          const { latitude, longitude } = position.coords;
-          
-          map.current?.flyTo({
-            center: [longitude, latitude],
-            zoom: 13,
-            duration: 2000,
-            essential: true,
-          });
-          
-          // Auto-search after flying to user location
-          map.current?.once('moveend', () => {
-            if (!map.current) return;
-            const bounds = map.current.getBounds();
-            const newBounds = {
-              south: bounds.getSouth(),
-              west: bounds.getWest(),
-              north: bounds.getNorth(),
-              east: bounds.getEast(),
-            };
-            setCurrentBounds(newBounds);
-            fetchVenues(newBounds);
-          });
-          
-          // Location detected - silently search without notification
-        },
-        (error) => {
-          console.log('Geolocation error:', error.message);
-          // If user denies or error occurs, just search the default area
-          if (currentBounds) {
-            fetchVenues(currentBounds);
-          }
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000, // 5 minutes cache
-        }
-      );
-    } else {
-      // Geolocation not supported, search default area
-      if (currentBounds) {
-        fetchVenues(currentBounds);
+    if (!('geolocation' in navigator)) return;
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        const { latitude, longitude } = position.coords;
+        map.current?.flyTo({
+          center: [longitude, latitude],
+          zoom: 13,
+          duration: 2000,
+          essential: true,
+        });
+      },
+      (error) => {
+        console.log('Geolocation error:', error.message);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
       }
-    }
-  }, [mapReady, currentBounds, fetchVenues]);
+    );
+  }, [mapReady]);
 
   // Initialize map with style based on minimalStyle prop
   useEffect(() => {
