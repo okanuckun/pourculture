@@ -29,13 +29,14 @@ serve(async (req) => {
       );
     }
 
+    // Foursquare Service API (post-2025): host = places-api.foursquare.com,
+    // Bearer auth + X-Places-Api-Version are mandatory. We don't pass `types`
+    // because Service API rejects places-only filtering on autocomplete, and
+    // the predictions array is filtered client-side by what we map below.
     const url = new URL('https://places-api.foursquare.com/autocomplete');
     url.searchParams.set('query', input.trim());
-    // We only care about places (not addresses, geographies, or queries).
-    url.searchParams.set('types', 'place');
     url.searchParams.set('limit', '10');
 
-    // Foursquare Service API (post-2025 migration): Bearer + version header.
     const response = await fetch(url.toString(), {
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -44,33 +45,24 @@ serve(async (req) => {
       },
     });
 
-    const rawText = await response.text();
-    let data: any = {};
-    try { data = JSON.parse(rawText); } catch { /* keep raw */ }
-
     if (!response.ok) {
-      console.error('Foursquare autocomplete error:', response.status, rawText);
-      // TEMP debug: surface the upstream error to the caller so we can
-      // diagnose auth/endpoint issues. Revert once verified.
+      const text = await response.text().catch(() => '');
+      console.error('Foursquare autocomplete error:', response.status, text);
       return new Response(
-        JSON.stringify({
-          predictions: [],
-          _debug: {
-            status: response.status,
-            url: url.toString(),
-            keyLen: apiKey.length,
-            keyHead: apiKey.slice(0, 4),
-            body: rawText.slice(0, 500),
-          },
-        }),
+        JSON.stringify({ predictions: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const data = await response.json();
     const results: any[] = Array.isArray(data?.results) ? data.results : [];
 
     const predictions = results
       .map((r) => {
+        // Service API returns autocomplete results with a `type` discriminator
+        // ("place" / "address" / etc.) and the place fields nested under
+        // `place`. We only emit place-typed results.
+        if (r?.type && r.type !== 'place') return null;
         const fsqId = r?.place?.fsq_place_id ?? r?.place?.fsq_id;
         const mainText = r?.text?.primary ?? r?.place?.name ?? '';
         const secondaryText = r?.text?.secondary ?? '';
@@ -86,17 +78,7 @@ serve(async (req) => {
       .filter((p): p is { placeId: string; description: string; mainText: string; secondaryText: string } => p !== null);
 
     return new Response(
-      JSON.stringify({
-        predictions,
-        _debug: {
-          v: 'fsq-debug-2',
-          status: response.status,
-          url: url.toString(),
-          keyLen: apiKey.length,
-          keyHead: apiKey.slice(0, 4),
-          rawSample: rawText.slice(0, 400),
-        },
-      }),
+      JSON.stringify({ predictions }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

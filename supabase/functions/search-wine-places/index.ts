@@ -25,17 +25,18 @@ interface PlaceResult {
   photoReference?: string;
 }
 
-// Foursquare Places API v3 — wine-relevant categories (numeric IDs).
-// 13057 Wine Bar, 13338 Winery, 17074 Wine Shop, 13003 Bar, 13145 Restaurant.
-const WINE_CATEGORY_IDS = '13057,13338,17074';
+// Foursquare Service API (post-2025) returns categories as
+// `{fsq_category_id: "<uuid>", name: "...", short_name: "...", plural_name: "..."}`.
+// We can't filter the search by legacy numeric IDs anymore (those silently
+// match nothing in the new API), so we just classify the result by name
+// after the fact.
+function categoryFromFsq(categories: Array<{ fsq_category_id?: string; id?: number | string; name?: string; short_name?: string; plural_name?: string }> = [], fallback: PlaceResult['category'] = 'wine_bar'): PlaceResult['category'] {
+  const names = categories.flatMap((c) => [c.name, c.short_name, c.plural_name].filter(Boolean) as string[])
+    .map((n) => n.toLowerCase());
 
-function categoryFromFsq(categories: Array<{ id?: number | string; name?: string }> = [], fallback: PlaceResult['category'] = 'wine_bar'): PlaceResult['category'] {
-  const ids = categories.map((c) => Number(c.id)).filter((n) => Number.isFinite(n));
-  const names = categories.map((c) => String(c.name ?? '').toLowerCase());
-
-  if (ids.includes(13338) || names.some((n) => n.includes('winery'))) return 'winery';
-  if (ids.includes(17074) || names.some((n) => n.includes('wine shop') || n.includes('wine store') || n.includes('liquor'))) return 'wine_shop';
-  if (ids.includes(13057) || names.some((n) => n.includes('wine bar'))) return 'wine_bar';
+  if (names.some((n) => n.includes('winery') || n.includes('vineyard'))) return 'winery';
+  if (names.some((n) => n.includes('wine shop') || n.includes('wine store') || n.includes('liquor'))) return 'wine_shop';
+  if (names.some((n) => n.includes('wine bar'))) return 'wine_bar';
   if (names.some((n) => n.includes('restaurant'))) return 'restaurant';
   return fallback;
 }
@@ -60,8 +61,10 @@ function buildAddress(location: any): string | undefined {
 
 function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
   const fsqId = place.fsq_place_id ?? place.fsq_id ?? '';
-  const lat = place.geocodes?.main?.latitude ?? place.latitude ?? 0;
-  const lng = place.geocodes?.main?.longitude ?? place.longitude ?? 0;
+  // Service API returns flat latitude/longitude. Legacy v3 had geocodes.main —
+  // keep the fallback in case Foursquare reverts or we hit cached responses.
+  const lat = place.latitude ?? place.geocodes?.main?.latitude ?? 0;
+  const lng = place.longitude ?? place.geocodes?.main?.longitude ?? 0;
   const photo = Array.isArray(place.photos) && place.photos.length > 0 ? place.photos[0] : undefined;
 
   return {
@@ -82,10 +85,13 @@ function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'
   };
 }
 
+// Fields we want returned. The Service API treats `fields` as additive on top
+// of a default subset — request the wine-app extras explicitly.
 const FSQ_FIELDS = [
   'fsq_place_id',
   'name',
-  'geocodes',
+  'latitude',
+  'longitude',
   'location',
   'categories',
   'rating',
@@ -147,11 +153,11 @@ serve(async (req) => {
 
     if (trimmedQuery) {
       // Text search mode (admin Discovery + Feed venue picker).
+      // We don't filter by category here — the Service API switched from
+      // numeric IDs to UUID `fsq_category_id`s and our wine-bar set was
+      // never re-mapped, so a category filter silently wipes out results.
       const url = new URL('https://places-api.foursquare.com/places/search');
       url.searchParams.set('query', naturalWineOnly ? `natural ${trimmedQuery}` : trimmedQuery);
-      // Bias toward wine venues but don't lock the search out of restaurants
-      // that may serve as wine bars in some cities.
-      url.searchParams.set('categories', WINE_CATEGORY_IDS);
       url.searchParams.set('limit', '20');
       url.searchParams.set('fields', FSQ_FIELDS);
 

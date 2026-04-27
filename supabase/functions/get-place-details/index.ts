@@ -5,11 +5,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Service API field set. Returned shape uses flat latitude/longitude (not
+// nested geocodes), and categories come back with `fsq_category_id`.
 const FSQ_FIELDS = [
   'fsq_place_id',
   'name',
   'location',
-  'geocodes',
+  'latitude',
+  'longitude',
   'categories',
   'rating',
   'stats',
@@ -95,18 +98,18 @@ function pickCountry(location: any): string | undefined {
   return location.country ?? undefined;
 }
 
-function fsqTypesFromCategories(categories: Array<{ id?: number | string; name?: string }> = []): string[] {
+function fsqTypesFromCategories(categories: Array<{ fsq_category_id?: string; id?: number | string; name?: string; short_name?: string; plural_name?: string }> = []): string[] {
   // Map a couple of common category ids/names back to the Google-style
   // type strings the frontend uses to label venues. Anything else falls
   // through unchanged.
   const out: string[] = [];
   for (const c of categories) {
-    const name = String(c?.name ?? '').toLowerCase();
-    const id = Number(c?.id);
-    if (id === 13338 || name.includes('winery')) out.push('winery');
-    else if (id === 17074 || name.includes('wine shop') || name.includes('wine store') || name.includes('liquor')) out.push('store');
-    else if (id === 13057 || name.includes('wine bar')) out.push('bar');
-    else if (id === 13003 || name.includes('bar')) out.push('bar');
+    const name = String(c?.name ?? c?.short_name ?? c?.plural_name ?? '').toLowerCase();
+    if (!name) continue;
+    if (name.includes('winery') || name.includes('vineyard')) out.push('winery');
+    else if (name.includes('wine shop') || name.includes('wine store') || name.includes('liquor')) out.push('store');
+    else if (name.includes('wine bar')) out.push('bar');
+    else if (name.includes('bar')) out.push('bar');
     else if (name.includes('restaurant')) out.push('restaurant');
   }
   return out;
@@ -179,8 +182,9 @@ serve(async (req) => {
     // for Foursquare results these are full CDN URLs, not opaque refs.
     const photoReferences = photoUrls.slice(0, 6);
 
-    const lat = place.geocodes?.main?.latitude;
-    const lng = place.geocodes?.main?.longitude;
+    // Service API returns flat latitude/longitude; v3 had geocodes.main.
+    const lat = place.latitude ?? place.geocodes?.main?.latitude;
+    const lng = place.longitude ?? place.geocodes?.main?.longitude;
 
     // Build a generic external maps URL so the UI's "Open in maps" button keeps
     // working without binding us to Google. Google Maps' search-by-coords URL
