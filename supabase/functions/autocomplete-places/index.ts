@@ -84,7 +84,17 @@ serve(async (req) => {
       .filter((p): p is { placeId: string; description: string; mainText: string; secondaryText: string } => p !== null);
 
     return new Response(
-      JSON.stringify({ predictions }),
+      JSON.stringify({
+        predictions,
+        _debug: {
+          v: 'fsq-debug-2',
+          status: response.status,
+          url: url.toString(),
+          keyLen: apiKey.length,
+          keyHead: apiKey.slice(0, 4),
+          rawSample: rawText.slice(0, 400),
+        },
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
