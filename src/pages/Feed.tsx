@@ -5,7 +5,23 @@ import { supabase } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { Plus, Eye, MapPin, Star, Image as ImageIcon, X, Store, User, MessageCircle, Search } from 'lucide-react';
+import { Plus, Eye, MapPin, Star, Image as ImageIcon, X, Store, User, MessageCircle, Search, MoreHorizontal, Trash2 } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -142,6 +158,8 @@ export default function Feed() {
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [creating, setCreating] = useState(false);
+  const [deletingPostId, setDeletingPostId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Post as venue
   const [ownedVenues, setOwnedVenues] = useState<OwnedVenue[]>([]);
@@ -622,6 +640,31 @@ export default function Feed() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!deletingPostId || !userId) return;
+    setDeleting(true);
+    try {
+      // Clean up child records first (no FK cascade in DB)
+      await Promise.all([
+        supabase.from('post_likes').delete().eq('post_id', deletingPostId),
+        supabase.from('post_comments').delete().eq('post_id', deletingPostId),
+      ]);
+
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', deletingPostId)
+        .eq('user_id', userId);
+      if (error) throw error;
+      setPosts(prev => prev.filter(p => p.id !== deletingPostId));
+      toast.success('Post deleted');
+      setDeletingPostId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete post');
+    }
+    setDeleting(false);
+  };
+
   return (
     <BrutalistLayout>
       {/* Share button bar */}
@@ -809,6 +852,24 @@ export default function Feed() {
                           )}
                         </div>
                       </div>
+                      {userId === post.user_id && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <button className="p-1 -mr-1 text-muted-foreground hover:text-foreground transition-colors" aria-label="Post options">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-36">
+                            <DropdownMenuItem
+                              onClick={() => setDeletingPostId(post.id)}
+                              className="text-destructive focus:text-destructive cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
                     </div>
 
                     {/* Image */}
@@ -876,6 +937,26 @@ export default function Feed() {
           })
         )}
       </div>
+      <AlertDialog open={!!deletingPostId} onOpenChange={(open) => !open && setDeletingPostId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete this post?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the post, its likes and comments. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleDeletePost(); }}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </BrutalistLayout>
   );
 }
