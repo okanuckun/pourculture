@@ -25,13 +25,13 @@ serve(async (req) => {
       );
     }
 
-    // Cap each image at ~6 MB raw (≈ 8 MB base64). Bigger payloads
-    // either time out the AI gateway or eat the function's memory
-    // budget without producing a better read of a wine label.
-    const MAX_BASE64_BYTES = 8 * 1024 * 1024;
+    // Cap each image at ~9 MB raw (≈ 12 MB base64). Modern phone photos
+    // routinely come in around 6-8 MB, so we leave generous headroom while
+    // still protecting the AI gateway from very large payloads.
+    const MAX_BASE64_BYTES = 12 * 1024 * 1024;
     if (frontImageBase64.length > MAX_BASE64_BYTES || (backImageBase64 && backImageBase64.length > MAX_BASE64_BYTES)) {
       return new Response(
-        JSON.stringify({ error: "Image too large. Please use a photo under 6 MB." }),
+        JSON.stringify({ error: "Image too large. Please use a photo under 9 MB or retake at a lower resolution." }),
         { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
