@@ -19,6 +19,7 @@ interface HomeWineMapProps {
   filterCategories?: WineVenueCategory[];
   wineFairs?: WineFairMarker[];
   showEvents?: boolean;
+  userCoords?: { lat: number; lng: number } | null;
 }
 
 const DEFAULT_CENTER: [number, number] = [2.3522, 48.8566]; // Paris [lng, lat]
@@ -45,7 +46,7 @@ const OSM_FALLBACK_STYLE: mapboxgl.StyleSpecification = {
   ],
 };
 
-export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories, wineFairs = [], showEvents = false }) => {
+export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minimalStyle = false, filterCategories, wineFairs = [], showEvents = false, userCoords = null }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
@@ -237,8 +238,8 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     map.current = new mapboxgl.Map({
       container: mapContainer.current,
       style: mapStyle,
-      center: DEFAULT_CENTER,
-      zoom: 4,
+      center: userCoords ? [userCoords.lng, userCoords.lat] : DEFAULT_CENTER,
+      zoom: userCoords ? 13 : 4,
       pitch: minimalStyle ? 0 : 30,
       bearing: 0,
       antialias: true,
@@ -331,7 +332,17 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       map.current?.remove();
       map.current = null;
     };
-  }, [mapboxToken]);
+  }, [mapboxToken, userCoords]);
+
+  useEffect(() => {
+    if (!map.current || !mapReady || !userCoords) return;
+    map.current.flyTo({
+      center: [userCoords.lng, userCoords.lat],
+      zoom: 13,
+      duration: 1200,
+      essential: true,
+    });
+  }, [mapReady, userCoords]);
 
   // On first map load, only re-center on the user — never auto-fetch.
   useEffect(() => {

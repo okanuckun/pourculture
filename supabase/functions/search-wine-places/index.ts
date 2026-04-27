@@ -126,7 +126,9 @@ serve(async (req) => {
       );
     }
     // Foursquare radius cap is 100km; clamp to a sensible window.
-    const safeRadius = Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 100000));
+    const safeRadius = Math.round(Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 100000)));
+    const safeLat = typeof lat === 'number' ? Number(lat.toFixed(6)) : lat;
+    const safeLng = typeof lng === 'number' ? Number(lng.toFixed(6)) : lng;
 
     const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
@@ -194,7 +196,7 @@ serve(async (req) => {
       try {
         const url = new URL('https://places-api.foursquare.com/places/search');
         url.searchParams.set('query', q);
-        url.searchParams.set('ll', `${lat},${lng}`);
+        url.searchParams.set('ll', `${safeLat},${safeLng}`);
         url.searchParams.set('radius', String(safeRadius));
         url.searchParams.set('limit', '30');
         url.searchParams.set('fields', FSQ_FIELDS);

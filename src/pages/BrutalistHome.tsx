@@ -15,6 +15,9 @@ type Venue = Tables<'venues'>;
 type Winemaker = Tables<'winemakers'>;
 type WineFair = Tables<'wine_fairs'>;
 
+const DEFAULT_USER_COORDS: UserCoordinates = { lat: 40.7128, lng: -74.006 };
+const DEFAULT_USER_LOCATION = 'New York';
+
 // Calculate distance between two points using Haversine formula
 const calculateDistance = (lat1: number, lng1: number, lat2: number | null, lng2: number | null): number => {
   if (lat2 === null || lng2 === null) return Infinity;
@@ -46,8 +49,8 @@ const sortByDistance = <T extends { latitude?: number | null; longitude?: number
 
 const BrutalistHome = () => {
   const [activeCategory, setActiveCategory] = useState<CategoryType>('overview');
-  const [userLocation, setUserLocation] = useState<string>('');
-  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(null);
+  const [userLocation, setUserLocation] = useState<string>(DEFAULT_USER_LOCATION);
+  const [userCoords, setUserCoords] = useState<UserCoordinates | null>(DEFAULT_USER_COORDS);
   const [loading, setLoading] = useState(true);
   const [locationRequested, setLocationRequested] = useState(false);
   const [showLocationBanner, setShowLocationBanner] = useState(
@@ -128,7 +131,10 @@ const BrutalistHome = () => {
 
     // Check if user already granted location consent
     const hasConsent = localStorage.getItem('pourculture_location_consent');
-    if (!hasConsent) return;
+    if (!hasConsent) {
+      fetchData(DEFAULT_USER_COORDS);
+      return;
+    }
 
     const requestLocation = async () => {
       if ('geolocation' in navigator) {
