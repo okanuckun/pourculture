@@ -16,6 +16,8 @@ interface WineInfo {
   region?: string;
   country?: string;
   grapeVariety?: string;
+  isBlend?: boolean;
+  blendComposition?: Array<{ grape: string; percentage?: string }>;
   vintage?: string;
   type?: string;
   terroir?: {
@@ -529,11 +531,36 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         </div>
                       )}
                       {wineInfo.grapeVariety && (
-                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg">
-                          <Grape className="h-4 w-4 text-primary mt-0.5" />
-                          <div>
-                            <p className="text-xs text-muted-foreground">Grape</p>
-                            <p className="text-sm font-medium">{wineInfo.grapeVariety}</p>
+                        <div className="flex items-start gap-2 p-3 bg-muted/30 rounded-lg col-span-2">
+                          <Grape className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-xs text-muted-foreground">
+                                {wineInfo.isBlend ? 'Blend' : 'Grape'}
+                              </p>
+                              {wineInfo.isBlend && (
+                                <Badge variant="secondary" className="text-[9px] h-4 px-1.5 uppercase tracking-wide">
+                                  Blend
+                                </Badge>
+                              )}
+                            </div>
+                            {wineInfo.isBlend && wineInfo.blendComposition && wineInfo.blendComposition.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {wineInfo.blendComposition.map((item, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center gap-1 text-xs font-medium bg-background border border-foreground/10 rounded-md px-2 py-1"
+                                  >
+                                    <span>{item.grape}</span>
+                                    {item.percentage && (
+                                      <span className="text-muted-foreground">{item.percentage}</span>
+                                    )}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-sm font-medium">{wineInfo.grapeVariety}</p>
+                            )}
                           </div>
                         </div>
                       )}
