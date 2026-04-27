@@ -88,7 +88,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
     if (venue?.source === 'database' && venue.slug) {
       navigate(`/venue/${venue.slug}`);
     } else if (venue?.source === 'google' && venue.googlePlaceId) {
-      const placeId = venue.googlePlaceId.replace('google_', '');
+      const placeId = venue.googlePlaceId.replace(/^(google_|foursquare_)/, '');
       navigate(`/place/google/${placeId}`);
     }
   };
@@ -123,8 +123,9 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
             });
           }
         } else if (venue.source === 'google' && venue.googlePlaceId) {
-          // Fetch from Google Places
-          const placeId = venue.googlePlaceId.replace('google_', '');
+          // Fetch from external place provider (Foursquare for new venues,
+          // legacy Google id for venues added before the migration).
+          const placeId = venue.googlePlaceId.replace(/^(google_|foursquare_)/, '');
           const { data, error } = await supabase.functions.invoke('get-place-details', {
             body: { placeId }
           });
@@ -515,7 +516,7 @@ export const VenueDetailPanel: React.FC<VenueDetailPanelProps> = ({
             open={claimDialogOpen}
             onOpenChange={setClaimDialogOpen}
             venueId={venue?.source === 'database' ? venue.id : undefined}
-            googlePlaceId={venue?.source === 'google' ? venue.googlePlaceId?.replace('google_', '') : undefined}
+            googlePlaceId={venue?.source === 'google' ? venue.googlePlaceId?.replace(/^(google_|foursquare_)/, '') : undefined}
             venueName={displayData.name}
             venueType="venue"
           />

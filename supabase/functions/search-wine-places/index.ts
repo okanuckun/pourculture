@@ -18,42 +18,85 @@ interface PlaceResult {
   isOpen?: boolean;
   website?: string;
   phone?: string;
+  // For Foursquare results we return a fully-built CDN URL here, not a
+  // photo_reference. venuePhoto.ts detects http(s) and renders directly;
+  // Google-era references (no http prefix) still go through the legacy
+  // google-place-photo proxy for venues already in the DB.
   photoReference?: string;
 }
 
-function getCategoryFromTypes(
-  types: string[] = [],
-  fallback: PlaceResult['category'] = 'wine_bar'
-): PlaceResult['category'] {
-  if (types.includes('winery')) return 'winery';
-  if (types.includes('bar')) return 'wine_bar';
-  if (types.includes('liquor_store') || types.includes('store')) return 'wine_shop';
-  if (types.includes('restaurant') || types.includes('food')) return 'restaurant';
+// Foursquare Places API v3 — wine-relevant categories (numeric IDs).
+// 13057 Wine Bar, 13338 Winery, 17074 Wine Shop, 13003 Bar, 13145 Restaurant.
+const WINE_CATEGORY_IDS = '13057,13338,17074';
 
+function categoryFromFsq(categories: Array<{ id?: number | string; name?: string }> = [], fallback: PlaceResult['category'] = 'wine_bar'): PlaceResult['category'] {
+  const ids = categories.map((c) => Number(c.id)).filter((n) => Number.isFinite(n));
+  const names = categories.map((c) => String(c.name ?? '').toLowerCase());
+
+  if (ids.includes(13338) || names.some((n) => n.includes('winery'))) return 'winery';
+  if (ids.includes(17074) || names.some((n) => n.includes('wine shop') || n.includes('wine store') || n.includes('liquor'))) return 'wine_shop';
+  if (ids.includes(13057) || names.some((n) => n.includes('wine bar'))) return 'wine_bar';
+  if (names.some((n) => n.includes('restaurant'))) return 'restaurant';
   return fallback;
 }
 
-function mapGooglePlace(
-  place: any,
-  fallbackCategory: PlaceResult['category'] = 'wine_bar'
-): PlaceResult {
+function buildPhotoUrl(photo: { prefix?: string; suffix?: string } | undefined, size = 'original'): string | undefined {
+  if (!photo?.prefix || !photo?.suffix) return undefined;
+  return `${photo.prefix}${size}${photo.suffix}`;
+}
+
+function buildAddress(location: any): string | undefined {
+  if (!location) return undefined;
+  if (location.formatted_address) return location.formatted_address;
+  const parts = [
+    location.address,
+    location.locality,
+    location.region,
+    location.postcode,
+    location.country,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(', ') : undefined;
+}
+
+function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
+  const fsqId = place.fsq_place_id ?? place.fsq_id ?? '';
+  const lat = place.geocodes?.main?.latitude ?? place.latitude ?? 0;
+  const lng = place.geocodes?.main?.longitude ?? place.longitude ?? 0;
+  const photo = Array.isArray(place.photos) && place.photos.length > 0 ? place.photos[0] : undefined;
+
   return {
-    id: `google_${place.place_id}`,
-    placeId: place.place_id,
+    id: `foursquare_${fsqId}`,
+    placeId: fsqId,
     name: place.name,
-    lat: place.geometry.location.lat,
-    lng: place.geometry.location.lng,
-    address: place.formatted_address || place.vicinity,
-    category: getCategoryFromTypes(place.types, fallbackCategory),
-    rating: place.rating,
-    priceLevel: place.price_level,
-    isOpen: place.opening_hours?.open_now,
-    photoReference: place.photos?.[0]?.photo_reference,
+    lat,
+    lng,
+    address: buildAddress(place.location),
+    category: categoryFromFsq(place.categories, fallbackCategory),
+    // Foursquare ratings are 0-10; normalize to 0-5 to match the Google shape consumers expect.
+    rating: typeof place.rating === 'number' ? Number((place.rating / 2).toFixed(1)) : undefined,
+    priceLevel: typeof place.price === 'number' && place.price >= 1 && place.price <= 4 ? place.price : undefined,
+    isOpen: place.hours?.open_now,
+    website: place.website ?? undefined,
+    phone: place.tel ?? undefined,
+    photoReference: buildPhotoUrl(photo, 'original'),
   };
 }
 
+const FSQ_FIELDS = [
+  'fsq_place_id',
+  'name',
+  'geocodes',
+  'location',
+  'categories',
+  'rating',
+  'price',
+  'hours',
+  'website',
+  'tel',
+  'photos',
+].join(',');
+
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -68,10 +111,6 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-
-    // Bound-check lat/lng when supplied so we don't hand Google a
-    // garbage coordinate (and so a nonsense input like lat=999 stops
-    // before it costs a Places API call).
     if (typeof lat === 'number' && (lat < -90 || lat > 90)) {
       return new Response(
         JSON.stringify({ error: 'lat must be between -90 and 90' }),
@@ -84,84 +123,92 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    // Cap the radius — Google Places hard-caps Nearby Search at 50km.
-    const safeRadius = Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 50000));
+    // Foursquare radius cap is 100km; clamp to a sensible window.
+    const safeRadius = Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 100000));
 
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
-      console.error('GOOGLE_PLACES_API_KEY not configured');
+      console.error('FOURSQUARE_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    if (trimmedQuery) {
-      const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
-      url.searchParams.set('query', naturalWineOnly ? `${trimmedQuery} natural wine` : trimmedQuery);
-      url.searchParams.set('key', apiKey);
+    const headers = {
+      Authorization: apiKey,
+      Accept: 'application/json',
+    };
 
-      const response = await fetch(url.toString());
+    if (trimmedQuery) {
+      // Text search mode (admin Discovery + Feed venue picker).
+      const url = new URL('https://api.foursquare.com/v3/places/search');
+      url.searchParams.set('query', naturalWineOnly ? `natural ${trimmedQuery}` : trimmedQuery);
+      // Bias toward wine venues but don't lock the search out of restaurants
+      // that may serve as wine bars in some cities.
+      url.searchParams.set('categories', WINE_CATEGORY_IDS);
+      url.searchParams.set('limit', '20');
+      url.searchParams.set('fields', FSQ_FIELDS);
+
+      const response = await fetch(url.toString(), { headers });
       const data = await response.json();
 
-      if (data.status === 'OK' && data.results) {
-        const places = data.results.slice(0, 20).map((place: any) => mapGooglePlace(place));
-
+      if (!response.ok) {
+        console.warn(`Foursquare text search error: ${response.status}`, data?.message);
         return new Response(
-          JSON.stringify({ places, count: places.length }),
+          JSON.stringify({ places: [], count: 0 }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
 
-      if (data.status !== 'ZERO_RESULTS') {
-        console.warn(`API returned status: ${data.status} for query "${trimmedQuery}"`);
-      }
+      const results: any[] = Array.isArray(data?.results) ? data.results : [];
+      const places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
 
       return new Response(
-        JSON.stringify({ places: [], count: 0 }),
+        JSON.stringify({ places, count: places.length }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Search queries - if natural wine filter is on, prepend "natural" to queries
+    // Nearby mode — used by HomeWineMap when a user pans the map.
+    // We issue several focused queries so each result lands in the right
+    // category (wine_bar / wine_shop / winery) without a separate filter pass.
     const prefix = naturalWineOnly ? 'natural ' : '';
-    const searchQueries = [
-      { query: `${prefix}wine bar`, category: 'wine_bar' as const },
-      { query: `${prefix}wine shop`, category: 'wine_shop' as const },
-      { query: `${prefix}wine store`, category: 'wine_shop' as const },
-      { query: `${prefix}winery`, category: 'winery' as const },
-      { query: naturalWineOnly ? 'organic winery' : 'vineyard', category: 'winery' as const },
+    const searchQueries: Array<{ query: string; category: PlaceResult['category'] }> = [
+      { query: `${prefix}wine bar`, category: 'wine_bar' },
+      { query: `${prefix}wine shop`, category: 'wine_shop' },
+      { query: naturalWineOnly ? 'organic winery' : 'winery', category: 'winery' },
     ];
 
     const allPlaces: PlaceResult[] = [];
     const seenIds = new Set<string>();
 
-    // Fetch places for each query
-    for (const { query, category } of searchQueries) {
+    for (const { query: q, category } of searchQueries) {
       try {
-        const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
-        url.searchParams.set('location', `${lat},${lng}`);
-        url.searchParams.set('radius', safeRadius.toString());
-        url.searchParams.set('keyword', query);
-        url.searchParams.set('key', apiKey);
+        const url = new URL('https://api.foursquare.com/v3/places/search');
+        url.searchParams.set('query', q);
+        url.searchParams.set('ll', `${lat},${lng}`);
+        url.searchParams.set('radius', String(safeRadius));
+        url.searchParams.set('limit', '30');
+        url.searchParams.set('fields', FSQ_FIELDS);
 
-        
-        const response = await fetch(url.toString());
+        const response = await fetch(url.toString(), { headers });
         const data = await response.json();
 
-        if (data.status === 'OK' && data.results) {
-          for (const place of data.results) {
-            // Skip duplicates
-            if (seenIds.has(place.place_id)) continue;
-            seenIds.add(place.place_id);
-
-            allPlaces.push(mapGooglePlace(place, category));
-          }
-        } else if (data.status !== 'ZERO_RESULTS') {
-          console.warn(`API returned status: ${data.status} for query "${query}"`);
+        if (!response.ok) {
+          console.warn(`Foursquare nearby error for "${q}": ${response.status}`);
+          continue;
         }
-      } catch (error) {
-        console.error(`Error fetching "${query}":`, error);
+
+        const results: any[] = Array.isArray(data?.results) ? data.results : [];
+        for (const place of results) {
+          const fsqId = place.fsq_place_id ?? place.fsq_id;
+          if (!fsqId || seenIds.has(fsqId)) continue;
+          seenIds.add(fsqId);
+          allPlaces.push(mapFoursquarePlace(place, category));
+        }
+      } catch (err) {
+        console.error(`Error fetching "${q}":`, err);
       }
     }
 
@@ -169,9 +216,8 @@ serve(async (req) => {
       JSON.stringify({ places: allPlaces, count: allPlaces.length }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
-
   } catch (error) {
-    console.error('Error in search-wine-places:', error);
+    console.error('Error in search-wine-places (Foursquare):', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: errorMessage }),

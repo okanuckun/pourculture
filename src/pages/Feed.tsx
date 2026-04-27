@@ -267,7 +267,7 @@ export default function Feed() {
       country: resolvedCountry,
       category: mapGoogleTypesToVenueCategory(placeDetails?.types),
       created_by: userId,
-      source: 'google',
+      source: 'foursquare',
       google_place_id: venue.googlePlaceId,
       google_rating: placeDetails?.rating ?? null,
       is_open: placeDetails?.isOpen ?? null,
@@ -349,7 +349,7 @@ export default function Feed() {
           country: fallbackLocation.country,
           address: place.address,
           source: 'google' as const,
-          googlePlaceId: place.id.replace(/^google_/, ''),
+          googlePlaceId: place.id.replace(/^(google_|foursquare_)/, ''),
         };
       });
 

@@ -3,13 +3,19 @@
  *
  * Strategy:
  * 1. If the venue uploaded its own photos (`photos` array) or has an `image_url`, use those.
- * 2. Otherwise fall back to Google Places photos via the `google-place-photo` edge proxy
- *    using the first stored `google_photo_references` entry.
+ * 2. Otherwise fall back to a stored `google_photo_references` entry. The
+ *    column name is historical — entries are now either:
+ *      - A full https:// URL (Foursquare CDN, used for venues added after the
+ *        Foursquare migration). Rendered directly.
+ *      - A Google Places `photo_reference` opaque token (legacy venues added
+ *        via the old Google Discovery flow). Rendered through the
+ *        `google-place-photo` edge proxy.
  *
  * Legacy data: some old rows stored direct
  * `https://maps.googleapis.com/maps/api/place/photo?...&key=...` URLs.
- * Google now blocks these (referrer/key restrictions) and they leak the API key.
- * `normalizePhotoUrl` rewrites them on the fly to go through our edge proxy.
+ * Google now blocks these (referrer/key restrictions) and they leak the API
+ * key. `normalizePhotoUrl` rewrites them on the fly to go through our edge
+ * proxy.
  */
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
@@ -44,6 +50,26 @@ export function normalizePhotoUrl(url: string, maxWidth = 800): string {
   } catch {
     return url;
   }
+}
+
+/**
+ * Resolve a stored photo reference to a URL the browser can load.
+ * Handles both Foursquare CDN URLs and legacy Google photo_reference tokens
+ * stored in the same `google_photo_references` column.
+ */
+export function resolvePhotoReference(
+  reference: string | undefined | null,
+  maxWidth = 800
+): string | undefined {
+  if (!reference) return undefined;
+  // Foursquare-era references are stored as full URLs. Run through
+  // normalizePhotoUrl so any leaked direct-Google URLs that ended up there
+  // also get proxied.
+  if (reference.startsWith('http://') || reference.startsWith('https://')) {
+    return normalizePhotoUrl(reference, maxWidth);
+  }
+  // Legacy Google photo_reference token — proxy through our edge function.
+  return googlePlacePhotoUrl(reference, maxWidth);
 }
 
 interface VenueLike {
@@ -86,9 +112,8 @@ export function resolveVenuePhotos(
     venue.google_photo_references.length > 0
   ) {
     for (const ref of venue.google_photo_references) {
-      if (typeof ref === 'string' && ref.length > 0) {
-        out.push(googlePlacePhotoUrl(ref, maxWidth));
-      }
+      const resolved = resolvePhotoReference(ref, maxWidth);
+      if (resolved) out.push(resolved);
     }
   }
 

@@ -23,7 +23,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { googlePlacePhotoUrl } from '@/lib/venuePhoto';
+import { resolvePhotoReference } from '@/lib/venuePhoto';
 
 type DiscoveryCategory = 'wine_bar' | 'wine_shop' | 'restaurant';
 
@@ -142,7 +142,7 @@ export const VenueDiscovery = () => {
       if (error) throw error;
 
       const place: DiscoveredPlace = {
-        id: `google_${prediction.placeId}`,
+        id: `foursquare_${prediction.placeId}`,
         placeId: prediction.placeId,
         name: data.name || prediction.mainText,
         lat: data.lat || 0,
@@ -323,7 +323,7 @@ export const VenueDiscovery = () => {
         google_rating: d.rating ?? place.rating ?? null,
         google_photo_references: d.photoReferences ?? (place.photoReference ? [place.photoReference] : []),
         opening_hours: openingHoursJson,
-        source: 'google_discovery',
+        source: 'foursquare_discovery',
         created_by: user?.id ?? null,
       });
       if (insertErr) throw insertErr;
@@ -475,7 +475,7 @@ export const VenueDiscovery = () => {
                 <div className="w-24 h-24 flex-shrink-0 bg-foreground/5 overflow-hidden border border-foreground/10">
                   {place.photoReference ? (
                     <img
-                      src={googlePlacePhotoUrl(place.photoReference, 200)}
+                      src={resolvePhotoReference(place.photoReference, 200)}
                       alt={place.name}
                       loading="lazy"
                       className="w-full h-full object-cover"
@@ -578,7 +578,7 @@ export const VenueDiscovery = () => {
                       {detail.photoReferences.slice(0, 6).map((ref, i) => (
                         <img
                           key={i}
-                          src={googlePlacePhotoUrl(ref, 300)}
+                          src={resolvePhotoReference(ref, 300)}
                           alt={`${selected.name} ${i + 1}`}
                           loading="lazy"
                           className="w-full aspect-square object-cover border border-foreground/10"

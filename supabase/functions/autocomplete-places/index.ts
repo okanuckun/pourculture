@@ -13,46 +13,69 @@ serve(async (req) => {
   try {
     const { input } = await req.json();
 
-    if (!input || input.trim().length < 2) {
+    if (!input || typeof input !== 'string' || input.trim().length < 2) {
       return new Response(
         JSON.stringify({ predictions: [] }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
+      console.error('FOURSQUARE_API_KEY not configured');
       return new Response(
         JSON.stringify({ error: 'API key not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const url = new URL('https://maps.googleapis.com/maps/api/place/autocomplete/json');
-    url.searchParams.set('input', input.trim());
-    url.searchParams.set('types', 'establishment');
-    url.searchParams.set('key', apiKey);
+    const url = new URL('https://api.foursquare.com/v3/autocomplete');
+    url.searchParams.set('query', input.trim());
+    // We only care about places (not addresses, geographies, or queries).
+    url.searchParams.set('types', 'place');
+    url.searchParams.set('limit', '10');
 
-    const response = await fetch(url.toString());
+    const response = await fetch(url.toString(), {
+      headers: {
+        Authorization: apiKey,
+        Accept: 'application/json',
+      },
+    });
+
     const data = await response.json();
 
-    if (data.status !== 'OK' && data.status !== 'ZERO_RESULTS') {
-      console.error('Autocomplete error:', data.status, data.error_message);
+    if (!response.ok) {
+      console.error('Foursquare autocomplete error:', response.status, data?.message);
+      return new Response(
+        JSON.stringify({ predictions: [] }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    const predictions = (data.predictions || []).map((p: any) => ({
-      placeId: p.place_id,
-      description: p.description,
-      mainText: p.structured_formatting?.main_text || '',
-      secondaryText: p.structured_formatting?.secondary_text || '',
-    }));
+    const results: any[] = Array.isArray(data?.results) ? data.results : [];
+
+    const predictions = results
+      .map((r) => {
+        const fsqId = r?.place?.fsq_place_id ?? r?.place?.fsq_id;
+        const mainText = r?.text?.primary ?? r?.place?.name ?? '';
+        const secondaryText = r?.text?.secondary ?? '';
+        const description = [mainText, secondaryText].filter(Boolean).join(' — ');
+        if (!fsqId || !mainText) return null;
+        return {
+          placeId: fsqId,
+          description,
+          mainText,
+          secondaryText,
+        };
+      })
+      .filter((p): p is { placeId: string; description: string; mainText: string; secondaryText: string } => p !== null);
 
     return new Response(
       JSON.stringify({ predictions }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
-    console.error('Error in autocomplete-places:', error);
+    console.error('Error in autocomplete-places (Foursquare):', error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }

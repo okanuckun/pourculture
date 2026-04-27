@@ -356,7 +356,7 @@ export const MapboxMap: React.FC<MapboxMapProps> = ({
               </a>
             ` : ''}
             ${!detailUrl && venue.source === 'google' && venue.googlePlaceId ? `
-              <a href="/place/google/${venue.googlePlaceId.replace('google_', '')}" 
+              <a href="/place/google/${venue.googlePlaceId.replace(/^(google_|foursquare_)/, '')}"
                  style="display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: white; background: linear-gradient(135deg, #8b5cf6, #a855f7); padding: 6px 12px; border-radius: 8px; text-decoration: none; font-weight: 500;">
                 👁️ View Details
               </a>
