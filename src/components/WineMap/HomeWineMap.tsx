@@ -1017,6 +1017,30 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       {/* Map container */}
       <div ref={mapContainer} className="absolute inset-0" />
 
+      {/* "Search this area" floating button — top-center under the search bar.
+          Brutalist styling matches the global design system. */}
+      {mapReady && (
+        <div className="absolute top-16 left-1/2 -translate-x-1/2 z-20 pointer-events-none">
+          <button
+            onClick={handleSearchThisArea}
+            disabled={loading}
+            className="pointer-events-auto inline-flex items-center gap-2 px-4 py-2 text-xs font-grotesk font-bold uppercase tracking-wider bg-background border-2 border-foreground text-foreground shadow-[2px_2px_0_0_hsl(var(--foreground))] hover:translate-x-[1px] hover:translate-y-[1px] hover:shadow-[1px_1px_0_0_hsl(var(--foreground))] active:translate-x-[2px] active:translate-y-[2px] active:shadow-none transition-all disabled:opacity-60 disabled:cursor-wait"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Searching…
+              </>
+            ) : (
+              <>
+                <Search className="w-3.5 h-3.5" />
+                Search this area
+              </>
+            )}
+          </button>
+        </div>
+      )}
+
       {/* Minimal Google Attribution */}
       <div className="absolute bottom-1 left-1 z-20 opacity-60">
         <GoogleAttribution variant="dark" />
