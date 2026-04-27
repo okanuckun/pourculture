@@ -351,7 +351,7 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                     <div className="text-center space-y-2 pt-2">
                       <h3 className="text-lg font-bold tracking-tight">Scan Wine Label</h3>
                       <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
-                        Front label is enough — adding the back label gives the AI vintage, alcohol %, and producer notes for a much more accurate read.
+                        Snap both sides — front labels can be artsy & vague, so the back gives us the full story (vintage, alcohol %, producer notes).
                       </p>
                     </div>
 
