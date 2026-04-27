@@ -62,6 +62,8 @@ You MUST respond in the following JSON format only (no other text):
   "region": "Region (e.g., Bordeaux, Tuscany, Napa Valley)",
   "country": "Country",
   "grapeVariety": "Grape variety/varieties. IMPORTANT: If the wine is a blend of multiple grapes, list ALL grape varieties separated by commas (e.g. 'Grenache, Syrah, Mourvèdre') and do NOT pick just one. If it is a single varietal, state that one grape.",
+  "isBlend": true/false (true if the wine is made from 2 or more grape varieties),
+  "blendComposition": [{"grape": "Grenache", "percentage": "60%"}, {"grape": "Syrah", "percentage": "30%"}, {"grape": "Mourvèdre", "percentage": "10%"}] (only include if isBlend is true. If percentages are not visible/known, omit the percentage field but still list each grape as an object),
   "vintage": "Year (if visible)",
   "type": "Red/White/Rosé/Sparkling/Orange",
   "terroir": {
