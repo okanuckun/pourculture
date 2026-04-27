@@ -438,15 +438,6 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                         {wineInfo.vintage && (
                           <Badge variant="outline">{wineInfo.vintage}</Badge>
                         )}
-                        {wineInfo.rating != null && (
-                          <Badge className="gap-1 bg-amber-500">
-                            <Star className="h-3 w-3" />
-                            {(() => {
-                              const r = String(wineInfo.rating).match(/\d+/);
-                              return r ? `${r[0]}/100` : '';
-                            })()}
-                          </Badge>
-                        )}
                       </div>
                     </div>
 
