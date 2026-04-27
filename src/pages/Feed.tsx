@@ -640,6 +640,25 @@ export default function Feed() {
     }
   };
 
+  const handleDeletePost = async () => {
+    if (!deletingPostId || !userId) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('posts')
+        .delete()
+        .eq('id', deletingPostId)
+        .eq('user_id', userId);
+      if (error) throw error;
+      setPosts(prev => prev.filter(p => p.id !== deletingPostId));
+      toast.success('Post deleted');
+      setDeletingPostId(null);
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to delete post');
+    }
+    setDeleting(false);
+  };
+
   return (
     <BrutalistLayout>
       {/* Share button bar */}
