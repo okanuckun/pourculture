@@ -644,6 +644,12 @@ export default function Feed() {
     if (!deletingPostId || !userId) return;
     setDeleting(true);
     try {
+      // Clean up child records first (no FK cascade in DB)
+      await Promise.all([
+        supabase.from('post_likes').delete().eq('post_id', deletingPostId),
+        supabase.from('post_comments').delete().eq('post_id', deletingPostId),
+      ]);
+
       const { error } = await supabase
         .from('posts')
         .delete()
