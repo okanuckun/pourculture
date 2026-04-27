@@ -888,20 +888,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     
     setShowSearchResults(false);
     setSearchQuery('');
-    
-    // Auto-search venues after flying to location
-    map.current.once('moveend', () => {
-      if (!map.current) return;
-      const bounds = map.current.getBounds();
-      const newBounds = {
-        south: bounds.getSouth(),
-        west: bounds.getWest(),
-        north: bounds.getNorth(),
-        east: bounds.getEast(),
-      };
-      setCurrentBounds(newBounds);
-      fetchVenues(newBounds);
-    });
+    // No auto-fetch — user presses "Search this area" if they want venues.
   };
 
   // Render loading state
