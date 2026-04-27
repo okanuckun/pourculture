@@ -85,8 +85,10 @@ function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'
   };
 }
 
-// Fields we want returned. The Service API treats `fields` as additive on top
-// of a default subset — request the wine-app extras explicitly.
+// Lean field set for search results. The Service API charges per Premium
+// field per row (photos, rating, price, hours, tel, website, tips...), so we
+// keep search cheap by requesting only Core fields here. Premium data is
+// fetched on demand by `get-place-details` when an admin clicks a result.
 const FSQ_FIELDS = [
   'fsq_place_id',
   'name',
@@ -94,12 +96,6 @@ const FSQ_FIELDS = [
   'longitude',
   'location',
   'categories',
-  'rating',
-  'price',
-  'hours',
-  'website',
-  'tel',
-  'photos',
 ].join(',');
 
 serve(async (req) => {
@@ -162,20 +158,12 @@ serve(async (req) => {
       url.searchParams.set('fields', FSQ_FIELDS);
 
       const response = await fetch(url.toString(), { headers });
-      const rawText = await response.text();
-      let data: any = {};
-      try { data = JSON.parse(rawText); } catch { /* keep raw */ }
+      const data = await response.json();
 
       if (!response.ok) {
         console.warn(`Foursquare text search error: ${response.status}`, data?.message);
-        // TEMP debug: surface upstream status until we confirm Service API
-        // is reliable. Strip after migration verification.
         return new Response(
-          JSON.stringify({
-            places: [],
-            count: 0,
-            _debug: { status: response.status, url: url.toString(), body: rawText.slice(0, 400) },
-          }),
+          JSON.stringify({ places: [], count: 0 }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -184,11 +172,7 @@ serve(async (req) => {
       const places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
 
       return new Response(
-        JSON.stringify({
-          places,
-          count: places.length,
-          _debug: { status: response.status, url: url.toString(), resultsRaw: results.length, sample: rawText.slice(0, 300) },
-        }),
+        JSON.stringify({ places, count: places.length }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
