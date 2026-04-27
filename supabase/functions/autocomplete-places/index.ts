@@ -42,12 +42,25 @@ serve(async (req) => {
       },
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+    let data: any = {};
+    try { data = JSON.parse(rawText); } catch { /* keep raw */ }
 
     if (!response.ok) {
-      console.error('Foursquare autocomplete error:', response.status, data?.message);
+      console.error('Foursquare autocomplete error:', response.status, rawText);
+      // TEMP debug: surface the upstream error to the caller so we can
+      // diagnose auth/endpoint issues. Revert once verified.
       return new Response(
-        JSON.stringify({ predictions: [] }),
+        JSON.stringify({
+          predictions: [],
+          _debug: {
+            status: response.status,
+            url: url.toString(),
+            keyLen: apiKey.length,
+            keyHead: apiKey.slice(0, 4),
+            body: rawText.slice(0, 500),
+          },
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
