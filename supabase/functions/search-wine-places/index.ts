@@ -69,6 +69,24 @@ serve(async (req) => {
       );
     }
 
+    // Bound-check lat/lng when supplied so we don't hand Google a
+    // garbage coordinate (and so a nonsense input like lat=999 stops
+    // before it costs a Places API call).
+    if (typeof lat === 'number' && (lat < -90 || lat > 90)) {
+      return new Response(
+        JSON.stringify({ error: 'lat must be between -90 and 90' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (typeof lng === 'number' && (lng < -180 || lng > 180)) {
+      return new Response(
+        JSON.stringify({ error: 'lng must be between -180 and 180' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    // Cap the radius — Google Places hard-caps Nearby Search at 50km.
+    const safeRadius = Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 50000));
+
     const apiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
     if (!apiKey) {
       console.error('GOOGLE_PLACES_API_KEY not configured');
@@ -123,7 +141,7 @@ serve(async (req) => {
       try {
         const url = new URL('https://maps.googleapis.com/maps/api/place/nearbysearch/json');
         url.searchParams.set('location', `${lat},${lng}`);
-        url.searchParams.set('radius', radius.toString());
+        url.searchParams.set('radius', safeRadius.toString());
         url.searchParams.set('keyword', query);
         url.searchParams.set('key', apiKey);
 

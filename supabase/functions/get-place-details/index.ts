@@ -94,9 +94,13 @@ serve(async (req) => {
     )?.long_name;
     const country = place.address_components?.find(component => component.types.includes('country'))?.long_name;
 
-    // Convert photo references to usable URLs
-    const photoUrls = place.photos?.slice(0, 5).map(photo => 
-      `https://maps.googleapis.com/maps/api/place/photo?maxwidth=800&photo_reference=${photo.photo_reference}&key=${apiKey}`
+    // Photos go through our own google-place-photo proxy so the API
+    // key never leaves the server. The client receives plain proxy URLs
+    // it can drop straight into <img src=...>; the proxy resolves the
+    // photoReference + key on the edge.
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? '';
+    const photoUrls = place.photos?.slice(0, 5).map(photo =>
+      `${supabaseUrl}/functions/v1/google-place-photo?photoReference=${encodeURIComponent(photo.photo_reference)}&maxWidth=800`
     ) || [];
 
     const result = {

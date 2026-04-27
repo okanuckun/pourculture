@@ -32,8 +32,27 @@ serve(async (req: Request) => {
       },
     });
 
+    // Whitelist origins for the reset-link redirect. Without this an
+    // attacker could spoof the Origin header and trick our edge function
+    // into emailing a real user a reset link that resolves on a phishing
+    // domain. Anything not on the list falls back to the canonical site.
+    const ALLOWED_ORIGINS = [
+      "https://pourculture.com",
+      "https://www.pourculture.com",
+      "https://app.pourculture.com",
+      // Lovable preview + local dev — useful for testing, not exploitable
+      // because the reset email goes to the legitimate account owner.
+      "http://localhost:5173",
+      "http://localhost:8080",
+    ];
+    const incomingOrigin = req.headers.get("origin");
+    const isLovablePreview = incomingOrigin?.endsWith(".lovableproject.com") ?? false;
+    const safeOrigin = (incomingOrigin && (ALLOWED_ORIGINS.includes(incomingOrigin) || isLovablePreview))
+      ? incomingOrigin
+      : "https://pourculture.com";
+
     const { data, error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
-      redirectTo: `${req.headers.get("origin") || "https://pourculture.com"}/auth?mode=reset`,
+      redirectTo: `${safeOrigin}/auth?mode=reset`,
     });
 
     if (error) {

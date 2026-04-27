@@ -73,11 +73,16 @@ serve(async (req) => {
       errors: [],
     };
 
-    // 1. Geocode venues without coordinates
+    // 1. Geocode venues without coordinates.
+    // Capped per invocation so a backlog can't exhaust the function's
+    // execution timeout (Mapbox is rate-limited to 600/min and we
+    // wait 150ms between calls — 50 rows ~= 7.5s).
+    const BATCH_SIZE = 50;
     const { data: venues, error: venuesError } = await supabase
       .from("venues")
       .select("id, name, address, city, country")
-      .is("latitude", null);
+      .is("latitude", null)
+      .limit(BATCH_SIZE);
 
     if (venuesError) {
       results.errors.push(`Venues fetch error: ${venuesError.message}`);
@@ -112,11 +117,12 @@ serve(async (req) => {
       }
     }
 
-    // 2. Geocode winemakers without coordinates
+    // 2. Geocode winemakers without coordinates (same per-invocation cap).
     const { data: winemakers, error: winemakersError } = await supabase
       .from("winemakers")
       .select("id, name, region, country")
-      .is("latitude", null);
+      .is("latitude", null)
+      .limit(BATCH_SIZE);
 
     if (winemakersError) {
       results.errors.push(`Winemakers fetch error: ${winemakersError.message}`);
@@ -153,11 +159,12 @@ serve(async (req) => {
       }
     }
 
-    // 3. Geocode wine fairs without coordinates
+    // 3. Geocode wine fairs without coordinates (same per-invocation cap).
     const { data: wineFairs, error: wineFairsError } = await supabase
       .from("wine_fairs")
       .select("id, title, venue_name, city, country")
-      .is("latitude", null);
+      .is("latitude", null)
+      .limit(BATCH_SIZE);
 
     if (wineFairsError) {
       results.errors.push(`Wine fairs fetch error: ${wineFairsError.message}`);

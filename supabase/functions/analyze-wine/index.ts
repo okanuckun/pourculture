@@ -25,6 +25,17 @@ serve(async (req) => {
       );
     }
 
+    // Cap each image at ~6 MB raw (≈ 8 MB base64). Bigger payloads
+    // either time out the AI gateway or eat the function's memory
+    // budget without producing a better read of a wine label.
+    const MAX_BASE64_BYTES = 8 * 1024 * 1024;
+    if (frontImageBase64.length > MAX_BASE64_BYTES || (backImageBase64 && backImageBase64.length > MAX_BASE64_BYTES)) {
+      return new Response(
+        JSON.stringify({ error: "Image too large. Please use a photo under 6 MB." }),
+        { status: 413, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
