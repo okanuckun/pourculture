@@ -43,15 +43,71 @@ interface WineScannerSheetProps {
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * One label-image slot — front or back. Shows a "tap to capture" zone when
+ * empty, an inline preview with replace/clear when filled.
+ */
+const LabelSlot: React.FC<{
+  title: string;
+  subtitle: string;
+  image: string | null;
+  onCamera: () => void;
+  onGallery: () => void;
+  onClear: () => void;
+  required?: boolean;
+}> = ({ title, subtitle, image, onCamera, onGallery, onClear, required }) => {
+  return (
+    <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
+      <div className="px-4 pt-3 pb-2 flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold">{title}</span>
+            {required && (
+              <Badge variant="secondary" className="text-[10px] h-4 px-1.5">Required</Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground truncate">{subtitle}</p>
+        </div>
+        {image && (
+          <Button onClick={onClear} variant="ghost" size="sm" className="h-8 gap-1 text-xs shrink-0">
+            <RotateCcw className="h-3.5 w-3.5" />
+            Replace
+          </Button>
+        )}
+      </div>
+      {image ? (
+        <div className="bg-muted/30">
+          <img src={image} alt={title} className="w-full max-h-48 object-contain" />
+        </div>
+      ) : (
+        <div className="px-4 pb-4 flex gap-2">
+          <Button onClick={onCamera} variant="outline" size="sm" className="flex-1 gap-1.5">
+            <Camera className="h-4 w-4" />
+            Camera
+          </Button>
+          <Button onClick={onGallery} variant="outline" size="sm" className="flex-1 gap-1.5">
+            <ImageIcon className="h-4 w-4" />
+            Gallery
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpenChange }) => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [wineInfo, setWineInfo] = useState<WineInfo | null>(null);
-  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [frontImage, setFrontImage] = useState<string | null>(null);
+  const [backImage, setBackImage] = useState<string | null>(null);
   const [user, setUser] = useState<any>(null);
   const [currentSavedId, setCurrentSavedId] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const galleryInputRef = useRef<HTMLInputElement>(null);
+  // Two file inputs per slot — camera vs gallery, front vs back.
+  const frontCameraRef = useRef<HTMLInputElement>(null);
+  const frontGalleryRef = useRef<HTMLInputElement>(null);
+  const backCameraRef = useRef<HTMLInputElement>(null);
+  const backGalleryRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -69,35 +125,43 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
   }, []);
 
 
-  const handleCapture = () => {
-    fileInputRef.current?.click();
-  };
+  const readFile = (file: File): Promise<string> =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
 
-  const handleGallery = () => {
-    galleryInputRef.current?.click();
-  };
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = async () => {
-      const base64 = reader.result as string;
-      setCapturedImage(base64);
-      await analyzeWine(base64);
+  const handleSlotChange = (slot: 'front' | 'back') =>
+    async (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const base64 = await readFile(file);
+      if (slot === 'front') setFrontImage(base64);
+      else setBackImage(base64);
+      // Reset the input so picking the same file twice still triggers onChange.
+      event.target.value = '';
     };
-    reader.readAsDataURL(file);
-  };
 
-  const analyzeWine = async (imageBase64: string) => {
+  const triggerInput = (ref: React.RefObject<HTMLInputElement>) => () => ref.current?.click();
+
+  const analyzeWine = async () => {
+    if (!frontImage) {
+      toast.error('Please add the front label first.');
+      return;
+    }
+
     setIsAnalyzing(true);
     setWineInfo(null);
     setCurrentSavedId(null);
 
     try {
       const { data, error } = await supabase.functions.invoke('analyze-wine', {
-        body: { imageBase64 }
+        body: {
+          frontImageBase64: frontImage,
+          backImageBase64: backImage || undefined,
+        },
       });
 
       if (error) {
@@ -167,8 +231,10 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
     try {
       // Upload image to storage
       let imageUrl: string | null = null;
-      if (capturedImage) {
-        imageUrl = await uploadImage(capturedImage, user.id);
+      // Only the front label is persisted with the saved scan — the back is
+      // analysis-time input, not a user-facing artifact.
+      if (frontImage) {
+        imageUrl = await uploadImage(frontImage, user.id);
       }
 
       // Parse rating safely - AI might return string like "85/100" or number
@@ -239,12 +305,14 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
   };
 
   const handleReset = () => {
-    setCapturedImage(null);
+    setFrontImage(null);
+    setBackImage(null);
     setWineInfo(null);
     setCurrentSavedId(null);
-    
-    if (fileInputRef.current) fileInputRef.current.value = '';
-    if (galleryInputRef.current) galleryInputRef.current.value = '';
+
+    [frontCameraRef, frontGalleryRef, backCameraRef, backGalleryRef].forEach((r) => {
+      if (r.current) r.current.value = '';
+    });
   };
 
   const handleClose = () => {
@@ -269,66 +337,52 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
           <div className="p-4 space-y-4">
 
             
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
-                <input
-                  ref={galleryInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileChange}
-                  className="hidden"
-                />
+                {/* Hidden file inputs — one camera + one gallery per slot */}
+                <input ref={frontCameraRef} type="file" accept="image/*" capture="environment" onChange={handleSlotChange('front')} className="hidden" />
+                <input ref={frontGalleryRef} type="file" accept="image/*" onChange={handleSlotChange('front')} className="hidden" />
+                <input ref={backCameraRef} type="file" accept="image/*" capture="environment" onChange={handleSlotChange('back')} className="hidden" />
+                <input ref={backGalleryRef} type="file" accept="image/*" onChange={handleSlotChange('back')} className="hidden" />
 
-                {/* Initial State - Show Camera & Gallery Buttons */}
-                {!capturedImage && !isAnalyzing && (
-                  <div className="flex flex-col items-center justify-center py-8 space-y-6">
-                    <div className="w-24 h-24 rounded-2xl bg-primary/10 flex items-center justify-center border border-primary/20">
-                      <Camera className="h-10 w-10 text-primary" />
-                    </div>
-                    <div className="text-center space-y-2">
+                {/* Initial state — header + two label slots */}
+                {!wineInfo && !isAnalyzing && (
+                  <div className="space-y-4">
+                    <div className="text-center space-y-2 pt-2">
                       <h3 className="text-lg font-bold tracking-tight">Scan Wine Label</h3>
-                      <p className="text-sm text-muted-foreground max-w-[250px]">
-                        Take a photo or upload an existing one — AI will identify it instantly.
+                      <p className="text-sm text-muted-foreground max-w-[280px] mx-auto">
+                        Front label is enough — adding the back label gives the AI vintage, alcohol %, and producer notes for a much more accurate read.
                       </p>
                     </div>
-                    <div className="flex flex-col gap-3 w-full max-w-xs">
-                      <Button onClick={handleCapture} size="lg" className="gap-2 w-full h-12">
-                        <Camera className="h-5 w-5" />
-                        Open Camera
-                      </Button>
-                      <Button onClick={handleGallery} size="lg" variant="outline" className="gap-2 w-full h-12">
-                        <ImageIcon className="h-5 w-5" />
-                        Upload Photo
-                      </Button>
-                    </div>
-                  </div>
-                )}
 
-                {/* Captured Image Preview */}
-                {capturedImage && (
-                  <div className="relative rounded-xl overflow-hidden border border-foreground/10">
-                    <img
-                      src={capturedImage}
-                      alt="Captured photo"
-                      className="w-full max-h-64 object-contain bg-muted/30"
+                    {/* Front slot — required */}
+                    <LabelSlot
+                      title="Front Label"
+                      subtitle="Required — primary identification"
+                      image={frontImage}
+                      onCamera={triggerInput(frontCameraRef)}
+                      onGallery={triggerInput(frontGalleryRef)}
+                      onClear={() => setFrontImage(null)}
+                      required
                     />
-                    {!isAnalyzing && (
-                      <Button
-                        onClick={handleReset}
-                        variant="secondary"
-                        size="sm"
-                        className="absolute top-2 right-2 gap-1 rounded-lg"
-                      >
-                        <RotateCcw className="h-3.5 w-3.5" />
-                        Retake
-                      </Button>
-                    )}
+
+                    {/* Back slot — optional */}
+                    <LabelSlot
+                      title="Back Label"
+                      subtitle="Optional — vintage, alcohol %, producer notes"
+                      image={backImage}
+                      onCamera={triggerInput(backCameraRef)}
+                      onGallery={triggerInput(backGalleryRef)}
+                      onClear={() => setBackImage(null)}
+                    />
+
+                    <Button
+                      onClick={analyzeWine}
+                      size="lg"
+                      className="w-full h-12 gap-2"
+                      disabled={!frontImage}
+                    >
+                      <Wine className="h-5 w-5" />
+                      Analyze Wine
+                    </Button>
                   </div>
                 )}
 
@@ -441,9 +495,11 @@ export const WineScannerSheet: React.FC<WineScannerSheetProps> = ({ open, onOpen
                           if (wineInfo.type) params.set('type', wineInfo.type.toLowerCase());
                           if (wineInfo.region) params.set('region', wineInfo.region);
                           if (wineInfo.quickSummary) params.set('caption', wineInfo.quickSummary);
-                          if (capturedImage) {
-                            // Store image temporarily in sessionStorage for Feed to pick up
-                            try { sessionStorage.setItem('feed_scan_image', capturedImage); } catch { /* too large */ }
+                          if (frontImage) {
+                            // Store the front-label image temporarily in sessionStorage for the Feed
+                            // to pick up. The back label, when present, is for analysis only and
+                            // isn't published to the feed.
+                            try { sessionStorage.setItem('feed_scan_image', frontImage); } catch { /* too large */ }
                           }
                           handleClose();
                           navigate(`/feed?from=scan&${params.toString()}`);

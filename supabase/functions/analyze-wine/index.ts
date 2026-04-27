@@ -11,11 +11,16 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    const body = await req.json();
+    // Accept the new front/back shape and the legacy single-image shape so the
+    // mobile cache + any older clients keep working without a forced update.
+    const frontImageBase64: string | undefined =
+      body.frontImageBase64 || body.imageBase64;
+    const backImageBase64: string | undefined = body.backImageBase64;
 
-    if (!imageBase64) {
+    if (!frontImageBase64) {
       return new Response(
-        JSON.stringify({ error: "Image is required" }),
+        JSON.stringify({ error: "Front-label image is required" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -25,7 +30,17 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const systemPrompt = `You are a wine expert and sommelier. The user will send you a photo of a wine bottle. Analyze the photo and provide detailed information about the wine.
+    const hasBack = !!backImageBase64;
+
+    const systemPrompt = `You are a wine expert and sommelier. The user will send you ${hasBack ? "two photos of the same wine bottle: the FRONT label and the BACK label." : "a photo of a wine bottle's front label."} Analyze the photo${hasBack ? "s" : ""} and provide detailed information about the wine.
+
+${hasBack
+  ? `How to use the two photos:
+- The FRONT label is your primary identification source — use it for the wine name, producer/winery, region, and any prominent design cues.
+- The BACK label is your authoritative source for the technical and regulatory details printed in small text — vintage, alcohol %, importer, official appellation/AOC text, bottling number, sulfite/allergen statements, certifications (organic, biodynamic), and any producer-supplied tasting/production notes.
+- When the front and back disagree on a fact (e.g. region wording vs. AOC on the back), TRUST THE BACK LABEL for the technical fact and reflect it in the structured fields.
+- If the back label includes producer-written notes, weave them into 'detailedDescription' rather than inventing.`
+  : `You only have the front label, which limits accuracy. Be conservative — don't guess vintage, alcohol %, or importer details that you cannot read on the front. Set vintage to "" if the front does not show it.`}
 
 You MUST respond in the following JSON format only (no other text):
 
@@ -57,11 +72,38 @@ You MUST respond in the following JSON format only (no other text):
   "rating": "Overall quality score 1-100"
 }
 
-If you cannot find or identify a wine bottle in the photo:
+If you cannot find or identify a wine bottle in the photo${hasBack ? "s" : ""}:
 {
   "found": false,
   "error": "Description of why the wine could not be identified"
 }`;
+
+    const userContent: Array<{ type: string; text?: string; image_url?: { url: string } }> = [];
+
+    userContent.push({
+      type: "text",
+      text: hasBack
+        ? "First image = FRONT label. Second image = BACK label. Use them together to identify the wine and fill in every field as accurately as possible."
+        : "Front label only. Identify the wine and fill in every field as accurately as possible.",
+    });
+    userContent.push({
+      type: "image_url",
+      image_url: {
+        url: frontImageBase64.startsWith("data:")
+          ? frontImageBase64
+          : `data:image/jpeg;base64,${frontImageBase64}`,
+      },
+    });
+    if (hasBack) {
+      userContent.push({
+        type: "image_url",
+        image_url: {
+          url: backImageBase64!.startsWith("data:")
+            ? backImageBase64!
+            : `data:image/jpeg;base64,${backImageBase64}`,
+        },
+      });
+    }
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -73,21 +115,7 @@ If you cannot find or identify a wine bottle in the photo:
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Analyze this wine bottle and provide its details."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: imageBase64.startsWith("data:") ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
-                }
-              }
-            ]
-          }
+          { role: "user", content: userContent },
         ],
       }),
     });
