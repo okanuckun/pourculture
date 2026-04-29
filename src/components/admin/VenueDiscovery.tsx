@@ -73,6 +73,7 @@ interface AutocompletePrediction {
   description: string;
   mainText: string;
   secondaryText: string;
+  dbVenue?: DiscoveredPlace;
 }
 
 const slugify = (s: string) =>
@@ -112,11 +113,41 @@ export const VenueDiscovery = () => {
       return;
     }
     try {
-      const { data, error } = await supabase.functions.invoke('autocomplete-places', {
-        body: { input },
+      const safeInput = input.trim().replace(/[%,()]/g, ' ');
+      const [external, database] = await Promise.all([
+        supabase.functions.invoke('autocomplete-places', { body: { input } }),
+        supabase
+          .from('venues')
+          .select('id, name, city, country, address, category, google_place_id, google_rating, latitude, longitude, image_url')
+          .or(`name.ilike.%${safeInput}%,city.ilike.%${safeInput}%,address.ilike.%${safeInput}%`)
+          .limit(8),
+      ]);
+
+      const dbPredictions: AutocompletePrediction[] = (database.data || []).map((v) => {
+        const place: DiscoveredPlace = {
+          id: v.id,
+          placeId: v.google_place_id || `db:${v.id}`,
+          name: v.name,
+          lat: Number(v.latitude || 0),
+          lng: Number(v.longitude || 0),
+          address: v.address || undefined,
+          category: toDiscoveryCategory(v.category),
+          rating: v.google_rating ? Number(v.google_rating) : undefined,
+          photoReference: v.image_url || undefined,
+          source: 'database',
+        };
+
+        return {
+          placeId: place.placeId,
+          description: [v.name, v.city, v.country].filter(Boolean).join(' — '),
+          mainText: v.name,
+          secondaryText: [v.city, v.country].filter(Boolean).join(', '),
+          dbVenue: place,
+        };
       });
-      if (!error && data?.predictions) {
-        setPredictions(data.predictions);
+
+      if (!external.error || dbPredictions.length > 0) {
+        setPredictions([...dbPredictions, ...(external.data?.predictions || [])]);
         setShowPredictions(true);
       }
     } catch {
@@ -134,6 +165,21 @@ export const VenueDiscovery = () => {
     setVenueQuery(prediction.mainText);
     setShowPredictions(false);
     setPredictions([]);
+
+    if (prediction.dbVenue) {
+      setResults([prediction.dbVenue]);
+      setSelected(prediction.dbVenue);
+      setDetail({
+        id: prediction.dbVenue.placeId,
+        name: prediction.dbVenue.name,
+        address: prediction.dbVenue.address,
+        rating: prediction.dbVenue.rating,
+        lat: prediction.dbVenue.lat,
+        lng: prediction.dbVenue.lng,
+      });
+      setAddedPlaceIds((prev) => new Set(prev).add(prediction.dbVenue!.placeId));
+      return;
+    }
 
     // Directly fetch details and show as result
     setSearching(true);
