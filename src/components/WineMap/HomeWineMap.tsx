@@ -870,15 +870,16 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
     if (!query.trim() || !mapboxToken) return;
     
     setSearchLoading(true);
+    setShowSearchResults(true);
     try {
       const [mapboxResponse, dbVenueResults] = await Promise.all([
         fetch(
-          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=place,region,country,locality&limit=5`
+          `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${mapboxToken}&types=country,region,postcode,district,place,locality,neighborhood,address,poi&limit=8&autocomplete=true`
         ),
         supabase
           .from('venues')
           .select('id, name, slug, city, country, latitude, longitude, category')
-          .ilike('name', `%${query}%`)
+          .or(`name.ilike.%${query}%,city.ilike.%${query}%`)
           .not('latitude', 'is', null)
           .limit(5)
       ]);
@@ -887,7 +888,7 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       
       const dbResults = (dbVenueResults.data || []).map((venue: any) => ({
         id: `db-venue-${venue.id}`,
-        place_name: `${venue.name} - ${venue.city}, ${venue.country}`,
+        place_name: `${venue.name} — ${venue.city}, ${venue.country}`,
         center: [Number(venue.longitude), Number(venue.latitude)],
         place_type: ['venue'],
         isDbVenue: true,
@@ -896,9 +897,9 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
       
       const combinedResults = [...dbResults, ...(mapboxData.features || [])];
       setSearchResults(combinedResults);
-      setShowSearchResults(true);
     } catch (error) {
       console.error('Search error:', error);
+      setSearchResults([]);
     } finally {
       setSearchLoading(false);
     }
