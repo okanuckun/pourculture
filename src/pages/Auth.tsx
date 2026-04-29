@@ -19,6 +19,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
