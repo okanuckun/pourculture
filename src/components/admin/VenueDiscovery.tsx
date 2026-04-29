@@ -307,7 +307,10 @@ export const VenueDiscovery = () => {
           .in('google_place_id', placeIds);
         if (existing) {
           setAddedPlaceIds(
-            new Set(existing.map((v: { google_place_id: string | null }) => v.google_place_id ?? '').filter(Boolean))
+            new Set([
+              ...databasePlaces.map((p) => p.placeId),
+              ...existing.map((v: { google_place_id: string | null }) => v.google_place_id ?? '').filter(Boolean),
+            ])
           );
         }
       }
@@ -325,6 +328,20 @@ export const VenueDiscovery = () => {
   const handleSelect = async (place: DiscoveredPlace) => {
     setSelected(place);
     setDetail(null);
+
+    if (place.source === 'database') {
+      setDetail({
+        id: place.placeId,
+        name: place.name,
+        address: place.address,
+        rating: place.rating,
+        lat: place.lat,
+        lng: place.lng,
+      });
+      setAddedPlaceIds((prev) => new Set(prev).add(place.placeId));
+      return;
+    }
+
     setLoadingDetail(true);
     try {
       const { data, error } = await supabase.functions.invoke('get-place-details', {
