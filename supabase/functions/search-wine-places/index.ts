@@ -251,7 +251,20 @@ serve(async (req) => {
       }
 
       const results: any[] = Array.isArray(data?.results) ? data.results : [];
-      const places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+      let places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+
+      const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+      if (googleApiKey) {
+        const googlePlaces = await googleTextSearch(trimmedQuery, googleApiKey);
+        const seenIds = new Set(places.map((p) => p.placeId));
+        for (const place of googlePlaces) {
+          if (!seenIds.has(place.placeId)) {
+            seenIds.add(place.placeId);
+            places.push(place);
+          }
+        }
+        places = places.slice(0, 20);
+      }
 
       return new Response(
         JSON.stringify({ places, count: places.length }),
@@ -271,11 +284,16 @@ serve(async (req) => {
 
     const allPlaces: PlaceResult[] = [];
     const seenIds = new Set<string>();
+    const requestedCategory: PlaceResult['category'] =
+      category === 'wine_shop' || category === 'restaurant' || category === 'winery' || category === 'wine_bar'
+        ? category
+        : 'wine_bar';
+    const querySuffix = trimmedLocation ? ` ${trimmedLocation}` : '';
 
     for (const { query: q, category } of searchQueries) {
       try {
         const url = new URL('https://places-api.foursquare.com/places/search');
-        url.searchParams.set('query', q);
+        url.searchParams.set('query', `${q}${querySuffix}`.trim());
         url.searchParams.set('ll', `${safeLat},${safeLng}`);
         url.searchParams.set('radius', String(safeRadius));
         url.searchParams.set('limit', '30');
@@ -312,6 +330,18 @@ serve(async (req) => {
         }
       } catch (err) {
         console.error(`Error fetching "${q}":`, err);
+      }
+    }
+
+    const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    if (trimmedLocation && googleApiKey) {
+      const googleQuery = trimmedQuery || `natural wine ${requestedCategory.replace('_', ' ')} ${trimmedLocation}`;
+      const googlePlaces = await googleTextSearch(googleQuery, googleApiKey, requestedCategory);
+      for (const place of googlePlaces) {
+        if (!seenIds.has(place.placeId)) {
+          seenIds.add(place.placeId);
+          allPlaces.push(place);
+        }
       }
     }
 
