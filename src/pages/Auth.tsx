@@ -19,6 +19,7 @@ const Auth = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [loading, setLoading] = useState(false);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -42,9 +43,31 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate, mode]);
 
+  useEffect(() => {
+    setErrorMsg(null);
+  }, [mode]);
+
+  const friendlyError = (raw: string): string => {
+    const m = raw.toLowerCase();
+    if (m.includes('invalid login credentials') || m.includes('invalid_credentials')) {
+      return 'Email or password is incorrect. Please try again.';
+    }
+    if (m.includes('email not confirmed')) {
+      return 'Please verify your email address before signing in.';
+    }
+    if (m.includes('user already registered')) {
+      return 'An account with this email already exists. Try signing in instead.';
+    }
+    if (m.includes('rate limit') || m.includes('too many')) {
+      return 'Too many attempts. Please wait a moment and try again.';
+    }
+    return raw;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setErrorMsg(null);
 
     try {
       if (mode === 'login') {
@@ -71,12 +94,12 @@ const Auth = () => {
 
       } else if (mode === 'reset') {
         if (password !== confirmPassword) {
-          toast({ title: 'Error', description: 'Passwords do not match', variant: 'destructive' });
+          setErrorMsg('Passwords do not match');
           setLoading(false);
           return;
         }
         if (password.length < 6) {
-          toast({ title: 'Error', description: 'Password must be at least 6 characters', variant: 'destructive' });
+          setErrorMsg('Password must be at least 6 characters');
           setLoading(false);
           return;
         }
@@ -86,7 +109,7 @@ const Auth = () => {
         setMode('login');
       }
     } catch (error: any) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      setErrorMsg(friendlyError(error.message || 'Something went wrong'));
     } finally {
       setLoading(false);
     }
@@ -253,6 +276,15 @@ const Auth = () => {
                   />
                 </div>
               </>
+            )}
+
+            {errorMsg && (
+              <div
+                role="alert"
+                className="border-2 border-destructive bg-destructive/10 text-destructive px-3 py-2.5 text-sm font-medium"
+              >
+                {errorMsg}
+              </div>
             )}
 
             <Button
