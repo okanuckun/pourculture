@@ -115,6 +115,75 @@ function fsqTypesFromCategories(categories: Array<{ fsq_category_id?: string; id
   return out;
 }
 
+function pickGoogleAddressComponent(components: any[] = [], wantedTypes: string[]): string | undefined {
+  const component = components.find((c) => wantedTypes.some((t) => Array.isArray(c?.types) && c.types.includes(t)));
+  return component?.long_name ?? component?.short_name ?? undefined;
+}
+
+async function getGooglePlaceDetails(placeId: string, apiKey: string) {
+  const url = new URL('https://maps.googleapis.com/maps/api/place/details/json');
+  url.searchParams.set('place_id', placeId);
+  url.searchParams.set('key', apiKey);
+  url.searchParams.set('fields', [
+    'place_id',
+    'name',
+    'formatted_address',
+    'geometry',
+    'international_phone_number',
+    'formatted_phone_number',
+    'website',
+    'rating',
+    'user_ratings_total',
+    'price_level',
+    'opening_hours',
+    'photos',
+    'types',
+    'reviews',
+    'address_components',
+  ].join(','));
+
+  const response = await fetch(url.toString());
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.status !== 'OK') {
+    throw new Error(data.error_message || data.status || `Google returned ${response.status}`);
+  }
+
+  const place = data.result;
+  const lat = place.geometry?.location?.lat;
+  const lng = place.geometry?.location?.lng;
+  const photoReferences = (Array.isArray(place.photos) ? place.photos : [])
+    .slice(0, 6)
+    .map((p) => p.photo_reference)
+    .filter((ref): ref is string => typeof ref === 'string');
+
+  return {
+    id: place.place_id ?? placeId,
+    name: place.name,
+    address: place.formatted_address,
+    city: pickGoogleAddressComponent(place.address_components, ['locality', 'sublocality', 'administrative_area_level_2']),
+    country: pickGoogleAddressComponent(place.address_components, ['country']),
+    phone: place.international_phone_number || place.formatted_phone_number || undefined,
+    website: place.website || undefined,
+    rating: typeof place.rating === 'number' ? place.rating : undefined,
+    reviewCount: typeof place.user_ratings_total === 'number' ? place.user_ratings_total : undefined,
+    priceLevel: typeof place.price_level === 'number' ? place.price_level : undefined,
+    isOpen: place.opening_hours?.open_now,
+    openingHours: place.opening_hours?.weekday_text,
+    photos: photoReferences,
+    photoReferences,
+    lat,
+    lng,
+    types: place.types ?? [],
+    googleMapsUrl: lat != null && lng != null ? `https://www.google.com/maps/search/?api=1&query=${lat},${lng}` : undefined,
+    reviews: (Array.isArray(place.reviews) ? place.reviews : []).slice(0, 3).map((r) => ({
+      author: r.author_name || 'Google user',
+      rating: r.rating ?? 0,
+      text: r.text || '',
+      date: r.relative_time_description || '',
+    })),
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -128,6 +197,19 @@ serve(async (req) => {
         JSON.stringify({ error: 'placeId is required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    const isGooglePlaceId = !/^[a-f0-9]{24}$/i.test(String(placeId));
+
+    if (isGooglePlaceId) {
+      const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+      if (!googleApiKey) {
+        throw new Error('Google Places API key not configured');
+      }
+      const result = await getGooglePlaceDetails(placeId, googleApiKey);
+      return new Response(JSON.stringify(result), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=3600, s-maxage=86400' },
+      });
     }
 
     const apiKey = Deno.env.get('FOURSQUARE_API_KEY');

@@ -59,6 +59,60 @@ function buildAddress(location: any): string | undefined {
   return parts.length > 0 ? parts.join(', ') : undefined;
 }
 
+function mapGooglePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
+  const types = Array.isArray(place.types) ? place.types.join(' ').toLowerCase() : '';
+  const category: PlaceResult['category'] = types.includes('liquor_store') || types.includes('store')
+    ? 'wine_shop'
+    : types.includes('restaurant')
+      ? 'restaurant'
+      : fallbackCategory;
+
+  return {
+    id: `google_${place.place_id}`,
+    placeId: place.place_id,
+    name: place.name,
+    lat: place.geometry?.location?.lat ?? 0,
+    lng: place.geometry?.location?.lng ?? 0,
+    address: place.formatted_address,
+    category,
+    rating: typeof place.rating === 'number' ? place.rating : undefined,
+    priceLevel: typeof place.price_level === 'number' ? place.price_level : undefined,
+    isOpen: place.opening_hours?.open_now,
+    photoReference: Array.isArray(place.photos) && place.photos[0]?.photo_reference ? place.photos[0].photo_reference : undefined,
+  };
+}
+
+async function googleTextSearch(query: string, apiKey: string, fallbackCategory: PlaceResult['category'] = 'wine_bar'): Promise<PlaceResult[]> {
+  const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+  url.searchParams.set('query', query);
+  url.searchParams.set('key', apiKey);
+
+  const response = await fetch(url.toString());
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data.status && !['OK', 'ZERO_RESULTS'].includes(data.status))) {
+    console.warn('Google text search error:', response.status, data.status);
+    return [];
+  }
+
+  return (Array.isArray(data.results) ? data.results : []).slice(0, 20).map((p) => mapGooglePlace(p, fallbackCategory));
+}
+
+async function geocodeLocation(input: string, mapboxToken: string): Promise<{ lat: number; lng: number } | null> {
+  const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json`);
+  url.searchParams.set('access_token', mapboxToken);
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('types', 'place,locality,neighborhood,district,region');
+
+  const response = await fetch(url.toString());
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  const center = data?.features?.[0]?.center;
+  if (!Array.isArray(center) || center.length < 2) return null;
+
+  return { lng: Number(center[0]), lat: Number(center[1]) };
+}
+
 function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
   const fsqId = place.fsq_place_id ?? place.fsq_id ?? '';
   // Service API returns flat latitude/longitude. Legacy v3 had geocodes.main —
@@ -104,12 +158,13 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng, radius = 5000, naturalWineOnly = false, query } = await req.json();
+    const { lat, lng, radius = 5000, naturalWineOnly = false, query, location, category } = await req.json();
     const trimmedQuery = typeof query === 'string' ? query.trim() : '';
+    const trimmedLocation = typeof location === 'string' ? location.trim() : '';
 
-    if (!trimmedQuery && (typeof lat !== 'number' || typeof lng !== 'number')) {
+    if (!trimmedQuery && !trimmedLocation && (typeof lat !== 'number' || typeof lng !== 'number')) {
       return new Response(
-        JSON.stringify({ error: 'Either query or lat/lng are required' }),
+        JSON.stringify({ error: 'Either query, location, or lat/lng are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -127,8 +182,6 @@ serve(async (req) => {
     }
     // Foursquare radius cap is 100km; clamp to a sensible window.
     const safeRadius = Math.round(Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 100000)));
-    const safeLat = typeof lat === 'number' ? Number(lat.toFixed(6)) : lat;
-    const safeLng = typeof lng === 'number' ? Number(lng.toFixed(6)) : lng;
 
     const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
@@ -149,7 +202,34 @@ serve(async (req) => {
       'X-Places-Api-Version': '2025-06-17',
     };
 
-    if (trimmedQuery) {
+    let resolvedLat = typeof lat === 'number' ? lat : undefined;
+    let resolvedLng = typeof lng === 'number' ? lng : undefined;
+
+    if (trimmedLocation && (resolvedLat === undefined || resolvedLng === undefined)) {
+      const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
+      if (!mapboxToken) {
+        console.error('MAPBOX_PUBLIC_TOKEN not configured');
+        return new Response(
+          JSON.stringify({ error: 'Location search is not configured' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const geocoded = await geocodeLocation(trimmedLocation, mapboxToken);
+      if (!geocoded) {
+        return new Response(
+          JSON.stringify({ places: [], count: 0 }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      resolvedLat = geocoded.lat;
+      resolvedLng = geocoded.lng;
+    }
+
+    const safeLat = typeof resolvedLat === 'number' ? Number(resolvedLat.toFixed(6)) : resolvedLat;
+    const safeLng = typeof resolvedLng === 'number' ? Number(resolvedLng.toFixed(6)) : resolvedLng;
+
+    if (trimmedQuery && !trimmedLocation) {
       // Text search mode (admin Discovery + Feed venue picker).
       // We don't filter by category here — the Service API switched from
       // numeric IDs to UUID `fsq_category_id`s and our wine-bar set was
@@ -171,7 +251,22 @@ serve(async (req) => {
       }
 
       const results: any[] = Array.isArray(data?.results) ? data.results : [];
-      const places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+      const fsqPlaces = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+      let places = fsqPlaces;
+
+      const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+      if (googleApiKey) {
+        const googlePlaces = await googleTextSearch(trimmedQuery, googleApiKey);
+        const seenIds = new Set(googlePlaces.map((p) => p.placeId));
+        places = [...googlePlaces];
+        for (const place of fsqPlaces) {
+          if (!seenIds.has(place.placeId)) {
+            seenIds.add(place.placeId);
+            places.push(place);
+          }
+        }
+        places = places.slice(0, 20);
+      }
 
       return new Response(
         JSON.stringify({ places, count: places.length }),
@@ -191,11 +286,16 @@ serve(async (req) => {
 
     const allPlaces: PlaceResult[] = [];
     const seenIds = new Set<string>();
+    const requestedCategory: PlaceResult['category'] =
+      category === 'wine_shop' || category === 'restaurant' || category === 'winery' || category === 'wine_bar'
+        ? category
+        : 'wine_bar';
+    const querySuffix = trimmedLocation ? ` ${trimmedLocation}` : '';
 
     for (const { query: q, category } of searchQueries) {
       try {
         const url = new URL('https://places-api.foursquare.com/places/search');
-        url.searchParams.set('query', q);
+        url.searchParams.set('query', `${q}${querySuffix}`.trim());
         url.searchParams.set('ll', `${safeLat},${safeLng}`);
         url.searchParams.set('radius', String(safeRadius));
         url.searchParams.set('limit', '30');
@@ -232,6 +332,18 @@ serve(async (req) => {
         }
       } catch (err) {
         console.error(`Error fetching "${q}":`, err);
+      }
+    }
+
+    const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
+    if (trimmedLocation && googleApiKey) {
+      const googleQuery = trimmedQuery || `natural wine ${requestedCategory.replace('_', ' ')} ${trimmedLocation}`;
+      const googlePlaces = await googleTextSearch(googleQuery, googleApiKey, requestedCategory);
+      for (const place of googlePlaces) {
+        if (!seenIds.has(place.placeId)) {
+          seenIds.add(place.placeId);
+          allPlaces.push(place);
+        }
       }
     }
 

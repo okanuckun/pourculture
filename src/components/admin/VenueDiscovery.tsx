@@ -41,6 +41,7 @@ interface DiscoveredPlace {
   website?: string;
   phone?: string;
   photoReference?: string;
+  source?: 'database' | 'external';
 }
 
 interface PlaceDetail {
@@ -72,6 +73,7 @@ interface AutocompletePrediction {
   description: string;
   mainText: string;
   secondaryText: string;
+  dbVenue?: DiscoveredPlace;
 }
 
 const slugify = (s: string) =>
@@ -81,6 +83,11 @@ const slugify = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+
+const toDiscoveryCategory = (category?: string | null) => {
+  if (category === 'bar') return 'wine_bar';
+  return category || 'wine_bar';
+};
 
 export const VenueDiscovery = () => {
   const { toast } = useToast();
@@ -106,11 +113,41 @@ export const VenueDiscovery = () => {
       return;
     }
     try {
-      const { data, error } = await supabase.functions.invoke('autocomplete-places', {
-        body: { input },
+      const safeInput = input.trim().replace(/[%,()]/g, ' ');
+      const [external, database] = await Promise.all([
+        supabase.functions.invoke('autocomplete-places', { body: { input } }),
+        supabase
+          .from('venues')
+          .select('id, name, city, country, address, category, google_place_id, google_rating, latitude, longitude, image_url')
+          .or(`name.ilike.%${safeInput}%,city.ilike.%${safeInput}%,address.ilike.%${safeInput}%`)
+          .limit(8),
+      ]);
+
+      const dbPredictions: AutocompletePrediction[] = (database.data || []).map((v) => {
+        const place: DiscoveredPlace = {
+          id: v.id,
+          placeId: v.google_place_id || `db:${v.id}`,
+          name: v.name,
+          lat: Number(v.latitude || 0),
+          lng: Number(v.longitude || 0),
+          address: v.address || undefined,
+          category: toDiscoveryCategory(v.category),
+          rating: v.google_rating ? Number(v.google_rating) : undefined,
+          photoReference: v.image_url || undefined,
+          source: 'database',
+        };
+
+        return {
+          placeId: place.placeId,
+          description: [v.name, v.city, v.country].filter(Boolean).join(' — '),
+          mainText: v.name,
+          secondaryText: [v.city, v.country].filter(Boolean).join(', '),
+          dbVenue: place,
+        };
       });
-      if (!error && data?.predictions) {
-        setPredictions(data.predictions);
+
+      if (!external.error || dbPredictions.length > 0) {
+        setPredictions([...dbPredictions, ...(external.data?.predictions || [])]);
         setShowPredictions(true);
       }
     } catch {
@@ -128,6 +165,21 @@ export const VenueDiscovery = () => {
     setVenueQuery(prediction.mainText);
     setShowPredictions(false);
     setPredictions([]);
+
+    if (prediction.dbVenue) {
+      setResults([prediction.dbVenue]);
+      setSelected(prediction.dbVenue);
+      setDetail({
+        id: prediction.dbVenue.placeId,
+        name: prediction.dbVenue.name,
+        address: prediction.dbVenue.address,
+        rating: prediction.dbVenue.rating,
+        lat: prediction.dbVenue.lat,
+        lng: prediction.dbVenue.lng,
+      });
+      setAddedPlaceIds((prev) => new Set(prev).add(prediction.dbVenue!.placeId));
+      return;
+    }
 
     // Directly fetch details and show as result
     setSearching(true);
@@ -195,7 +247,7 @@ export const VenueDiscovery = () => {
         toast({ title: 'City required', description: 'Enter a city to search.', variant: 'destructive' });
         return;
       }
-      queryStr = `natural wine ${CATEGORY_LABEL[category]} ${trimmedCity}`;
+      queryStr = trimmedCity;
     } else {
       const trimmedVenue = venueQuery.trim();
       if (!trimmedVenue) {
@@ -211,16 +263,41 @@ export const VenueDiscovery = () => {
     setDetail(null);
 
     try {
+      const safeQuery = queryStr.replace(/[%,()]/g, ' ');
+      const { data: dbVenues } = await supabase
+        .from('venues')
+        .select('id, name, city, country, address, category, google_place_id, google_rating, latitude, longitude, image_url')
+        .or(searchMode === 'city'
+          ? `city.ilike.%${safeQuery}%,address.ilike.%${safeQuery}%`
+          : `name.ilike.%${safeQuery}%,city.ilike.%${safeQuery}%,address.ilike.%${safeQuery}%`)
+        .limit(20);
+
       const { data, error } = await supabase.functions.invoke('search-wine-places', {
-        body: { query: queryStr },
+        body: searchMode === 'city'
+          ? { location: queryStr, category, radius: 25000, naturalWineOnly: true }
+          : { query: queryStr },
       });
 
       if (error) throw error;
-      const places: DiscoveredPlace[] = data?.places ?? [];
+      const databasePlaces: DiscoveredPlace[] = (dbVenues || []).map((v) => ({
+        id: v.id,
+        placeId: v.google_place_id || `db:${v.id}`,
+        name: v.name,
+        lat: Number(v.latitude || 0),
+        lng: Number(v.longitude || 0),
+        address: v.address || undefined,
+        category: toDiscoveryCategory(v.category),
+        rating: v.google_rating ? Number(v.google_rating) : undefined,
+        photoReference: v.image_url || undefined,
+        source: 'database',
+      }));
+      const seen = new Set(databasePlaces.map((p) => p.placeId));
+      const externalPlaces: DiscoveredPlace[] = (data?.places ?? []).filter((p: DiscoveredPlace) => !seen.has(p.placeId));
+      const places: DiscoveredPlace[] = [...databasePlaces, ...externalPlaces];
       setResults(places);
 
       if (places.length === 0) {
-        toast({ title: 'No results', description: 'Try a different city or category.' });
+        toast({ title: 'No results', description: 'Try a different city, venue name, or category.' });
       } else {
         // Check which are already in DB
         const placeIds = places.map((p) => p.placeId);
@@ -230,7 +307,10 @@ export const VenueDiscovery = () => {
           .in('google_place_id', placeIds);
         if (existing) {
           setAddedPlaceIds(
-            new Set(existing.map((v: { google_place_id: string | null }) => v.google_place_id ?? '').filter(Boolean))
+            new Set([
+              ...databasePlaces.map((p) => p.placeId),
+              ...existing.map((v: { google_place_id: string | null }) => v.google_place_id ?? '').filter(Boolean),
+            ])
           );
         }
       }
@@ -248,6 +328,20 @@ export const VenueDiscovery = () => {
   const handleSelect = async (place: DiscoveredPlace) => {
     setSelected(place);
     setDetail(null);
+
+    if (place.source === 'database') {
+      setDetail({
+        id: place.placeId,
+        name: place.name,
+        address: place.address,
+        rating: place.rating,
+        lat: place.lat,
+        lng: place.lng,
+      });
+      setAddedPlaceIds((prev) => new Set(prev).add(place.placeId));
+      return;
+    }
+
     setLoadingDetail(true);
     try {
       const { data, error } = await supabase.functions.invoke('get-place-details', {
