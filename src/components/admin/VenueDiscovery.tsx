@@ -195,7 +195,7 @@ export const VenueDiscovery = () => {
         toast({ title: 'City required', description: 'Enter a city to search.', variant: 'destructive' });
         return;
       }
-      queryStr = `natural wine ${CATEGORY_LABEL[category]} ${trimmedCity}`;
+      queryStr = trimmedCity;
     } else {
       const trimmedVenue = venueQuery.trim();
       if (!trimmedVenue) {
@@ -212,7 +212,9 @@ export const VenueDiscovery = () => {
 
     try {
       const { data, error } = await supabase.functions.invoke('search-wine-places', {
-        body: { query: queryStr },
+        body: searchMode === 'city'
+          ? { location: queryStr, category, radius: 25000, naturalWineOnly: true }
+          : { query: queryStr },
       });
 
       if (error) throw error;
@@ -220,7 +222,7 @@ export const VenueDiscovery = () => {
       setResults(places);
 
       if (places.length === 0) {
-        toast({ title: 'No results', description: 'Try a different city or category.' });
+        toast({ title: 'No results', description: 'Try a different city, venue name, or category.' });
       } else {
         // Check which are already in DB
         const placeIds = places.map((p) => p.placeId);
