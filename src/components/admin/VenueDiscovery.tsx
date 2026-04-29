@@ -41,6 +41,7 @@ interface DiscoveredPlace {
   website?: string;
   phone?: string;
   photoReference?: string;
+  source?: 'database' | 'external';
 }
 
 interface PlaceDetail {
@@ -81,6 +82,11 @@ const slugify = (s: string) =>
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/(^-|-$)/g, '');
+
+const toDiscoveryCategory = (category?: string | null) => {
+  if (category === 'bar') return 'wine_bar';
+  return category || 'wine_bar';
+};
 
 export const VenueDiscovery = () => {
   const { toast } = useToast();
