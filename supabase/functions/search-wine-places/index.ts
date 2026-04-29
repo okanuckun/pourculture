@@ -251,13 +251,15 @@ serve(async (req) => {
       }
 
       const results: any[] = Array.isArray(data?.results) ? data.results : [];
-      let places = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+      const fsqPlaces = results.slice(0, 20).map((r) => mapFoursquarePlace(r));
+      let places = fsqPlaces;
 
       const googleApiKey = Deno.env.get('GOOGLE_PLACES_API_KEY');
       if (googleApiKey) {
         const googlePlaces = await googleTextSearch(trimmedQuery, googleApiKey);
-        const seenIds = new Set(places.map((p) => p.placeId));
-        for (const place of googlePlaces) {
+        const seenIds = new Set(googlePlaces.map((p) => p.placeId));
+        places = [...googlePlaces];
+        for (const place of fsqPlaces) {
           if (!seenIds.has(place.placeId)) {
             seenIds.add(place.placeId);
             places.push(place);
