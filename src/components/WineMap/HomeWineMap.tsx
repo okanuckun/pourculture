@@ -1023,38 +1023,49 @@ export const HomeWineMap: React.FC<HomeWineMapProps> = ({ className = '', minima
 
         {/* Search Results */}
         <AnimatePresence>
-          {showSearchResults && searchResults.length > 0 && (
+          {showSearchResults && searchQuery.length >= 2 && (
             <motion.div
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -5 }}
               className="absolute top-full mt-1 w-full bg-background/95 backdrop-blur-md border border-border rounded-lg shadow-lg overflow-hidden"
             >
-              {searchResults.map((result: any, index: number) => (
-                <button
-                  key={result.id || index}
-                  onClick={() => handleResultClick(result)}
-                  className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
-                >
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                    result.isDbVenue ? 'bg-primary/10' : 'bg-muted'
-                  }`}>
-                    {result.isDbVenue ? (
-                      <Wine className="w-3 h-3 text-primary" />
-                    ) : (
-                      <MapPin className="w-3 h-3 text-muted-foreground" />
-                    )}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate text-foreground">
-                      {result.place_name?.split(',')[0]}
-                    </p>
-                    <p className="text-xs truncate text-muted-foreground">
-                      {result.isDbVenue ? 'Verified venue' : result.place_name?.split(',').slice(1).join(',').trim()}
-                    </p>
-                  </div>
-                </button>
-              ))}
+              {searchLoading && searchResults.length === 0 ? (
+                <div className="px-3 py-3 flex items-center gap-2 text-sm text-muted-foreground">
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Searching…
+                </div>
+              ) : searchResults.length === 0 ? (
+                <div className="px-3 py-3 text-sm text-muted-foreground">
+                  No matches for "{searchQuery}"
+                </div>
+              ) : (
+                searchResults.map((result: any, index: number) => (
+                  <button
+                    key={result.id || index}
+                    onClick={() => handleResultClick(result)}
+                    className="w-full px-3 py-2.5 flex items-center gap-2.5 hover:bg-muted transition-colors text-left border-b border-border/30 last:border-b-0"
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                      result.isDbVenue ? 'bg-primary/10' : 'bg-muted'
+                    }`}>
+                      {result.isDbVenue ? (
+                        <Wine className="w-3 h-3 text-primary" />
+                      ) : (
+                        <MapPin className="w-3 h-3 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate text-foreground">
+                        {result.place_name?.split(',')[0]}
+                      </p>
+                      <p className="text-xs truncate text-muted-foreground">
+                        {result.isDbVenue ? 'Verified venue' : result.place_name?.split(',').slice(1).join(',').trim()}
+                      </p>
+                    </div>
+                  </button>
+                ))
+              )}
             </motion.div>
           )}
         </AnimatePresence>
