@@ -43,6 +43,10 @@ const Auth = () => {
     return () => subscription.unsubscribe();
   }, [navigate, mode]);
 
+  useEffect(() => {
+    setErrorMsg(null);
+  }, [mode]);
+
   const friendlyError = (raw: string): string => {
     const m = raw.toLowerCase();
     if (m.includes('invalid login credentials') || m.includes('invalid_credentials')) {
