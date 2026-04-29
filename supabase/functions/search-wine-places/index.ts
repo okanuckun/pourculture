@@ -59,6 +59,22 @@ function buildAddress(location: any): string | undefined {
   return parts.length > 0 ? parts.join(', ') : undefined;
 }
 
+async function geocodeLocation(input: string, mapboxToken: string): Promise<{ lat: number; lng: number } | null> {
+  const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json`);
+  url.searchParams.set('access_token', mapboxToken);
+  url.searchParams.set('limit', '1');
+  url.searchParams.set('types', 'place,locality,neighborhood,district,region');
+
+  const response = await fetch(url.toString());
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  const center = data?.features?.[0]?.center;
+  if (!Array.isArray(center) || center.length < 2) return null;
+
+  return { lng: Number(center[0]), lat: Number(center[1]) };
+}
+
 function mapFoursquarePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
   const fsqId = place.fsq_place_id ?? place.fsq_id ?? '';
   // Service API returns flat latitude/longitude. Legacy v3 had geocodes.main —
@@ -104,12 +120,13 @@ serve(async (req) => {
   }
 
   try {
-    const { lat, lng, radius = 5000, naturalWineOnly = false, query } = await req.json();
+    const { lat, lng, radius = 5000, naturalWineOnly = false, query, location, category } = await req.json();
     const trimmedQuery = typeof query === 'string' ? query.trim() : '';
+    const trimmedLocation = typeof location === 'string' ? location.trim() : '';
 
-    if (!trimmedQuery && (typeof lat !== 'number' || typeof lng !== 'number')) {
+    if (!trimmedQuery && !trimmedLocation && (typeof lat !== 'number' || typeof lng !== 'number')) {
       return new Response(
-        JSON.stringify({ error: 'Either query or lat/lng are required' }),
+        JSON.stringify({ error: 'Either query, location, or lat/lng are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -127,8 +144,6 @@ serve(async (req) => {
     }
     // Foursquare radius cap is 100km; clamp to a sensible window.
     const safeRadius = Math.round(Math.max(100, Math.min(typeof radius === 'number' ? radius : 5000, 100000)));
-    const safeLat = typeof lat === 'number' ? Number(lat.toFixed(6)) : lat;
-    const safeLng = typeof lng === 'number' ? Number(lng.toFixed(6)) : lng;
 
     const apiKey = Deno.env.get('FOURSQUARE_API_KEY');
     if (!apiKey) {
@@ -149,7 +164,34 @@ serve(async (req) => {
       'X-Places-Api-Version': '2025-06-17',
     };
 
-    if (trimmedQuery) {
+    let resolvedLat = typeof lat === 'number' ? lat : undefined;
+    let resolvedLng = typeof lng === 'number' ? lng : undefined;
+
+    if (trimmedLocation && (resolvedLat === undefined || resolvedLng === undefined)) {
+      const mapboxToken = Deno.env.get('MAPBOX_PUBLIC_TOKEN');
+      if (!mapboxToken) {
+        console.error('MAPBOX_PUBLIC_TOKEN not configured');
+        return new Response(
+          JSON.stringify({ error: 'Location search is not configured' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      const geocoded = await geocodeLocation(trimmedLocation, mapboxToken);
+      if (!geocoded) {
+        return new Response(
+          JSON.stringify({ places: [], count: 0 }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      resolvedLat = geocoded.lat;
+      resolvedLng = geocoded.lng;
+    }
+
+    const safeLat = typeof resolvedLat === 'number' ? Number(resolvedLat.toFixed(6)) : resolvedLat;
+    const safeLng = typeof resolvedLng === 'number' ? Number(resolvedLng.toFixed(6)) : resolvedLng;
+
+    if (trimmedQuery && !trimmedLocation) {
       // Text search mode (admin Discovery + Feed venue picker).
       // We don't filter by category here — the Service API switched from
       // numeric IDs to UUID `fsq_category_id`s and our wine-bar set was
