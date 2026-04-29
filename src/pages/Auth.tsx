@@ -274,6 +274,15 @@ const Auth = () => {
               </>
             )}
 
+            {errorMsg && (
+              <div
+                role="alert"
+                className="border-2 border-destructive bg-destructive/10 text-destructive px-3 py-2.5 text-sm font-medium"
+              >
+                {errorMsg}
+              </div>
+            )}
+
             <Button
               type="submit"
               disabled={loading}
