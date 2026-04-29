@@ -263,6 +263,15 @@ export const VenueDiscovery = () => {
     setDetail(null);
 
     try {
+      const safeQuery = queryStr.replace(/[%,()]/g, ' ');
+      const { data: dbVenues } = await supabase
+        .from('venues')
+        .select('id, name, city, country, address, category, google_place_id, google_rating, latitude, longitude, image_url')
+        .or(searchMode === 'city'
+          ? `city.ilike.%${safeQuery}%,address.ilike.%${safeQuery}%`
+          : `name.ilike.%${safeQuery}%,city.ilike.%${safeQuery}%,address.ilike.%${safeQuery}%`)
+        .limit(20);
+
       const { data, error } = await supabase.functions.invoke('search-wine-places', {
         body: searchMode === 'city'
           ? { location: queryStr, category, radius: 25000, naturalWineOnly: true }
@@ -270,7 +279,21 @@ export const VenueDiscovery = () => {
       });
 
       if (error) throw error;
-      const places: DiscoveredPlace[] = data?.places ?? [];
+      const databasePlaces: DiscoveredPlace[] = (dbVenues || []).map((v) => ({
+        id: v.id,
+        placeId: v.google_place_id || `db:${v.id}`,
+        name: v.name,
+        lat: Number(v.latitude || 0),
+        lng: Number(v.longitude || 0),
+        address: v.address || undefined,
+        category: toDiscoveryCategory(v.category),
+        rating: v.google_rating ? Number(v.google_rating) : undefined,
+        photoReference: v.image_url || undefined,
+        source: 'database',
+      }));
+      const seen = new Set(databasePlaces.map((p) => p.placeId));
+      const externalPlaces: DiscoveredPlace[] = (data?.places ?? []).filter((p: DiscoveredPlace) => !seen.has(p.placeId));
+      const places: DiscoveredPlace[] = [...databasePlaces, ...externalPlaces];
       setResults(places);
 
       if (places.length === 0) {
