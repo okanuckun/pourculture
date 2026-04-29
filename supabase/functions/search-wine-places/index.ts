@@ -59,6 +59,44 @@ function buildAddress(location: any): string | undefined {
   return parts.length > 0 ? parts.join(', ') : undefined;
 }
 
+function mapGooglePlace(place: any, fallbackCategory: PlaceResult['category'] = 'wine_bar'): PlaceResult {
+  const types = Array.isArray(place.types) ? place.types.join(' ').toLowerCase() : '';
+  const category: PlaceResult['category'] = types.includes('liquor_store') || types.includes('store')
+    ? 'wine_shop'
+    : types.includes('restaurant')
+      ? 'restaurant'
+      : fallbackCategory;
+
+  return {
+    id: `google_${place.place_id}`,
+    placeId: place.place_id,
+    name: place.name,
+    lat: place.geometry?.location?.lat ?? 0,
+    lng: place.geometry?.location?.lng ?? 0,
+    address: place.formatted_address,
+    category,
+    rating: typeof place.rating === 'number' ? place.rating : undefined,
+    priceLevel: typeof place.price_level === 'number' ? place.price_level : undefined,
+    isOpen: place.opening_hours?.open_now,
+    photoReference: Array.isArray(place.photos) && place.photos[0]?.photo_reference ? place.photos[0].photo_reference : undefined,
+  };
+}
+
+async function googleTextSearch(query: string, apiKey: string, fallbackCategory: PlaceResult['category'] = 'wine_bar'): Promise<PlaceResult[]> {
+  const url = new URL('https://maps.googleapis.com/maps/api/place/textsearch/json');
+  url.searchParams.set('query', query);
+  url.searchParams.set('key', apiKey);
+
+  const response = await fetch(url.toString());
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || (data.status && !['OK', 'ZERO_RESULTS'].includes(data.status))) {
+    console.warn('Google text search error:', response.status, data.status);
+    return [];
+  }
+
+  return (Array.isArray(data.results) ? data.results : []).slice(0, 20).map((p) => mapGooglePlace(p, fallbackCategory));
+}
+
 async function geocodeLocation(input: string, mapboxToken: string): Promise<{ lat: number; lng: number } | null> {
   const url = new URL(`https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(input)}.json`);
   url.searchParams.set('access_token', mapboxToken);
