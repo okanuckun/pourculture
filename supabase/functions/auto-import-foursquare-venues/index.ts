@@ -1,3 +1,4 @@
+import { requireUser } from '../_shared/auth.ts';
 // Auto-imports venues returned by `search-wine-places` into the public.venues
 // table. Designed to be called silently after a user clicks "Search this area"
 // on the map. Only inserts wine_bar / wine_shop / winery (no restaurants), and
@@ -58,6 +59,9 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const __auth = await requireUser(req);
+  if (__auth instanceof Response) return __auth;
 
   try {
     const { places } = (await req.json()) as { places?: IncomingPlace[] };

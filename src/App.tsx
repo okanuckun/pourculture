@@ -18,6 +18,7 @@ const isNative = Capacitor.isNativePlatform();
 // Eager: critical pages
 import BrutalistHome from "./pages/BrutalistHome";
 import NotFound from "./pages/NotFound";
+import { AdminGuard } from "@/components/admin/AdminGuard";
 
 // Lazy: loaded on demand
 const Feed = lazy(() => import("./pages/Feed"));
@@ -105,9 +106,9 @@ const App = () => (
         <Route path="/my-events" element={<MyEvents />} />
         <Route path="/create-event" element={<CreateEvent />} />
         <Route path="/auth" element={<Auth />} />
-        {!isNative && <Route path="/admin" element={<Admin />} />}
-        {!isNative && <Route path="/admin/claims" element={<AdminClaims />} />}
-        {!isNative && <Route path="/admin/seo" element={<SEOAdmin />} />}
+        {!isNative && <Route path="/admin" element={<AdminGuard><Admin /></AdminGuard>} />}
+        {!isNative && <Route path="/admin/claims" element={<AdminGuard><AdminClaims /></AdminGuard>} />}
+        {!isNative && <Route path="/admin/seo" element={<AdminGuard><SEOAdmin /></AdminGuard>} />}
         <Route path="/profile/venue/:id/edit" element={<EditVenueProfile />} />
         <Route path="/profile/winemaker/:id/edit" element={<EditWinemakerProfile />} />
         <Route path="/claim-venue" element={<ClaimVenue />} />

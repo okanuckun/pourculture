@@ -1,3 +1,4 @@
+import { rateLimit } from '../_shared/auth.ts';
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -21,6 +22,12 @@ serve(async (req: Request) => {
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
+
+    const ip = (req.headers.get("x-forwarded-for") ?? "unknown").split(",")[0].trim();
+    const limited =
+      (await rateLimit("reset-password", `email:${String(email).toLowerCase()}`, 5, 3600)) ??
+      (await rateLimit("reset-password", `ip:${ip}`, 10, 3600));
+    if (limited) return limited;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;

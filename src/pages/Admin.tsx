@@ -14,6 +14,7 @@ import { KnowledgeHubAdmin } from '@/components/admin/KnowledgeHubAdmin';
 import { UserVerificationAdmin } from '@/components/admin/UserVerificationAdmin';
 import { PeopleAdmin } from '@/components/admin/PeopleAdmin';
 import { VenueDiscovery } from '@/components/admin/VenueDiscovery';
+import { PendingVenuesAdmin } from '@/components/admin/PendingVenuesAdmin';
 import { BrutalistLayout } from '@/components/grid/BrutalistLayout';
 import { motion } from 'framer-motion';
 
@@ -768,10 +769,14 @@ const Admin = () => {
         </motion.div>
 
         <Tabs defaultValue="discover" className="w-full">
-          <TabsList className="grid w-full grid-cols-8 mb-6 bg-background border-2 border-foreground p-1">
+          <TabsList className="grid w-full grid-cols-9 mb-6 bg-background border-2 border-foreground p-1">
             <TabsTrigger value="discover" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <Compass className="h-4 w-4" />
               Discover
+            </TabsTrigger>
+            <TabsTrigger value="pending" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
+              <MapPin className="h-4 w-4" />
+              Pending
             </TabsTrigger>
             <TabsTrigger value="submissions" className="flex items-center gap-2 data-[state=active]:bg-foreground data-[state=active]:text-background uppercase text-xs">
               <FileText className="h-4 w-4" />
@@ -806,6 +811,10 @@ const Admin = () => {
           {/* Discover Tab */}
           <TabsContent value="discover">
             <VenueDiscovery />
+          </TabsContent>
+
+          <TabsContent value="pending">
+            <PendingVenuesAdmin />
           </TabsContent>
 
           {/* Submissions Tab */}

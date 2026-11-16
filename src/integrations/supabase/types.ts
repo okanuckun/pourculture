@@ -686,6 +686,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limit_events: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          subject: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          subject: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          subject?: string
+        }
+        Relationships: []
+      }
       recommended_books: {
         Row: {
           amazon_link: string | null
@@ -1240,6 +1261,7 @@ export type Database = {
           slug: string
           social_links: Json | null
           source: string
+          status: string
           story: string | null
           updated_at: string
           website: string | null
@@ -1274,6 +1296,7 @@ export type Database = {
           slug: string
           social_links?: Json | null
           source?: string
+          status?: string
           story?: string | null
           updated_at?: string
           website?: string | null
@@ -1308,6 +1331,7 @@ export type Database = {
           slug?: string
           social_links?: Json | null
           source?: string
+          status?: string
           story?: string | null
           updated_at?: string
           website?: string | null

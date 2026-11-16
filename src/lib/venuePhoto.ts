@@ -18,7 +18,19 @@
  * proxy.
  */
 
+import { supabase } from '@/integrations/supabase/client';
+
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string;
+
+// The photo proxy requires a signed-in user. <img> tags can't send headers,
+// so the current access token is passed as a query param.
+let currentAccessToken: string | null = null;
+supabase.auth.getSession().then(({ data }) => {
+  currentAccessToken = data.session?.access_token ?? null;
+});
+supabase.auth.onAuthStateChange((_e, session) => {
+  currentAccessToken = session?.access_token ?? null;
+});
 
 export function googlePlacePhotoUrl(
   photoReference: string,
@@ -28,6 +40,7 @@ export function googlePlacePhotoUrl(
     photoReference,
     maxWidth: String(maxWidth),
   });
+  if (currentAccessToken) params.set('access_token', currentAccessToken);
   return `${SUPABASE_URL}/functions/v1/google-place-photo?${params.toString()}`;
 }
 

@@ -1,0 +1,3 @@
+- Edge functions authenticate via `supabase/functions/_shared/auth.ts` (requireUser/requireAdmin/rateLimit); only sitemap, robots-txt, get-mapbox-token and reset-password are public — keeps paid APIs behind sign-in.
+- Protected columns (profiles.is_verified, venues/winemakers featured/claimed/owner/source/status) are enforced by BEFORE triggers that bypass only for admins and service role — RLS can't restrict per-column.
+- Non-admin venue inserts become status='pending'; public reads only show 'published' — moderation queue lives in the admin Pending tab.

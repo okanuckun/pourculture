@@ -1,3 +1,4 @@
+import { requireUser, rateLimit } from '../_shared/auth.ts';
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -9,6 +10,11 @@ serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
+
+  const __auth = await requireUser(req);
+  if (__auth instanceof Response) return __auth;
+  const __limited = await rateLimit('analyze-wine', __auth.userId, 20, 3600);
+  if (__limited) return __limited;
 
   try {
     const body = await req.json();
