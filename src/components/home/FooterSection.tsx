@@ -83,7 +83,7 @@ const FooterSection: React.FC = () => {
           </div>
           <div className="border-t border-foreground/10 mt-8 pt-6 text-center">
             <p className="text-[10px] text-muted-foreground tracking-wider">
-              © {new Date().getFullYear()} POURCULTURE. ALL RIGHTS RESERVED.
+              © {new Date().getFullYear()} POUR CULTURE · WINE TALK FOR EVERYONE
             </p>
           </div>
         </div>

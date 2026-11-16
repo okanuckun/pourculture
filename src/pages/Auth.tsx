@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -150,8 +151,8 @@ const Auth = () => {
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          <Link to="/" className="text-sm font-bold tracking-tight mb-12 block">
-            POURCULTURE
+          <Link to="/" className="mb-12 block w-fit" aria-label="Pour Culture home">
+            <BrandLogo variant="stacked" className="h-16" />
           </Link>
 
           {(mode === 'forgot' || mode === 'reset') && (

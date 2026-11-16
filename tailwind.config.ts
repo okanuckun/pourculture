@@ -14,9 +14,11 @@ export default {
     },
     extend: {
       fontFamily: {
-        sans: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        display: ['Space Grotesk', 'system-ui', 'sans-serif'],
-        grotesk: ['Space Grotesk', 'system-ui', 'sans-serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['Barlow Condensed', 'Arial Narrow', 'system-ui', 'sans-serif'],
+        grotesk: ['Inter', 'system-ui', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'monospace'],
+        note: ['Caveat Brush', 'cursive'],
       },
       colors: {
         border: "hsl(var(--border))",
@@ -62,7 +64,13 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        // Custom pourculture colors
+        // Pour Culture brand colours
+        cherry: "hsl(var(--cherry))",
+        pink: "hsl(var(--pink))",
+        cream: "hsl(var(--cream))",
+        ink: "hsl(var(--ink))",
+        blush: "hsl(var(--blush))",
+        // Legacy pourculture colors
         wine: {
           red: "hsl(var(--wine-red))",
           rose: "hsl(var(--wine-rose))",

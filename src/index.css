@@ -2,112 +2,108 @@
 @tailwind components;
 @tailwind utilities;
 
-/* pourculture Design System
-   A playful, modern, hand-drawn aesthetic for natural wine lovers
-   Primary: Deep wine burgundy (organic, warm)
-   Accent: Vibrant coral/terracotta (energy, fun)
-   Background: Soft cream with warmth
-   All colors MUST be HSL.
-*/
+/* Pour Culture brand system v1 (16.11.2026)
+   cherry #E8344A · pét-nat pink #F49AC1 · lees cream #EFE5D2 · cellar ink #1A1414 · blush #FBD3E3
+   Headlines: Barlow Condensed 700 uppercase · Body: Inter · Labels: JetBrains Mono · Notes: Caveat Brush
+   All colours MUST be HSL. */
 
 @layer base {
   :root {
-    /* pourculture color palette - playful, organic, wine-inspired */
-    --background: 45 30% 97%;
-    --foreground: 20 15% 15%;
+    --background: 39 48% 88%;          /* cream */
+    --foreground: 0 13% 9%;            /* ink */
 
-    --card: 45 40% 99%;
-    --card-foreground: 20 15% 15%;
+    --card: 40 50% 93%;                /* paper */
+    --card-foreground: 0 13% 9%;
+    --popover: 40 50% 93%;
+    --popover-foreground: 0 13% 9%;
 
-    --popover: 45 40% 99%;
-    --popover-foreground: 20 15% 15%;
+    --primary: 353 80% 56%;            /* cherry */
+    --primary-foreground: 39 48% 88%;
 
-    /* Primary - Deep Burgundy Wine */
-    --primary: 340 55% 40%;
-    --primary-foreground: 45 30% 97%;
+    --secondary: 334 80% 78%;          /* pink */
+    --secondary-foreground: 0 13% 9%;
 
-    /* Secondary - Soft warm beige */
-    --secondary: 40 35% 94%;
-    --secondary-foreground: 20 15% 15%;
+    --muted: 39 41% 83%;
+    --muted-foreground: 0 7% 35%;
 
-    /* Muted - Gentle cream */
-    --muted: 40 25% 92%;
-    --muted-foreground: 20 10% 45%;
+    --accent: 334 80% 78%;             /* pink */
+    --accent-foreground: 0 13% 9%;
 
-    /* Accent - Vibrant Terracotta/Coral */
-    --accent: 18 85% 55%;
-    --accent-foreground: 45 30% 97%;
+    /* brand tokens */
+    --cherry: 353 80% 56%;
+    --pink: 334 80% 78%;
+    --cream: 39 48% 88%;
+    --ink: 0 13% 9%;
+    --blush: 336 83% 91%;
+    --wine: 354 64% 34%;
 
-    /* Wine colors - for decorative elements */
-    --wine-red: 350 65% 42%;
-    --wine-rose: 345 55% 68%;
-    --wine-white: 48 75% 88%;
-    --wine-orange: 25 90% 58%;
+    /* legacy wine tokens mapped to the new palette */
+    --wine-red: 353 80% 56%;
+    --wine-rose: 334 80% 78%;
+    --wine-white: 39 48% 88%;
+    --wine-orange: 353 80% 56%;
 
-    --destructive: 0 72% 55%;
-    --destructive-foreground: 45 30% 97%;
+    --destructive: 0 72% 45%;
+    --destructive-foreground: 39 48% 88%;
 
-    --border: 40 25% 88%;
-    --input: 40 25% 90%;
-    --ring: 340 55% 40%;
+    --border: 38 28% 73%;
+    --input: 38 28% 73%;
+    --ring: 353 80% 56%;
 
-    --radius: 1rem;
+    --radius: 0.375rem;
 
-    /* Map colors */
-    --map-bg: 45 30% 95%;
-    
-    /* Status colors */
-    --status-open: 155 60% 40%;
-    --status-closed: 0 60% 50%;
+    --map-bg: 39 48% 88%;
+    --status-open: 155 55% 32%;
+    --status-closed: 353 80% 56%;
 
-    /* Sidebar */
-    --sidebar-background: 45 30% 96%;
-    --sidebar-foreground: 20 15% 15%;
-    --sidebar-primary: 340 55% 40%;
-    --sidebar-primary-foreground: 45 30% 97%;
-    --sidebar-accent: 40 35% 92%;
-    --sidebar-accent-foreground: 20 15% 15%;
-    --sidebar-border: 40 25% 88%;
-    --sidebar-ring: 340 55% 40%;
+    --sidebar-background: 40 50% 93%;
+    --sidebar-foreground: 0 13% 9%;
+    --sidebar-primary: 353 80% 56%;
+    --sidebar-primary-foreground: 39 48% 88%;
+    --sidebar-accent: 39 41% 83%;
+    --sidebar-accent-foreground: 0 13% 9%;
+    --sidebar-border: 38 28% 73%;
+    --sidebar-ring: 353 80% 56%;
   }
 
   .dark {
-    --background: 20 15% 8%;
-    --foreground: 45 30% 94%;
+    --background: 0 13% 9%;            /* ink */
+    --foreground: 39 48% 88%;          /* cream */
 
-    --card: 20 12% 12%;
-    --card-foreground: 45 30% 94%;
+    --card: 0 12% 13%;
+    --card-foreground: 39 48% 88%;
+    --popover: 0 12% 13%;
+    --popover-foreground: 39 48% 88%;
 
-    --popover: 20 12% 12%;
-    --popover-foreground: 45 30% 94%;
+    --primary: 353 80% 56%;
+    --primary-foreground: 39 48% 88%;
 
-    --primary: 340 50% 50%;
-    --primary-foreground: 45 30% 97%;
+    --secondary: 334 80% 78%;
+    --secondary-foreground: 0 13% 9%;
 
-    --secondary: 20 10% 16%;
-    --secondary-foreground: 45 30% 94%;
+    --muted: 0 11% 16%;
+    --muted-foreground: 38 18% 66%;
 
-    --muted: 20 8% 20%;
-    --muted-foreground: 40 15% 60%;
+    --accent: 334 80% 78%;
+    --accent-foreground: 0 13% 9%;
 
-    --accent: 18 80% 58%;
-    --accent-foreground: 45 30% 97%;
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 39 48% 88%;
 
-    --destructive: 0 65% 45%;
-    --destructive-foreground: 45 30% 97%;
+    --border: 0 10% 21%;
+    --input: 0 10% 21%;
+    --ring: 334 80% 78%;
 
-    --border: 20 10% 22%;
-    --input: 20 10% 22%;
-    --ring: 340 50% 50%;
+    --map-bg: 0 13% 9%;
 
-    --sidebar-background: 20 12% 10%;
-    --sidebar-foreground: 45 30% 94%;
-    --sidebar-primary: 340 50% 50%;
-    --sidebar-primary-foreground: 45 30% 97%;
-    --sidebar-accent: 20 10% 16%;
-    --sidebar-accent-foreground: 45 30% 94%;
-    --sidebar-border: 20 10% 22%;
-    --sidebar-ring: 340 50% 50%;
+    --sidebar-background: 0 12% 13%;
+    --sidebar-foreground: 39 48% 88%;
+    --sidebar-primary: 353 80% 56%;
+    --sidebar-primary-foreground: 39 48% 88%;
+    --sidebar-accent: 0 11% 16%;
+    --sidebar-accent-foreground: 39 48% 88%;
+    --sidebar-border: 0 10% 21%;
+    --sidebar-ring: 334 80% 78%;
   }
 }
 
@@ -118,6 +114,12 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.005em;
   }
 
   /* Custom scrollbar for Raisin theme */
@@ -201,6 +203,16 @@
   .section-title {
     @apply text-2xl md:text-3xl font-semibold text-accent mb-4;
   }
+}
+
+@layer components {
+  /* brand helpers */
+  .pc-display { font-family: 'Barlow Condensed', 'Arial Narrow', system-ui, sans-serif; font-weight: 700; text-transform: uppercase; line-height: .86; letter-spacing: -0.005em; }
+  .pc-label { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; text-transform: uppercase; letter-spacing: .02em; }
+  .pc-note { font-family: 'Caveat Brush', cursive; display: inline-block; transform: rotate(-5deg); line-height: 1; }
+  .pc-pill { display: inline-flex; align-items: center; border: .09em solid currentColor; border-radius: 999px; padding: 0 .32em; line-height: 1; }
+  .pc-arch { border-radius: 999px 999px 18px 18px; }
+  .pc-blob { border-radius: 47% 53% 41% 59% / 55% 40% 60% 45%; }
 }
 
 @layer utilities {

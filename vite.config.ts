@@ -15,29 +15,21 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
-      includeAssets: ["pwa-icon-512.jpg", "pwa-icon-192.jpg", "apple-touch-icon.jpg"],
+      includeAssets: ["brand/icon-192.png", "brand/icon-512.png", "brand/apple-touch-icon.png", "brand/app-icon.svg"],
       manifest: {
-        name: "PourCulture",
-        short_name: "PourCulture",
-        description: "Discover natural wine bars, restaurants, wine shops, and winemakers near you.",
-        theme_color: "#000000",
-        background_color: "#ffffff",
+        name: "Pour Culture",
+        short_name: "Pour Culture",
+        description: "Natural wine bars, shops, winemakers and stories. Wine talk for everyone.",
+        theme_color: "#E8344A",
+        background_color: "#EFE5D2",
         display: "standalone",
         orientation: "portrait",
         start_url: "/",
         icons: [
-          {
-            src: "/pwa-icon-192.jpg",
-            sizes: "192x192",
-            type: "image/jpeg",
-            purpose: "any maskable"
-          },
-          {
-            src: "/pwa-icon-512.jpg",
-            sizes: "512x512",
-            type: "image/jpeg",
-            purpose: "any maskable"
-          }
+          { src: "/brand/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/brand/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          { src: "/brand/maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+          { src: "/brand/maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" }
         ]
       },
       workbox: {

@@ -1,3 +1,4 @@
+import { BrandLogo } from '@/components/brand/BrandLogo';
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronDown, Menu, X, User, Heart, ArrowLeft, Sun, Moon } from 'lucide-react';
@@ -54,9 +55,8 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
       <header className="border-b border-foreground/20 sticky top-0 bg-background z-50">
         <div className="flex items-center justify-between h-12 px-4 md:px-6">
           {/* Logo */}
-          <Link to="/" className="flex items-baseline text-sm font-bold tracking-tight">
-            POURCULTURE
-            <span className="w-1.5 h-1.5 rounded-full bg-[#EF553A] ml-0.5 inline-block flex-shrink-0"></span>
+          <Link to="/" className="flex items-center" aria-label="Pour Culture home">
+            <BrandLogo className="h-[22px] md:h-6" />
           </Link>
 
           {/* Right Side Navigation */}
@@ -387,7 +387,7 @@ export const BrutalistLayout: React.FC<BrutalistLayoutProps> = ({
           </div>
           <div className="border-t border-foreground/10 mt-8 pt-6 text-center">
             <p className="text-[10px] text-muted-foreground tracking-wider">
-              © {new Date().getFullYear()} POURCULTURE. ALL RIGHTS RESERVED.
+              © {new Date().getFullYear()} POUR CULTURE · WINE TALK FOR EVERYONE
             </p>
           </div>
         </div>

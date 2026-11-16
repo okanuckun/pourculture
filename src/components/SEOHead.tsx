@@ -87,13 +87,20 @@ export const SEOHead = ({
   });
 
   // Determine final values (page settings > props > global defaults)
-  const titleTemplate = globalSettings?.title_template || '{PageTitle} | PourCulture';
-  const finalTitle = pageSettings?.meta_title || title;
-  const fullTitle = titleTemplate.replace('{PageTitle}', finalTitle);
+  const titleTemplate = globalSettings?.title_template || '{PageTitle} | Pour Culture';
+  // Pages often already end with "| PourCulture"; strip any brand suffix/prefix so the template adds it once.
+  const brandRe = /(pour\s?culture)/i;
+  const rawTitle = (pageSettings?.meta_title || title || '').trim();
+  const finalTitle = rawTitle
+    .replace(/\s*[|—–-]\s*pour\s?culture\s*$/i, '')
+    .replace(/^pour\s?culture\s*[|—–-]\s*/i, '')
+    .trim() || 'Pour Culture';
+  const fullTitle = (brandRe.test(finalTitle) ? finalTitle : titleTemplate.replace('{PageTitle}', finalTitle))
+    .replace(/pourculture/gi, 'Pour Culture');
   
   const finalDescription = pageSettings?.meta_description || description || globalSettings?.description_template || '';
   const finalKeywords = pageSettings?.meta_keywords || keywords;
-  const finalImage = pageSettings?.og_image || image || globalSettings?.default_og_image || '/placeholder.svg';
+  const finalImage = pageSettings?.og_image || image || globalSettings?.default_og_image || 'https://pourculture.com/brand/og-image.png';
   
   // Robots meta
   const robotsMeta = noindex ? 'noindex, nofollow' : (pageSettings?.robots_meta || globalSettings?.default_robots_meta || 'index, follow');
@@ -132,7 +139,7 @@ export const SEOHead = ({
       <meta property="og:title" content={ogTitle} />
       <meta property="og:description" content={ogDescription} />
       <meta property="og:image" content={ogImage} />
-      <meta property="og:site_name" content="PourCulture" />
+      <meta property="og:site_name" content="Pour Culture" />
       
       {/* Twitter */}
       <meta name="twitter:card" content={twitterCardType} />
